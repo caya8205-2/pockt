@@ -1,0 +1,57 @@
+/* Hallmark · macrostructure: Workbench · theme: Bloom (Light Mode) · genre: editorial · nav: N3 Side-rail · footer: Ft5 Statement
+ * pre-emit critique: P5 H5 E5 S5 R5 V5
+ * contrast: pass (APCA 7:1)
+ */
+
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+:root,
+[data-theme="light"] {
+  /* Global Design Tokens — Light Theme (Hallmark Bloom Preset) */
+  --color-paper: oklch(0.975 0.008 75);
+  --color-paper-2: oklch(0.995 0.004 75);
+  --color-paper-3: oklch(0.935 0.012 75);
+  --color-ink: oklch(0.18 0.015 60);
+  --color-ink-muted: oklch(0.46 0.012 60);
+  --color-border: oklch(0.88 0.010 75);
+  
+  /* Accent Tokens (Signal Terracotta / Warm Bloom) */
+  --color-accent: oklch(0.64 0.18 40);
+  --color-accent-subtle: oklch(0.94 0.04 40);
+  --color-accent-hover: oklch(0.58 0.19 40);
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  overflow-x: clip;
+  min-height: 100vh;
+}
+
+/* Typography purity: Headings are strictly roman (no italic headers) */
+h1, h2, h3, h4, h5, h6 {
+  font-style: normal;
+  color: var(--color-ink);
+}
+
+/* Custom crisp scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: oklch(0.80 0.01 75);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.70 0.01 75);
+}

@@ -1,0 +1,9 @@
+node_modules/
+.turbo/
+dist/
+.svelte-kit/
+build/
+*.db
+*.db-journal
+.env
+.env.local
