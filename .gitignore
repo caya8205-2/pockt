@@ -5,5 +5,8 @@ dist/
 build/
 *.db
 *.db-journal
+*.db-shm
+*.db-wal
+test-results/
 .env
 .env.local

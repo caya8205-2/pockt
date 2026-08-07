@@ -6,7 +6,10 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "check": "turbo check",
-    "clean": "turbo clean"
+    "clean": "turbo clean",
+    "test": "pnpm --filter @pockt/backend test",
+    "test:web": "pnpm --filter @pockt/web test:e2e",
+    "test:all": "pnpm --filter @pockt/backend test && pnpm --filter @pockt/web test:e2e"
   },
   "devDependencies": {
     "turbo": "^2.4.0"

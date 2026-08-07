@@ -83,12 +83,12 @@
 </script>
 
 <div class="space-y-5">
-  <div class="flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="p-2.5 bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)] rounded-md">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+    <div class="flex items-start sm:items-center gap-3 min-w-0">
+      <div class="p-2.5 bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)] rounded-md shrink-0 mt-0.5 sm:mt-0">
         <Wallet class="w-5 h-5" />
       </div>
-      <div>
+      <div class="min-w-0">
         <h1 class="text-xl font-bold font-mono text-[var(--color-ink)]">Kelola Pemasukan</h1>
         <p class="text-xs text-[var(--color-ink-muted)]">Catat gaji, bonus, freelance, atau pengembalian dana.</p>
       </div>
@@ -96,7 +96,7 @@
 
     <button
       on:click={openCreateModal}
-      class="flex items-center gap-2 px-3.5 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs"
+      class="flex items-center justify-center gap-2 px-3.5 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 w-full sm:w-auto"
     >
       <Plus class="w-4 h-4 stroke-[3]" />
       <span>Tambah Pemasukan</span>
@@ -112,12 +112,12 @@
   {:else}
     <div class="grid gap-2.5">
       {#each incomes as item}
-        <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-3.5 flex items-center justify-between gap-4 hover:border-slate-400 transition-colors">
-          <div class="flex items-center gap-3">
-            <div class="p-2 bg-[var(--color-accent-subtle)] text-[var(--color-accent)] rounded">
+        <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-slate-400 transition-colors">
+          <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+            <div class="p-2 bg-[var(--color-accent-subtle)] text-[var(--color-accent)] rounded shrink-0 mt-0.5 sm:mt-0">
               <ArrowDownLeft class="w-4 h-4" />
             </div>
-            <div>
+            <div class="min-w-0 flex-1">
               <div class="font-bold text-[var(--color-ink)] text-sm">{item.title}</div>
               <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-0.5">
                 {formatDate(item.date)} {#if item.notes}• <span class="italic text-[var(--color-ink-muted)] font-sans">{item.notes}</span>{/if}
@@ -125,11 +125,11 @@
             </div>
           </div>
 
-          <div class="flex items-center gap-4 font-mono">
+          <div class="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-[var(--color-border)] font-mono shrink-0">
             <div class="font-bold text-[var(--color-accent)] text-sm sm:text-base">
               +{formatRupiah(item.amount)}
             </div>
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1 shrink-0">
               <button
                 on:click={() => openEditModal(item)}
                 class="p-1.5 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-3)] rounded transition-colors cursor-pointer"

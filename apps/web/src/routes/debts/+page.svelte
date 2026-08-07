@@ -134,12 +134,12 @@
 </script>
 
 <div class="space-y-5">
-  <div class="flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="p-2.5 bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] border border-[var(--color-border)] rounded-md">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+    <div class="flex items-start sm:items-center gap-3 min-w-0">
+      <div class="p-2.5 bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] border border-[var(--color-border)] rounded-md shrink-0 mt-0.5 sm:mt-0">
         <HandCoins class="w-5 h-5" />
       </div>
-      <div>
+      <div class="min-w-0">
         <h1 class="text-xl font-bold font-mono text-[var(--color-ink)]">Catatan Hutang & Pinjaman</h1>
         <p class="text-xs text-[var(--color-ink-muted)]">Pantau kewajiban hutang kepada pihak lain dan riwayat pelunasan.</p>
       </div>
@@ -147,7 +147,7 @@
 
     <button
       on:click={openCreateModal}
-      class="flex items-center gap-2 px-3.5 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-mono font-bold text-xs rounded-md transition-colors shadow-xs cursor-pointer"
+      class="flex items-center justify-center gap-2 px-3.5 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 w-full sm:w-auto"
     >
       <Plus class="w-4 h-4 stroke-[3]" />
       <span>Catat Hutang Baru</span>
@@ -166,28 +166,28 @@
         <div class={`border rounded-md p-4 space-y-3 transition-colors ${
           item.isPaid ? 'bg-[var(--color-paper-2)]/40 border-[var(--color-border)] opacity-75' : 'bg-[var(--color-paper-2)] border-[var(--color-border)] hover:border-slate-400'
         }`}>
-          <div class="flex items-center justify-between gap-4">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-sm sm:text-base text-[var(--color-ink)]">{item.person}</span>
+          <div class="flex items-center justify-between gap-3 sm:gap-4">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 min-w-0 flex-wrap sm:flex-nowrap">
+                <span class="font-bold text-sm sm:text-base text-[var(--color-ink)] truncate">{item.person}</span>
                 {#if item.isPaid}
-                  <span class="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)] rounded">
+                  <span class="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)] rounded shrink-0 whitespace-nowrap">
                     LUNAS
                   </span>
                 {/if}
               </div>
               {#if item.notes}
-                <div class="text-xs text-[var(--color-ink-muted)] mt-0.5">{item.notes}</div>
+                <div class="text-xs text-[var(--color-ink-muted)] mt-0.5 truncate">{item.notes}</div>
               {/if}
               {#if item.dueDate}
                 <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-0.5">Jatuh tempo: {formatDate(item.dueDate)}</div>
               {/if}
             </div>
 
-            <div class="text-right font-mono">
+            <div class="text-right font-mono shrink-0">
               <div class="text-xs text-[var(--color-ink-muted)]">Sisa Pokok:</div>
-              <div class="text-base sm:text-lg font-bold text-[var(--color-ink)]">{formatRupiah(item.remainingAmount)}</div>
-              <div class="text-[10px] text-[var(--color-ink-muted)]">Total: {formatRupiah(item.totalAmount)}</div>
+              <div class="text-base sm:text-lg font-bold text-[var(--color-ink)] whitespace-nowrap">{formatRupiah(item.remainingAmount)}</div>
+              <div class="text-[10px] text-[var(--color-ink-muted)] whitespace-nowrap">Total: {formatRupiah(item.totalAmount)}</div>
             </div>
           </div>
 

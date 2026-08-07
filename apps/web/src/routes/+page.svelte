@@ -95,9 +95,9 @@
     <!-- Unified Stat Cards Grid (Single Accent Tone) -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 space-y-1">
-        <div class="flex items-center justify-between text-[var(--color-ink-muted)]">
-          <span class="text-xs font-mono font-semibold uppercase tracking-wider">Pemasukan Bulan Ini</span>
-          <Wallet class="w-4 h-4 text-[var(--color-accent)]" />
+        <div class="flex items-start justify-between gap-2 text-[var(--color-ink-muted)]">
+          <span class="text-xs font-mono font-semibold uppercase tracking-wider min-w-0">Pemasukan Bulan Ini</span>
+          <Wallet class="w-4 h-4 text-[var(--color-accent)] shrink-0 mt-0.5" />
         </div>
         <div class="text-lg sm:text-xl font-bold font-mono text-[var(--color-ink)]">
           {formatRupiah(dashboard.monthlyIncome)}
@@ -105,9 +105,9 @@
       </div>
 
       <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 space-y-1">
-        <div class="flex items-center justify-between text-[var(--color-ink-muted)]">
-          <span class="text-xs font-mono font-semibold uppercase tracking-wider">Pengeluaran Bulan Ini</span>
-          <Receipt class="w-4 h-4 text-[var(--color-ink-muted)]" />
+        <div class="flex items-start justify-between gap-2 text-[var(--color-ink-muted)]">
+          <span class="text-xs font-mono font-semibold uppercase tracking-wider min-w-0">Pengeluaran Bulan Ini</span>
+          <Receipt class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5" />
         </div>
         <div class="text-lg sm:text-xl font-bold font-mono text-[var(--color-ink)]">
           {formatRupiah(dashboard.monthlyExpenses)}
@@ -115,9 +115,9 @@
       </div>
 
       <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 space-y-1">
-        <div class="flex items-center justify-between text-[var(--color-ink-muted)]">
-          <span class="text-xs font-mono font-semibold uppercase tracking-wider">Tagihan Belum Lunas</span>
-          <CalendarCheck class="w-4 h-4 text-[var(--color-ink-muted)]" />
+        <div class="flex items-start justify-between gap-2 text-[var(--color-ink-muted)]">
+          <span class="text-xs font-mono font-semibold uppercase tracking-wider min-w-0">Tagihan Belum Lunas</span>
+          <CalendarCheck class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5" />
         </div>
         <div class="text-lg sm:text-xl font-bold font-mono text-[var(--color-ink)]">
           {formatRupiah(dashboard.outstandingBills)}
@@ -125,9 +125,9 @@
       </div>
 
       <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 space-y-1">
-        <div class="flex items-center justify-between text-[var(--color-ink-muted)]">
-          <span class="text-xs font-mono font-semibold uppercase tracking-wider">Total Sisa Hutang</span>
-          <HandCoins class="w-4 h-4 text-[var(--color-ink-muted)]" />
+        <div class="flex items-start justify-between gap-2 text-[var(--color-ink-muted)]">
+          <span class="text-xs font-mono font-semibold uppercase tracking-wider min-w-0">Total Sisa Hutang</span>
+          <HandCoins class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5" />
         </div>
         <div class="text-lg sm:text-xl font-bold font-mono text-[var(--color-ink)]">
           {formatRupiah(dashboard.outstandingDebt)}
@@ -184,10 +184,10 @@
               {/if}
 
               <div class="min-w-0">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 min-w-0">
                   <span class="font-bold text-[var(--color-ink)] text-sm truncate">{item.title}</span>
                   {#if item.category}
-                    <span class="px-1.5 py-0.5 text-[10px] font-mono bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded">
+                    <span class="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded shrink-0 whitespace-nowrap">
                       {item.category}
                     </span>
                   {/if}

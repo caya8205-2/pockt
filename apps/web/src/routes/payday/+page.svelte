@@ -66,41 +66,41 @@
         <div class="text-xs font-mono font-semibold uppercase tracking-wider text-[var(--color-ink-muted)]">Kewajiban & Komitmen Terjadwal</div>
 
         <div class="grid gap-2.5 font-mono">
-          <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md p-3.5 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <CalendarCheck class="w-4 h-4 text-[var(--color-ink-muted)]" />
-              <div>
+          <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+            <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+              <CalendarCheck class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5 sm:mt-0" />
+              <div class="min-w-0 flex-1">
                 <div class="text-sm font-bold text-[var(--color-ink)]">Tagihan Bulanan (Bills)</div>
                 <div class="text-xs text-[var(--color-ink-muted)]">{data.unpaidBills.length} tagihan belum dibayar</div>
               </div>
             </div>
-            <div class="text-base font-bold text-[var(--color-ink)]">
+            <div class="text-sm sm:text-base font-bold text-[var(--color-ink)] shrink-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-[var(--color-border)] text-right">
               - {formatRupiah(data.billsTotal)}
             </div>
           </div>
 
-          <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md p-3.5 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <HandCoins class="w-4 h-4 text-[var(--color-ink-muted)]" />
-              <div>
+          <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+            <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+              <HandCoins class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5 sm:mt-0" />
+              <div class="min-w-0 flex-1">
                 <div class="text-sm font-bold text-[var(--color-ink)]">Pokok / Angsuran Hutang</div>
                 <div class="text-xs text-[var(--color-ink-muted)]">{data.unpaidDebts.length} catatan hutang aktif</div>
               </div>
             </div>
-            <div class="text-base font-bold text-[var(--color-ink)]">
+            <div class="text-sm sm:text-base font-bold text-[var(--color-ink)] shrink-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-[var(--color-border)] text-right">
               - {formatRupiah(data.debtDueTotal)}
             </div>
           </div>
 
-          <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md p-3.5 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <Receipt class="w-4 h-4 text-[var(--color-ink-muted)]" />
-              <div>
+          <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+            <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+              <Receipt class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5 sm:mt-0" />
+              <div class="min-w-0 flex-1">
                 <div class="text-sm font-bold text-[var(--color-ink)]">Pengeluaran Terjadi (Spent)</div>
                 <div class="text-xs text-[var(--color-ink-muted)]">Total belanja bulan ini</div>
               </div>
             </div>
-            <div class="text-base font-bold text-[var(--color-ink)]">
+            <div class="text-sm sm:text-base font-bold text-[var(--color-ink)] shrink-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-[var(--color-border)] text-right">
               - {formatRupiah(data.spentTotal)}
             </div>
           </div>

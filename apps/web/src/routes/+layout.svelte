@@ -1,5 +1,6 @@
 <script lang="ts">
   import '../app.css';
+  import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import {
     LayoutDashboard,
@@ -10,15 +11,40 @@
     Plus,
     Download,
     ChevronLeft,
-    ChevronRight,
     Menu,
-    X
+    X,
+    Sun,
+    Moon
   } from 'lucide-svelte';
   import QuickAddModal from '$components/QuickAddModal.svelte';
 
   let isSidebarCompact = false;
   let isMobileMenuOpen = false;
   let isQuickAddOpen = false;
+  let currentTheme: 'light' | 'dark' = 'light';
+
+  onMount(() => {
+    const saved = localStorage.getItem('pockt-theme') as 'light' | 'dark' | null;
+    if (saved === 'dark' || saved === 'light') {
+      currentTheme = saved;
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      currentTheme = 'dark';
+    }
+    applyTheme(currentTheme);
+  });
+
+  function applyTheme(theme: 'light' | 'dark') {
+    currentTheme = theme;
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('pockt-theme', theme);
+    }
+  }
+
+  function toggleTheme() {
+    const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
+    applyTheme(nextTheme);
+  }
 
   const navItems = [
     { href: '/', label: 'Timeline & Status', icon: LayoutDashboard },
@@ -42,7 +68,7 @@
   }
 </script>
 
-<div class="min-h-screen flex flex-col md:flex-row bg-[var(--color-paper)] text-[var(--color-ink)] selection:bg-[var(--color-accent-subtle)] selection:text-[var(--color-accent)]">
+<div class="min-h-screen flex flex-col md:flex-row bg-[var(--color-paper)] text-[var(--color-ink)] selection:bg-[var(--color-accent-subtle)] selection:text-[var(--color-accent)] transition-colors duration-150">
   <!-- Mobile Header Bar -->
   <header class="md:hidden sticky top-0 z-40 bg-[var(--color-paper-2)] border-b border-[var(--color-border)] px-4 py-3 flex items-center justify-between shadow-xs">
     <a href="/" class="flex items-center gap-2.5">
@@ -51,9 +77,23 @@
     </a>
 
     <div class="flex items-center gap-2">
+      <!-- Theme Toggle Mobile Button -->
+      <button
+        on:click={toggleTheme}
+        class="p-2 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md cursor-pointer transition-colors"
+        title={currentTheme === 'light' ? 'Beralih ke Dark Mode (Aurora)' : 'Beralih ke Light Mode (Bloom)'}
+        aria-label="Toggle Theme"
+      >
+        {#if currentTheme === 'light'}
+          <Moon class="w-4 h-4 text-[var(--color-ink-muted)]" />
+        {:else}
+          <Sun class="w-4 h-4 text-[var(--color-ink-muted)]" />
+        {/if}
+      </button>
+
       <button
         on:click={openQuickAdd}
-        class="p-2 bg-[var(--color-accent)] text-white rounded-md font-bold text-xs flex items-center justify-center cursor-pointer"
+        class="p-2 bg-[var(--color-accent)] text-slate-950 font-bold text-xs flex items-center justify-center cursor-pointer rounded-md shadow-xs"
         aria-label="Catat Transaksi"
       >
         <Plus class="w-4 h-4 stroke-[3]" />
@@ -105,9 +145,23 @@
       </nav>
 
       <div class="pt-4 border-t border-[var(--color-border)] space-y-3">
+        <!-- Mobile Drawer Theme Toggle Button -->
+        <button
+          on:click={toggleTheme}
+          class="w-full py-2.5 bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink)] font-mono text-xs rounded-md flex items-center justify-center gap-2 cursor-pointer"
+        >
+          {#if currentTheme === 'light'}
+            <Moon class="w-4 h-4 text-[var(--color-ink-muted)]" />
+            <span>Switch to Dark Mode (Aurora)</span>
+          {:else}
+            <Sun class="w-4 h-4 text-[var(--color-ink-muted)]" />
+            <span>Switch to Light Mode (Bloom)</span>
+          {/if}
+        </button>
+
         <button
           on:click={() => { isMobileMenuOpen = false; openQuickAdd(); }}
-          class="w-full py-3 bg-[var(--color-accent)] text-white font-mono font-bold text-sm rounded-md flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+          class="w-full py-3 bg-[var(--color-accent)] text-slate-950 font-mono font-bold text-sm rounded-md flex items-center justify-center gap-2 cursor-pointer shadow-xs"
         >
           <Plus class="w-4 h-4 stroke-[3]" />
           <span>Catat Transaksi</span>
@@ -166,7 +220,7 @@
     <div class="p-3">
       <button
         on:click={openQuickAdd}
-        class={`w-full py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-mono font-bold text-xs rounded-md transition-colors shadow-xs flex items-center justify-center gap-2 cursor-pointer ${
+        class={`w-full py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors shadow-xs flex items-center justify-center gap-2 cursor-pointer ${
           isSidebarCompact ? 'px-0' : 'px-3'
         }`}
         title="Catat Transaksi"
@@ -199,8 +253,29 @@
       {/each}
     </nav>
 
-    <!-- Sidebar Footer / Export Action -->
+    <!-- Sidebar Footer / Actions -->
     <div class="p-3 border-t border-[var(--color-border)] space-y-2">
+      <!-- Theme Toggle Switch -->
+      <button
+        on:click={toggleTheme}
+        class={`w-full py-2 bg-[var(--color-paper)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] font-mono text-[11px] rounded-md transition-colors flex items-center justify-center gap-2 cursor-pointer ${
+          isSidebarCompact ? 'px-0' : 'px-3'
+        }`}
+        title={currentTheme === 'light' ? 'Mode Gelap (Aurora)' : 'Mode Terang (Bloom)'}
+      >
+        {#if currentTheme === 'light'}
+          <Moon class="w-3.5 h-3.5 text-[var(--color-ink-muted)]" />
+          {#if !isSidebarCompact}
+            <span>Dark Mode (Aurora)</span>
+          {/if}
+        {:else}
+          <Sun class="w-3.5 h-3.5 text-[var(--color-ink-muted)]" />
+          {#if !isSidebarCompact}
+            <span>Light Mode (Bloom)</span>
+          {/if}
+        {/if}
+      </button>
+
       <a
         href="/api/export/csv"
         download
@@ -226,7 +301,9 @@
     <!-- Clean Minimal Footer -->
     <footer class="border-t border-[var(--color-border)] bg-[var(--color-paper-2)] px-6 py-4 text-xs font-mono text-[var(--color-ink-muted)] flex items-center justify-between">
       <div>Pockt — Personal Finance Companion</div>
-      <div class="text-[10px]">v0.1.0</div>
+      <div class="text-[10px] uppercase font-mono tracking-wider">
+        MIT License
+      </div>
     </footer>
   </div>
 </div>

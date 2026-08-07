@@ -96,21 +96,21 @@
 </script>
 
 <div class="space-y-5">
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
-      <div class="p-2.5 bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] border border-[var(--color-border)] rounded-md">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+    <div class="flex items-start sm:items-center gap-3 min-w-0">
+      <div class="p-2.5 bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] border border-[var(--color-border)] rounded-md shrink-0 mt-0.5 sm:mt-0">
         <CalendarCheck class="w-5 h-5" />
       </div>
-      <div>
+      <div class="min-w-0">
         <h1 class="text-xl font-bold font-mono text-[var(--color-ink)]">Kelola Tagihan Bulanan</h1>
         <p class="text-xs text-[var(--color-ink-muted)]">Pantau kewajiban tetap bulanan seperti sewa, listrik, internet, dan langganan.</p>
       </div>
     </div>
 
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 w-full sm:w-auto shrink-0">
       <button
         on:click={resetMonthlyBills}
-        class="flex items-center gap-1.5 px-3 py-2 text-xs font-mono font-semibold text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] border border-[var(--color-border)] rounded-md transition-colors cursor-pointer"
+        class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-mono font-semibold text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] border border-[var(--color-border)] rounded-md transition-colors cursor-pointer"
       >
         <RotateCcw class="w-4 h-4" />
         <span>Reset Bulan Baru</span>
@@ -118,7 +118,7 @@
 
       <button
         on:click={openCreateModal}
-        class="flex items-center gap-2 px-3.5 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-mono font-bold text-xs rounded-md transition-colors shadow-xs cursor-pointer"
+        class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3.5 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors shadow-xs cursor-pointer"
       >
         <Plus class="w-4 h-4 stroke-[3]" />
         <span>Tambah Tagihan</span>
@@ -135,13 +135,13 @@
   {:else}
     <div class="grid gap-2.5">
       {#each bills as item}
-        <div class={`border rounded-md p-3.5 flex items-center justify-between gap-4 transition-colors ${
+        <div class={`border rounded-md p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 transition-colors ${
           item.isPaid ? 'bg-[var(--color-paper-2)]/40 border-[var(--color-border)] opacity-75' : 'bg-[var(--color-paper-2)] border-[var(--color-border)] hover:border-slate-400'
         }`}>
-          <div class="flex items-center gap-3">
+          <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
             <button
               on:click={() => togglePaidStatus(item.id)}
-              class={`p-2 rounded transition-colors cursor-pointer ${
+              class={`p-2 rounded shrink-0 transition-colors cursor-pointer mt-0.5 sm:mt-0 ${
                 item.isPaid ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)]' : 'bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]'
               }`}
               title={item.isPaid ? 'Tandai belum bayar' : 'Tandai sudah bayar'}
@@ -150,14 +150,14 @@
               <CheckCircle2 class="w-4 h-4" />
             </button>
 
-            <div>
-              <div class="flex items-center gap-2">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
                 <span class={`font-bold text-sm ${item.isPaid ? 'line-through text-[var(--color-ink-muted)]' : 'text-[var(--color-ink)]'}`}>{item.name}</span>
-                <span class="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded">
+                <span class="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded shrink-0">
                   Tgl {item.dueDate} / bulan
                 </span>
               </div>
-              <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-0.5">
+              <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-1 flex items-center gap-2 flex-wrap">
                 {#if item.isPaid}
                   <span class="text-[var(--color-accent)] font-semibold">LUNAS</span>
                 {:else}
@@ -168,12 +168,12 @@
             </div>
           </div>
 
-          <div class="flex items-center gap-4 font-mono">
+          <div class="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-[var(--color-border)] font-mono shrink-0">
             <div class="font-bold text-[var(--color-ink)] text-sm sm:text-base">
               {formatRupiah(item.amount)}
             </div>
 
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1 shrink-0">
               <button
                 on:click={() => openEditModal(item)}
                 class="p-1.5 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-3)] rounded transition-colors cursor-pointer"
