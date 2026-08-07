@@ -1,0 +1,14 @@
+# Pockt Production Caddyfile Example
+# Replace pockt.yourdomain.com with your custom domain or VPS IP address
+
+pockt.yourdomain.com {
+    # Forward API requests to Fastify backend
+    handle /api/* {
+        reverse_proxy localhost:3001
+    }
+
+    # Forward web requests to SvelteKit Node frontend
+    handle {
+        reverse_proxy localhost:3000
+    }
+}

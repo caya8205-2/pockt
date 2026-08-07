@@ -8,5 +8,6 @@ build/
 *.db-shm
 *.db-wal
 test-results/
+config.yml
 .env
 .env.local
