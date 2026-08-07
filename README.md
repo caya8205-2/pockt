@@ -1,5 +1,3 @@
-# Pockt
-
 <p align="center">
   <a href="https://svelte.dev"><img src="https://img.shields.io/badge/SvelteKit-v5.0-FF3E00?style=for-the-badge&logo=svelte&logoColor=white" alt="SvelteKit" /></a>
   <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" /></a>
@@ -33,7 +31,7 @@
 ## 🌟 Key Highlights
 
 - **Net Disposable Income Engine**: Calculates real-time spendable cash by factoring `Current Cash - Outstanding Bills - Outstanding Debts`.
-- **Hallmark OKLCH Dual Theme System**:
+- **[Hallmark](https://www.usehallmark.com/) OKLCH Dual Theme System**:
   - **Bloom (Light)**: Warm Oat canvas `oklch(0.975 0.008 75)` with Signal Terracotta accent `oklch(0.64 0.18 40)`.
   - **Aurora (Dark)**: Obsidian Slate canvas `oklch(0.14 0.012 250)` with Teal Emerald accent `oklch(0.74 0.16 170)`.
 - **Side-Rail Compact Navigation (N3 Archetype)**: Compactable sidebar with logo toggle and 100% monochrome controls.
