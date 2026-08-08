@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { fetchApi } from '$lib/api';
-  import { formatRupiah, formatDate } from '$lib/format';
+  import { formatRupiah, formatDate, formatDateNumeric } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
   import { sortWithCustomOrder, saveCustomOrder } from '$lib/order';
   import { Wallet, Plus, ArrowDownLeft, Trash2, Edit3, GripVertical } from 'lucide-svelte';
@@ -126,9 +126,9 @@
 
     <button
       on:click={openCreateModal}
-      class="flex items-center justify-center gap-2 px-3.5 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 w-full sm:w-auto"
+      class="flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 w-full sm:w-auto text-center"
     >
-      <Plus class="w-4 h-4 stroke-[3]" />
+      <Plus class="w-4 h-4 stroke-[3] shrink-0" />
       <span>{t.add_income}</span>
     </button>
   </div>
@@ -164,7 +164,7 @@
             <div class="min-w-0 flex-1">
               <div class="font-bold text-[var(--color-ink)] text-sm">{item.title}</div>
               <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-0.5">
-                {formatDate(item.date)} {#if item.notes}• <span class="italic text-[var(--color-ink-muted)] font-sans">{item.notes}</span>{/if}
+                {formatDateNumeric(item.date)} ({formatDate(item.date)}) {#if item.notes}• <span class="italic text-[var(--color-ink-muted)] font-sans">{item.notes}</span>{/if}
               </div>
             </div>
           </div>
@@ -223,7 +223,9 @@
       />
     </div>
     <div>
-      <label for="inp-inc-date" class="modal-label">{t.date_label}</label>
+      <label for="inp-inc-date" class="modal-label">
+        {t.date_label} <span class="text-[10px] text-[var(--color-ink-muted)] font-normal">(Format: DD/MM/YYYY)</span>
+      </label>
       <input
         id="inp-inc-date"
         type="date"

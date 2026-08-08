@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { fetchApi } from '$lib/api';
-  import { formatRupiah, formatDate } from '$lib/format';
+  import { formatRupiah, formatDate, formatDateNumeric } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
   import { sortWithCustomOrder, saveCustomOrder } from '$lib/order';
   import { HandCoins, Plus, Trash2, Edit3, DollarSign, History, GripVertical } from 'lucide-svelte';
@@ -177,9 +177,9 @@
 
     <button
       on:click={openCreateModal}
-      class="flex items-center justify-center gap-2 px-3.5 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 w-full sm:w-auto"
+      class="flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 w-full sm:w-auto text-center"
     >
-      <Plus class="w-4 h-4 stroke-[3]" />
+      <Plus class="w-4 h-4 stroke-[3] shrink-0" />
       <span>{t.add_debt}</span>
     </button>
   </div>
@@ -224,7 +224,7 @@
                   <div class="text-xs text-[var(--color-ink-muted)] mt-0.5 truncate">{item.notes}</div>
                 {/if}
                 {#if item.dueDate}
-                  <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-0.5">{t.debt_due_prefix} {formatDate(item.dueDate)}</div>
+                  <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-0.5">{t.debt_due_prefix} {formatDateNumeric(item.dueDate)} ({formatDate(item.dueDate)})</div>
                 {/if}
               </div>
             </div>
@@ -307,7 +307,9 @@
       />
     </div>
     <div>
-      <label for="inp-dbt-date" class="modal-label">{t.debt_due_label}</label>
+      <label for="inp-dbt-date" class="modal-label">
+        {t.debt_due_label} <span class="text-[10px] text-[var(--color-ink-muted)] font-normal">(Format: DD/MM/YYYY)</span>
+      </label>
       <input
         id="inp-dbt-date"
         type="date"
@@ -347,7 +349,9 @@
       />
     </div>
     <div>
-      <label for="inp-pay-date" class="modal-label">{t.pay_date_label}</label>
+      <label for="inp-pay-date" class="modal-label">
+        {t.pay_date_label} <span class="text-[10px] text-[var(--color-ink-muted)] font-normal">(Format: DD/MM/YYYY)</span>
+      </label>
       <input
         id="inp-pay-date"
         type="date"
@@ -382,7 +386,7 @@
       {#each historyPayments as hp}
         <div class="bg-[var(--color-paper)] p-3 rounded-md flex items-center justify-between text-xs border border-[var(--color-border)] font-mono">
           <div>
-            <div class="font-bold text-[var(--color-ink)]">{formatDate(hp.date)}</div>
+            <div class="font-bold text-[var(--color-ink)]">{formatDateNumeric(hp.date)} ({formatDate(hp.date)})</div>
             {#if hp.notes}<div class="text-[var(--color-ink-muted)] text-[11px] font-sans">{hp.notes}</div>{/if}
           </div>
           <div class="font-bold text-[var(--color-accent)]">
