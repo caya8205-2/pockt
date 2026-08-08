@@ -2,9 +2,11 @@ import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import * as schema from './schema.js';
 
-const dbPath = process.env.DATABASE_URL || 'pockt.db';
+const dbPath = process.env.DATABASE_URL || (process.env.NODE_ENV === 'production' ? 'pockt.prod.db' : 'pockt.dev.db');
 const sqlite = new Database(dbPath);
 sqlite.pragma('journal_mode = WAL');
+
+console.log(`[db] connected to ${dbPath}`);
 
 export const db = drizzle(sqlite, { schema });
 

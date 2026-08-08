@@ -91,7 +91,19 @@ pnpm dev
 pnpm build
 ```
 
-### 4. Owner Account (First-Time Setup)
+### 4. Database Files (Dev / Prod / Test Separation)
+
+Pockt uses separate SQLite files so testing never touches your real data:
+
+| Environment | DB file | When used |
+| --- | --- | --- |
+| Development | `pockt.dev.db` | `pnpm dev` (default, `NODE_ENV` not `production`) |
+| Production | `pockt.prod.db` | Docker deploy / `pnpm start` with `NODE_ENV=production` |
+| Backend tests | `pockt.test.db` | Vitest (wiped on every run) |
+
+The schema auto-creates on server start; you can also run `pnpm --filter @pockt/backend db:migrate`. Override any path with the `DATABASE_URL` env var.
+
+### 5. Owner Account (First-Time Setup)
 
 The app asks you to create the owner account on the `/register` page when it detects no owner exists. You can also create or reset the owner via CLI:
 
