@@ -14,16 +14,19 @@ const loginSchema = z.object({
 export async function authRoutes(fastify: FastifyInstance) {
   // Check auth status
   fastify.get('/api/auth/me', async (request, reply) => {
-    const sessionId = request.cookies.pockt_session;
-    if (!sessionId) {
-      return reply.status(401).send({ authenticated: false });
-    }
-    // Simple session check (in single user app, session cookie present = auth OK)
+    // 1. Check if database has any registered owner user
     const userList = await db.select().from(users).limit(1);
     if (userList.length === 0) {
-      return reply.status(401).send({ authenticated: false, needsSetup: true });
+      return reply.status(200).send({ authenticated: false, needsSetup: true });
     }
-    return { authenticated: true, user: { username: userList[0].username } };
+
+    // 2. Check session cookie
+    const sessionId = request.cookies.pockt_session;
+    if (!sessionId) {
+      return reply.status(200).send({ authenticated: false, needsSetup: false });
+    }
+
+    return reply.status(200).send({ authenticated: true, user: { username: userList[0].username } });
   });
 
   // Initial Setup / Register first admin
@@ -51,7 +54,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       maxAge: 60 * 60 * 24 * 30, // 30 days
     });
 
-    return { success: true, message: 'Initial user created' };
+    return reply.status(200).send({ success: true, message: 'Initial user created' });
   });
 
   // Login
@@ -77,12 +80,12 @@ export async function authRoutes(fastify: FastifyInstance) {
       maxAge: 60 * 60 * 24 * 30,
     });
 
-    return { success: true, user: { username: user.username } };
+    return reply.status(200).send({ success: true, user: { username: user.username } });
   });
 
   // Logout
   fastify.post('/api/auth/logout', async (request, reply) => {
     reply.clearCookie('pockt_session', { path: '/' });
-    return { success: true };
+    return reply.status(200).send({ success: true });
   });
 }
