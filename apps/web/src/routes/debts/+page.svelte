@@ -2,7 +2,10 @@
   import { onMount } from 'svelte';
   import { fetchApi } from '$lib/api';
   import { formatRupiah, formatDate } from '$lib/format';
+  import { currentLang, translations } from '$lib/i18n';
   import { HandCoins, Plus, Trash2, Edit3, DollarSign, History, X } from 'lucide-svelte';
+
+  $: t = translations[$currentLang];
 
   interface Debt {
     id: string;
@@ -123,7 +126,7 @@
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Hapus catatan hutang ini?')) return;
+    if (!confirm(t.delete_debt_confirm)) return;
     await fetchApi(`/debts/${id}`, { method: 'DELETE' });
     loadDebts();
   }
@@ -140,8 +143,8 @@
         <HandCoins class="w-5 h-5" />
       </div>
       <div class="min-w-0">
-        <h1 class="text-xl font-bold font-mono text-[var(--color-ink)]">Catatan Hutang & Pinjaman</h1>
-        <p class="text-xs text-[var(--color-ink-muted)]">Pantau kewajiban hutang kepada pihak lain dan riwayat pelunasan.</p>
+        <h1 class="text-xl font-bold font-mono text-[var(--color-ink)]">{t.debts_title}</h1>
+        <p class="text-xs text-[var(--color-ink-muted)]">{t.debts_subtitle}</p>
       </div>
     </div>
 
@@ -150,15 +153,15 @@
       class="flex items-center justify-center gap-2 px-3.5 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 w-full sm:w-auto"
     >
       <Plus class="w-4 h-4 stroke-[3]" />
-      <span>Catat Hutang Baru</span>
+      <span>{t.add_debt}</span>
     </button>
   </div>
 
   {#if isLoading}
-    <div class="p-10 text-center font-mono text-xs text-[var(--color-ink-muted)]">Memuat catatan hutang...</div>
+    <div class="p-10 text-center font-mono text-xs text-[var(--color-ink-muted)]">{t.debts_loading}</div>
   {:else if debts.length === 0}
     <div class="p-10 text-center border border-dashed border-[var(--color-border)] rounded-md space-y-1">
-      <p class="text-[var(--color-ink)] font-semibold text-sm">Belum Ada Catatan Hutang</p>
+      <p class="text-[var(--color-ink)] font-semibold text-sm">{t.no_debts}</p>
     </div>
   {:else}
     <div class="grid gap-2.5">
@@ -172,7 +175,7 @@
                 <span class="font-bold text-sm sm:text-base text-[var(--color-ink)] truncate">{item.person}</span>
                 {#if item.isPaid}
                   <span class="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)] rounded shrink-0 whitespace-nowrap">
-                    LUNAS
+                    {t.common_paid}
                   </span>
                 {/if}
               </div>
@@ -180,14 +183,14 @@
                 <div class="text-xs text-[var(--color-ink-muted)] mt-0.5 truncate">{item.notes}</div>
               {/if}
               {#if item.dueDate}
-                <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-0.5">Jatuh tempo: {formatDate(item.dueDate)}</div>
+                <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-0.5">{t.debt_due_prefix} {formatDate(item.dueDate)}</div>
               {/if}
             </div>
 
             <div class="text-right font-mono shrink-0">
-              <div class="text-xs text-[var(--color-ink-muted)]">Sisa Pokok:</div>
+              <div class="text-xs text-[var(--color-ink-muted)]">{t.debt_remaining}</div>
               <div class="text-base sm:text-lg font-bold text-[var(--color-ink)] whitespace-nowrap">{formatRupiah(item.remainingAmount)}</div>
-              <div class="text-[10px] text-[var(--color-ink-muted)] whitespace-nowrap">Total: {formatRupiah(item.totalAmount)}</div>
+              <div class="text-[10px] text-[var(--color-ink-muted)] whitespace-nowrap">{t.debt_total_prefix} {formatRupiah(item.totalAmount)}</div>
             </div>
           </div>
 
@@ -199,7 +202,7 @@
                   class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white rounded-md transition-colors cursor-pointer"
                 >
                   <DollarSign class="w-3.5 h-3.5" />
-                  <span>Bayar / Angsur</span>
+                  <span>{t.pay_installment}</span>
                 </button>
               {/if}
 
@@ -208,7 +211,7 @@
                 class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] rounded-md transition-colors cursor-pointer"
               >
                 <History class="w-3.5 h-3.5" />
-                <span>Riwayat</span>
+                <span>{t.history}</span>
               </button>
             </div>
 
@@ -216,14 +219,14 @@
               <button
                 on:click={() => openEditModal(item)}
                 class="p-1.5 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-3)] rounded transition-colors cursor-pointer"
-                aria-label="Edit"
+                aria-label={t.common_edit}
               >
                 <Edit3 class="w-4 h-4" />
               </button>
               <button
                 on:click={() => handleDelete(item.id)}
                 class="p-1.5 text-[var(--color-ink-muted)] hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
-                aria-label="Hapus"
+                aria-label={t.common_delete}
               >
                 <Trash2 class="w-4 h-4" />
               </button>
@@ -239,25 +242,25 @@
 {#if showModal}
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--color-paper)]/85 backdrop-blur-md">
     <div class="w-full max-w-md bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-6 space-y-4 shadow-xl relative">
-      <button on:click={() => (showModal = false)} class="absolute top-4 right-4 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] cursor-pointer" aria-label="Tutup">
+      <button on:click={() => (showModal = false)} class="absolute top-4 right-4 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] cursor-pointer" aria-label={t.common_close}>
         <X class="w-5 h-5" />
       </button>
 
-      <h2 class="text-base font-bold font-mono text-[var(--color-ink)]">{editingId ? 'Edit Catatan Hutang' : 'Tambah Catatan Hutang'}</h2>
+      <h2 class="text-base font-bold font-mono text-[var(--color-ink)]">{editingId ? t.edit_debt : t.add_new_debt}</h2>
       <form on:submit|preventDefault={handleSubmit} class="space-y-3.5">
         <div>
-          <label id="lbl-dbt-person" for="inp-dbt-person" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">Nama Pihak yang Diutangi</label>
+          <label id="lbl-dbt-person" for="inp-dbt-person" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.debtor_name}</label>
           <input
             id="inp-dbt-person"
             type="text"
             bind:value={person}
-            placeholder="mis. Budi / Pinjaman Bank"
+            placeholder={t.debtor_placeholder}
             required
             class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm focus:outline-none focus:border-[var(--color-accent)]"
           />
         </div>
         <div>
-          <label id="lbl-dbt-amount" for="inp-dbt-amount" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">Total Nominal Hutang (Rp)</label>
+          <label id="lbl-dbt-amount" for="inp-dbt-amount" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.debt_total_label}</label>
           <input
             id="inp-dbt-amount"
             type="number"
@@ -269,7 +272,7 @@
           />
         </div>
         <div>
-          <label id="lbl-dbt-date" for="inp-dbt-date" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">Tanggal Jatuh Tempo (Opsional)</label>
+          <label id="lbl-dbt-date" for="inp-dbt-date" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.debt_due_label}</label>
           <input
             id="inp-dbt-date"
             type="date"
@@ -278,18 +281,18 @@
           />
         </div>
         <div>
-          <label id="lbl-dbt-notes" for="inp-dbt-notes" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">Catatan</label>
+          <label id="lbl-dbt-notes" for="inp-dbt-notes" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.notes_label}</label>
           <input
             id="inp-dbt-notes"
             type="text"
             bind:value={notes}
-            placeholder="Opsional..."
+            placeholder={t.notes_placeholder}
             class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm focus:outline-none focus:border-[var(--color-accent)]"
           />
         </div>
         <div class="flex justify-end gap-2 pt-2">
-          <button type="button" on:click={() => (showModal = false)} class="px-4 py-2 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]">Batal</button>
-          <button type="submit" class="px-4 py-2 text-xs font-mono font-bold text-white bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] rounded-md">Simpan</button>
+          <button type="button" on:click={() => (showModal = false)} class="px-4 py-2 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]">{t.common_cancel}</button>
+          <button type="submit" class="px-4 py-2 text-xs font-mono font-bold text-white bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] rounded-md">{t.common_save}</button>
         </div>
       </form>
     </div>
@@ -300,14 +303,14 @@
 {#if showPayModal}
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--color-paper)]/85 backdrop-blur-md">
     <div class="w-full max-w-md bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-6 space-y-4 shadow-xl relative">
-      <button on:click={() => (showPayModal = false)} class="absolute top-4 right-4 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] cursor-pointer" aria-label="Tutup">
+      <button on:click={() => (showPayModal = false)} class="absolute top-4 right-4 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] cursor-pointer" aria-label={t.common_close}>
         <X class="w-5 h-5" />
       </button>
 
-      <h2 class="text-base font-bold font-mono text-[var(--color-ink)]">Catat Pembayaran Hutang</h2>
+      <h2 class="text-base font-bold font-mono text-[var(--color-ink)]">{t.pay_title}</h2>
       <form on:submit|preventDefault={handlePaySubmit} class="space-y-3.5">
         <div>
-          <label id="lbl-pay-amount" for="inp-pay-amount" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">Nominal Pembayaran (Rp)</label>
+          <label id="lbl-pay-amount" for="inp-pay-amount" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.pay_amount_label}</label>
           <input
             id="inp-pay-amount"
             type="number"
@@ -318,7 +321,7 @@
           />
         </div>
         <div>
-          <label id="lbl-pay-date" for="inp-pay-date" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">Tanggal Pembayaran</label>
+          <label id="lbl-pay-date" for="inp-pay-date" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.pay_date_label}</label>
           <input
             id="inp-pay-date"
             type="date"
@@ -328,18 +331,18 @@
           />
         </div>
         <div>
-          <label id="lbl-pay-notes" for="inp-pay-notes" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">Catatan</label>
+          <label id="lbl-pay-notes" for="inp-pay-notes" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.notes_label}</label>
           <input
             id="inp-pay-notes"
             type="text"
             bind:value={payNotes}
-            placeholder="mis. Angsuran ke-1"
+            placeholder={t.pay_notes_placeholder}
             class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm focus:outline-none focus:border-[var(--color-accent)]"
           />
         </div>
         <div class="flex justify-end gap-2 pt-2">
-          <button type="button" on:click={() => (showPayModal = false)} class="px-4 py-2 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]">Batal</button>
-          <button type="submit" class="px-4 py-2 text-xs font-mono font-bold text-white bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] rounded-md">Konfirmasi Pembayaran</button>
+          <button type="button" on:click={() => (showPayModal = false)} class="px-4 py-2 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]">{t.common_cancel}</button>
+          <button type="submit" class="px-4 py-2 text-xs font-mono font-bold text-white bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] rounded-md">{t.confirm_payment}</button>
         </div>
       </form>
     </div>
@@ -351,14 +354,14 @@
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--color-paper)]/85 backdrop-blur-md">
     <div class="w-full max-w-md bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-6 space-y-4 shadow-xl relative">
       <div class="flex items-center justify-between">
-        <h2 class="text-base font-bold font-mono text-[var(--color-ink)]">Riwayat Angsuran — {historyPerson}</h2>
-        <button on:click={() => (showHistoryModal = false)} class="text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] cursor-pointer" aria-label="Tutup">
+        <h2 class="text-base font-bold font-mono text-[var(--color-ink)]">{t.debt_history_title} — {historyPerson}</h2>
+        <button on:click={() => (showHistoryModal = false)} class="text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] cursor-pointer" aria-label={t.common_close}>
           <X class="w-5 h-5" />
         </button>
       </div>
 
       {#if historyPayments.length === 0}
-        <p class="text-xs font-mono text-[var(--color-ink-muted)] py-6 text-center">Belum ada catatan pembayaran angsuran.</p>
+        <p class="text-xs font-mono text-[var(--color-ink-muted)] py-6 text-center">{t.no_payments}</p>
       {:else}
         <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
           {#each historyPayments as hp}

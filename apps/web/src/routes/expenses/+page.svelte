@@ -2,7 +2,10 @@
   import { onMount } from 'svelte';
   import { fetchApi } from '$lib/api';
   import { formatRupiah, formatDate } from '$lib/format';
+  import { currentLang, translations } from '$lib/i18n';
   import { Receipt, Plus, Trash2, Edit3, ArrowUpRight, Search, X } from 'lucide-svelte';
+
+  $: t = translations[$currentLang];
 
   interface Expense {
     id: string;
@@ -88,7 +91,7 @@
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Hapus pencatatan pengeluaran ini?')) return;
+    if (!confirm(t.delete_expense_confirm)) return;
     await fetchApi(`/expenses/${id}`, { method: 'DELETE' });
     loadExpenses();
   }
@@ -111,8 +114,8 @@
         <Receipt class="w-5 h-5" />
       </div>
       <div class="min-w-0">
-        <h1 class="text-xl font-bold font-mono text-[var(--color-ink)]">Kelola Pengeluaran</h1>
-        <p class="text-xs text-[var(--color-ink-muted)]">Catat transaksi harian dengan cepat dalam waktu kurang dari 10 detik.</p>
+        <h1 class="text-xl font-bold font-mono text-[var(--color-ink)]">{t.expenses_title}</h1>
+        <p class="text-xs text-[var(--color-ink-muted)]">{t.expenses_subtitle}</p>
       </div>
     </div>
 
@@ -121,7 +124,7 @@
       class="flex items-center justify-center gap-2 px-3.5 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 w-full sm:w-auto"
     >
       <Plus class="w-4 h-4 stroke-[3]" />
-      <span>Catat Pengeluaran</span>
+      <span>{t.record_expense}</span>
     </button>
   </div>
 
@@ -132,7 +135,7 @@
       <input
         type="text"
         bind:value={searchQuery}
-        placeholder="Cari transaksi..."
+        placeholder={t.expenses_search_placeholder}
         class="w-full pl-9 pr-3 py-1.5 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-xs focus:outline-none focus:border-[var(--color-accent)] font-mono"
       />
     </div>
@@ -144,7 +147,7 @@
           selectedCategoryFilter === 'ALL' ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] font-bold' : 'text-[var(--color-ink-muted)] hover:bg-[var(--color-paper-3)]'
         }`}
       >
-        Semua
+        {t.expenses_all}
       </button>
       {#each categories as cat}
         <button
@@ -160,10 +163,10 @@
   </div>
 
   {#if isLoading}
-    <div class="p-10 text-center font-mono text-xs text-[var(--color-ink-muted)]">Memuat pengeluaran...</div>
+    <div class="p-10 text-center font-mono text-xs text-[var(--color-ink-muted)]">{t.expenses_loading}</div>
   {:else if filteredExpenses.length === 0}
     <div class="p-10 text-center border border-dashed border-[var(--color-border)] rounded-md space-y-1">
-      <p class="text-[var(--color-ink)] font-semibold text-sm">Tidak Ada Transaksi Ditemukan</p>
+      <p class="text-[var(--color-ink)] font-semibold text-sm">{t.expenses_empty}</p>
     </div>
   {:else}
     <div class="grid gap-2.5">
@@ -194,14 +197,14 @@
               <button
                 on:click={() => openEditModal(item)}
                 class="p-1.5 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-3)] rounded transition-colors cursor-pointer"
-                aria-label="Edit"
+                aria-label={t.common_edit}
               >
                 <Edit3 class="w-4 h-4" />
               </button>
               <button
                 on:click={() => handleDelete(item.id)}
                 class="p-1.5 text-[var(--color-ink-muted)] hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
-                aria-label="Hapus"
+                aria-label={t.common_delete}
               >
                 <Trash2 class="w-4 h-4" />
               </button>
@@ -217,25 +220,25 @@
 {#if showModal}
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--color-paper)]/85 backdrop-blur-md">
     <div class="w-full max-w-md bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-6 space-y-4 shadow-xl relative">
-      <button on:click={() => (showModal = false)} class="absolute top-4 right-4 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] cursor-pointer" aria-label="Tutup">
+      <button on:click={() => (showModal = false)} class="absolute top-4 right-4 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] cursor-pointer" aria-label={t.common_close}>
         <X class="w-5 h-5" />
       </button>
 
-      <h2 class="text-base font-bold font-mono text-[var(--color-ink)]">{editingId ? 'Edit Pengeluaran' : 'Tambah Pengeluaran Baru'}</h2>
+      <h2 class="text-base font-bold font-mono text-[var(--color-ink)]">{editingId ? t.edit_expense : t.add_expense_title}</h2>
       <form on:submit|preventDefault={handleSubmit} class="space-y-3.5">
         <div>
-          <label id="lbl-exp-title" for="inp-exp-title" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">Judul Pengeluaran</label>
+          <label id="lbl-exp-title" for="inp-exp-title" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.expense_title_label}</label>
           <input
             id="inp-exp-title"
             type="text"
             bind:value={title}
-            placeholder="mis. Makan Siang"
+            placeholder={t.expense_title_placeholder}
             required
             class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm focus:outline-none focus:border-[var(--color-accent)]"
           />
         </div>
         <div>
-          <label id="lbl-exp-amount" for="inp-exp-amount" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">Nominal (Rp)</label>
+          <label id="lbl-exp-amount" for="inp-exp-amount" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.amount_label}</label>
           <input
             id="inp-exp-amount"
             type="number"
@@ -247,7 +250,7 @@
           />
         </div>
         <div>
-          <label id="lbl-exp-cat" for="sel-exp-cat" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">Kategori</label>
+          <label id="lbl-exp-cat" for="sel-exp-cat" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.category_label}</label>
           <select
             id="sel-exp-cat"
             bind:value={category}
@@ -259,7 +262,7 @@
           </select>
         </div>
         <div>
-          <label id="lbl-exp-date" for="inp-exp-date" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">Tanggal</label>
+          <label id="lbl-exp-date" for="inp-exp-date" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.date_label}</label>
           <input
             id="inp-exp-date"
             type="date"
@@ -269,18 +272,18 @@
           />
         </div>
         <div>
-          <label id="lbl-exp-notes" for="inp-exp-notes" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">Catatan</label>
+          <label id="lbl-exp-notes" for="inp-exp-notes" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.notes_label}</label>
           <input
             id="inp-exp-notes"
             type="text"
             bind:value={notes}
-            placeholder="Opsional..."
+            placeholder={t.notes_placeholder}
             class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm focus:outline-none focus:border-[var(--color-accent)]"
           />
         </div>
         <div class="flex justify-end gap-2 pt-2">
-          <button type="button" on:click={() => (showModal = false)} class="px-4 py-2 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]">Batal</button>
-          <button type="submit" class="px-4 py-2 text-xs font-mono font-bold text-white bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] rounded-md">Simpan</button>
+          <button type="button" on:click={() => (showModal = false)} class="px-4 py-2 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]">{t.common_cancel}</button>
+          <button type="submit" class="px-4 py-2 text-xs font-mono font-bold text-white bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] rounded-md">{t.common_save}</button>
         </div>
       </form>
     </div>

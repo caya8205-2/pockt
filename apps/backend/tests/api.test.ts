@@ -10,25 +10,22 @@ describe('Pockt Full Backend API Suite', () => {
     app = await buildApp();
     await app.ready();
 
-    // Setup initial owner user if not exists
-    const setupRes = await app.inject({
+    // Setup initial owner user if not exists (setup does not issue a session cookie)
+    await app.inject({
       method: 'POST',
       url: '/api/auth/setup',
       payload: { username: 'owner', password: 'password123' },
     });
 
-    if (setupRes.statusCode === 200 || setupRes.statusCode === 201) {
-      const cookieHeader = setupRes.cookies.find((c) => c.name === 'pockt_session');
-      if (cookieHeader) cookies = { pockt_session: cookieHeader.value };
-    } else {
-      const loginRes = await app.inject({
-        method: 'POST',
-        url: '/api/auth/login',
-        payload: { username: 'owner', password: 'password123' },
-      });
-      const cookieHeader = loginRes.cookies.find((c) => c.name === 'pockt_session');
-      if (cookieHeader) cookies = { pockt_session: cookieHeader.value };
-    }
+    // Always login as owner to obtain a session cookie
+    const loginRes = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { username: 'owner', password: 'password123' },
+    });
+    expect(loginRes.statusCode).toBe(200);
+    const cookieHeader = loginRes.cookies.find((c) => c.name === 'pockt_session');
+    if (cookieHeader) cookies = { pockt_session: cookieHeader.value };
   });
 
   it('GET /api/health - returns 200 OK', async () => {
@@ -140,7 +137,15 @@ describe('Pockt Full Backend API Suite', () => {
     const created = JSON.parse(createRes.body);
     expect(created.title).toBe('Makan Malam Test Dummy');
 
-    // 2. Update expense
+    // 2. Read expenses list
+    const getRes = await app.inject({ method: 'GET', url: '/api/expenses', cookies });
+    expect(getRes.statusCode).toBe(200);
+    const expenses = JSON.parse(getRes.body);
+    expect(Array.isArray(expenses)).toBe(true);
+    const found = expenses.find((e: any) => e.id === created.id);
+    expect(found).toBeDefined();
+
+    // 3. Update expense
     const updateRes = await app.inject({
       method: 'PUT',
       url: `/api/expenses/${created.id}`,
@@ -155,13 +160,40 @@ describe('Pockt Full Backend API Suite', () => {
     });
     expect(updateRes.statusCode).toBe(200);
 
-    // 3. Delete expense
+    // 4. Delete expense
     const deleteRes = await app.inject({
       method: 'DELETE',
       url: `/api/expenses/${created.id}`,
       cookies,
     });
     expect(deleteRes.statusCode).toBe(200);
+  });
+
+  it('Categories - GET defaults + POST custom category', async () => {
+    // 1. GET categories (defaults or stored list)
+    const getRes = await app.inject({ method: 'GET', url: '/api/categories', cookies });
+    expect(getRes.statusCode).toBe(200);
+    const categories = JSON.parse(getRes.body);
+    expect(Array.isArray(categories)).toBe(true);
+    expect(categories.length).toBeGreaterThan(0);
+
+    // 2. POST custom category (dummy data)
+    const uniqueName = `Kategori E2E ${Date.now()}`;
+    const createRes = await app.inject({
+      method: 'POST',
+      url: '/api/categories',
+      cookies,
+      payload: { name: uniqueName, color: '#123456' },
+    });
+    expect(createRes.statusCode).toBe(201);
+    const created = JSON.parse(createRes.body);
+    expect(created.name).toBe(uniqueName);
+    expect(created.color).toBe('#123456');
+
+    // 3. GET again - custom category should be present
+    const getRes2 = await app.inject({ method: 'GET', url: '/api/categories', cookies });
+    const categories2 = JSON.parse(getRes2.body);
+    expect(categories2.some((c: any) => c.name === uniqueName)).toBe(true);
   });
 
   it('Bills CRUD & Toggle Paid - POST, GET, toggle-paid, reset-monthly', async () => {
@@ -181,7 +213,23 @@ describe('Pockt Full Backend API Suite', () => {
     const bill = JSON.parse(createRes.body);
     expect(bill.isPaid).toBe(false);
 
-    // 2. Toggle paid status
+    // 2. Read bills list
+    const getRes = await app.inject({ method: 'GET', url: '/api/bills', cookies });
+    expect(getRes.statusCode).toBe(200);
+    const bills = JSON.parse(getRes.body);
+    expect(Array.isArray(bills)).toBe(true);
+    expect(bills.find((b: any) => b.id === bill.id)).toBeDefined();
+
+    // 3. Update bill
+    const updateRes = await app.inject({
+      method: 'PUT',
+      url: `/api/bills/${bill.id}`,
+      cookies,
+      payload: { name: 'Langganan Streaming Test Edited', amount: 200000, dueDate: 20 },
+    });
+    expect(updateRes.statusCode).toBe(200);
+
+    // 4. Toggle paid status
     const toggleRes = await app.inject({
       method: 'POST',
       url: `/api/bills/${bill.id}/toggle-paid`,
@@ -191,7 +239,7 @@ describe('Pockt Full Backend API Suite', () => {
     const toggled = JSON.parse(toggleRes.body);
     expect(toggled.isPaid).toBe(true);
 
-    // 3. Reset monthly bills
+    // 5. Reset monthly bills
     const resetRes = await app.inject({
       method: 'POST',
       url: '/api/bills/reset-monthly',
@@ -199,7 +247,7 @@ describe('Pockt Full Backend API Suite', () => {
     });
     expect(resetRes.statusCode).toBe(200);
 
-    // 4. Delete bill
+    // 6. Delete bill
     const deleteRes = await app.inject({
       method: 'DELETE',
       url: `/api/bills/${bill.id}`,
@@ -225,7 +273,28 @@ describe('Pockt Full Backend API Suite', () => {
     const debt = JSON.parse(createRes.body);
     expect(debt.remainingAmount).toBe(1000000);
 
-    // 2. Pay installment
+    // 2. Read debts list
+    const getRes = await app.inject({ method: 'GET', url: '/api/debts', cookies });
+    expect(getRes.statusCode).toBe(200);
+    const debts = JSON.parse(getRes.body);
+    expect(Array.isArray(debts)).toBe(true);
+    expect(debts.find((d: any) => d.id === debt.id)).toBeDefined();
+
+    // 3. Update debt (top-up total amount, remaining should follow)
+    const updateRes = await app.inject({
+      method: 'PUT',
+      url: `/api/debts/${debt.id}`,
+      cookies,
+      payload: {
+        person: 'Kawan Test Dummy',
+        totalAmount: 1500000,
+        dueDate: '2026-12-31',
+        notes: 'Pinjaman UAT',
+      },
+    });
+    expect(updateRes.statusCode).toBe(200);
+
+    // 4. Pay installment
     const payRes = await app.inject({
       method: 'POST',
       url: `/api/debts/${debt.id}/pay`,
@@ -238,9 +307,9 @@ describe('Pockt Full Backend API Suite', () => {
     });
     expect(payRes.statusCode).toBe(200);
     const updatedDebt = JSON.parse(payRes.body);
-    expect(updatedDebt.remainingAmount).toBe(600000);
+    expect(updatedDebt.remainingAmount).toBe(1100000);
 
-    // 3. Get payments history
+    // 5. Get payments history
     const paymentsRes = await app.inject({
       method: 'GET',
       url: `/api/debts/${debt.id}/payments`,
@@ -251,7 +320,7 @@ describe('Pockt Full Backend API Suite', () => {
     expect(payments.length).toBe(1);
     expect(payments[0].amount).toBe(400000);
 
-    // 4. Delete debt
+    // 6. Delete debt
     const deleteRes = await app.inject({
       method: 'DELETE',
       url: `/api/debts/${debt.id}`,
@@ -265,6 +334,56 @@ describe('Pockt Full Backend API Suite', () => {
     expect(res.statusCode).toBe(200);
     expect(res.headers['content-type']).toContain('text/csv');
     expect(res.body).toContain('Type,ID,Title/Name,Amount,Category,Date,Notes');
+  });
+
+  it('Auth - register new user, duplicate rejected, login, logout', async () => {
+    const uniqueUsername = `testuser_${Date.now()}`;
+
+    // 1. Register new user (dummy data)
+    const registerRes = await app.inject({
+      method: 'POST',
+      url: '/api/auth/register',
+      payload: { username: uniqueUsername, password: 'dummypass123' },
+    });
+    expect(registerRes.statusCode).toBe(200);
+    expect(JSON.parse(registerRes.body).success).toBe(true);
+
+    // 2. Duplicate username rejected
+    const dupRes = await app.inject({
+      method: 'POST',
+      url: '/api/auth/register',
+      payload: { username: uniqueUsername, password: 'dummypass123' },
+    });
+    expect(dupRes.statusCode).toBe(400);
+
+    // 3. Login as new user
+    const loginRes = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { username: uniqueUsername, password: 'dummypass123' },
+    });
+    expect(loginRes.statusCode).toBe(200);
+    const newCookies = { pockt_session: loginRes.cookies.find((c) => c.name === 'pockt_session')!.value };
+
+    // 4. /me with valid session
+    const meRes = await app.inject({ method: 'GET', url: '/api/auth/me', cookies: newCookies });
+    expect(meRes.statusCode).toBe(200);
+    expect(JSON.parse(meRes.body).authenticated).toBe(true);
+
+    // 5. Logout clears the session cookie
+    const logoutRes = await app.inject({
+      method: 'POST',
+      url: '/api/auth/logout',
+      cookies: newCookies,
+    });
+    expect(logoutRes.statusCode).toBe(200);
+    const setCookieHeader = logoutRes.headers['set-cookie'];
+    expect(setCookieHeader).toBeDefined();
+    expect(setCookieHeader).toContain('pockt_session=;');
+
+    // 6. /me without session cookie - not authenticated
+    const meAfter = await app.inject({ method: 'GET', url: '/api/auth/me' });
+    expect(JSON.parse(meAfter.body).authenticated).toBe(false);
   });
 
 });

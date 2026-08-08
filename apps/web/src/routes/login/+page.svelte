@@ -18,7 +18,7 @@
       const res = await fetch('/api/auth/me');
       const data = await res.json();
       if (data.authenticated) {
-        goto('/');
+        goto('/dashboard');
         return;
       }
       // If system needs initial setup, redirect to /register
@@ -57,7 +57,7 @@
         return;
       }
 
-      goto('/');
+      goto('/dashboard');
     } catch (err) {
       errorMessage = $currentLang === 'id' ? 'Gagal terhubung ke server' : 'Failed to connect to server';
     } finally {

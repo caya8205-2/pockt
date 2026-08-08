@@ -31,6 +31,8 @@
 ## 🌟 Key Highlights
 
 - **Net Disposable Income Engine**: Calculates real-time spendable cash by factoring `Current Cash - Outstanding Bills - Outstanding Debts`.
+- **Single-Owner Authentication**: First-time setup, cookie-based sessions, and route protection across all pages.
+- **Bilingual UI (ID/EN)**: One-tap language toggle that re-renders the entire app — every page, modal, and label.
 - **[Hallmark](https://www.usehallmark.com/) OKLCH Dual Theme System**:
   - **Bloom (Light)**: Warm Oat canvas `oklch(0.975 0.008 75)` with Signal Terracotta accent `oklch(0.64 0.18 40)`.
   - **Aurora (Dark)**: Obsidian Slate canvas `oklch(0.14 0.012 250)` with Teal Emerald accent `oklch(0.74 0.16 170)`.
@@ -42,12 +44,16 @@
 
 ## 🚀 Features
 
-- **📊 Free-to-Spend Dashboard**: Instant visibility into net disposable income and live cashflow feed.
-- **💰 Payday Allocation View**: Planning matrix for incoming salary vs. upcoming commitments.
-- **📥 Income Tracking**: Log salary, freelance work, investments, or reimbursements.
-- **💸 Expense Management**: Category filtering and fast entry under 10 seconds.
-- **📅 Monthly Bills Tracker**: One-click status toggling and automated monthly reset flow.
-- **🤝 Debt & Loan Register**: Installment log tracking with remaining balance calculations.
+- **🔐 Single-Owner Authentication**: First-time setup flow creates the owner account; session-based login (cookie) protects all data; logout supported.
+- **📊 Free-to-Spend Dashboard** (`/dashboard`): Instant visibility into net disposable income, monthly stats, and live cashflow timeline.
+- **💰 Payday Allocation View** (`/payday`): Planning matrix for incoming salary vs. upcoming commitments, bills, debts, and spent totals.
+- **📥 Income Tracking** (`/incomes`): Log salary, freelance work, investments, or reimbursements.
+- **💸 Expense Management** (`/expenses`): Category filtering, search, and fast entry under 10 seconds.
+- **📅 Monthly Bills Tracker** (`/bills`): One-click paid/unpaid toggling and automated monthly reset flow.
+- **🤝 Debt & Loan Register** (`/debts`): Installment payment log, remaining balance calculations, and repayment history.
+- **⚡ Quick Add Modal**: Record an expense or income from anywhere in the app in seconds.
+- **🌐 Bilingual UI (Bahasa Indonesia / English)**: Full language toggle applied across every page, modal, and label, persisted to `localStorage`.
+- **🎨 Dual Theme System**: Bloom (Light) and Aurora (Dark) themes with one-click switching.
 - **📁 CSV Data Export**: One-click database export for offline reporting and backup.
 
 ---
@@ -85,17 +91,26 @@ pnpm dev
 pnpm build
 ```
 
+### 4. Owner Account (First-Time Setup)
+
+The app asks you to create the owner account on the `/register` page when it detects no owner exists. You can also create or reset the owner via CLI:
+
+```bash
+# Create/reset owner credentials (prompts for username + password)
+pnpm --filter @pockt/backend user
+```
+
 ---
 
 ## 🧪 Testing Suite
 
-Pockt includes an automated testing suite for both backend APIs and frontend UI viewports:
+Pockt includes an automated testing suite for both backend APIs and frontend UI viewports. Backend tests run against an isolated `pockt.test.db` database that is wiped on every run; E2E tests use a global setup that ensures an owner exists and seeds dummy data when empty.
 
 ```bash
-# Run backend API integration tests (10 tests via Vitest)
+# Run backend API integration tests (12 tests via Vitest, isolated test DB)
 pnpm test
 
-# Run frontend E2E layout & responsive tests (21 tests via Playwright)
+# Run frontend E2E layout & responsive tests (33 tests via Playwright, 3 viewports)
 pnpm test:web
 
 # Run all backend + frontend tests

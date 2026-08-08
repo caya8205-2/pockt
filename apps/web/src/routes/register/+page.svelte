@@ -19,7 +19,7 @@
       const res = await fetch('/api/auth/me');
       const data = await res.json();
       if (data.authenticated) {
-        goto('/');
+        goto('/dashboard');
         return;
       }
     } catch (err) {

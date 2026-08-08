@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
+  import { browser } from '$app/environment';
   import { currentLang, toggleLang, translations } from '$lib/i18n';
   import {
     LayoutDashboard,
@@ -32,7 +33,14 @@
 
   $: isAuthPage = $page.url.pathname === '/login' || $page.url.pathname === '/register';
 
-  onMount(async () => {
+  let lastCheckedPath = '';
+
+  $: if (browser && $page.url.pathname !== lastCheckedPath) {
+    lastCheckedPath = $page.url.pathname;
+    checkAuth();
+  }
+
+  onMount(() => {
     const saved = localStorage.getItem('pockt-theme') as 'light' | 'dark' | null;
     if (saved === 'dark' || saved === 'light') {
       currentTheme = saved;
@@ -40,8 +48,6 @@
       currentTheme = 'dark';
     }
     applyTheme(currentTheme);
-
-    await checkAuth();
   });
 
   async function checkAuth() {
@@ -51,7 +57,7 @@
       if (data.authenticated) {
         isAuthenticated = true;
         if (isAuthPage) {
-          goto('/');
+          goto('/dashboard');
         }
       } else {
         isAuthenticated = false;
@@ -95,7 +101,7 @@
   }
 
   $: navItems = [
-    { href: '/', label: t.nav_timeline, icon: LayoutDashboard },
+    { href: '/dashboard', label: t.nav_timeline, icon: LayoutDashboard },
     { href: '/payday', label: t.nav_payday, icon: Wallet },
     { href: '/incomes', label: t.nav_incomes, icon: Wallet },
     { href: '/expenses', label: t.nav_expenses, icon: Receipt },
@@ -124,7 +130,7 @@
   <div class="min-h-screen flex flex-col md:flex-row bg-[var(--color-paper)] text-[var(--color-ink)] selection:bg-[var(--color-accent-subtle)] selection:text-[var(--color-accent)] transition-colors duration-150">
     <!-- Mobile Header Bar -->
     <header class="md:hidden sticky top-0 z-40 bg-[var(--color-paper-2)] border-b border-[var(--color-border)] px-4 py-3 flex items-center justify-between shadow-xs">
-      <a href="/" class="flex items-center gap-2.5">
+      <a href="/dashboard" class="flex items-center gap-2.5">
         <img src="/logo-no-bg.png" alt="Pockt Logo" class="h-9 w-auto object-contain" />
         <span class="font-mono font-bold text-lg text-[var(--color-ink)] tracking-tight">POCKT</span>
       </a>
@@ -180,7 +186,7 @@
     {#if isMobileMenuOpen}
       <div class="md:hidden fixed inset-0 z-50 bg-[var(--color-paper)]/95 backdrop-blur-md flex flex-col p-6 space-y-6">
         <div class="flex items-center justify-between pb-4 border-b border-[var(--color-border)]">
-          <a href="/" on:click={() => (isMobileMenuOpen = false)} class="flex items-center gap-3">
+          <a href="/dashboard" on:click={() => (isMobileMenuOpen = false)} class="flex items-center gap-3">
             <img src="/logo-no-bg.png" alt="Pockt Logo" class="h-10 w-auto object-contain" />
             <span class="font-mono font-bold text-lg text-[var(--color-ink)]">POCKT</span>
           </a>
@@ -277,11 +283,11 @@
             <img src="/logo-no-bg.png" alt="Pockt Logo" class="h-10 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform" />
           </button>
         {:else}
-          <a href="/" class="flex items-center gap-3 overflow-hidden">
+          <a href="/dashboard" class="flex items-center gap-3 overflow-hidden">
             <img src="/logo-no-bg.png" alt="Pockt Logo" class="h-10 w-auto object-contain shrink-0" />
             <div class="flex flex-col min-w-0">
               <span class="font-mono font-extrabold text-lg tracking-tight text-[var(--color-ink)] leading-none">POCKT</span>
-              <span class="text-[10px] font-mono text-[var(--color-ink-muted)] uppercase tracking-wider mt-0.5">Finance</span>
+              <span class="text-[10px] font-mono text-[var(--color-ink-muted)] uppercase tracking-wider mt-0.5">{t.sidebar_tagline}</span>
             </div>
           </a>
 

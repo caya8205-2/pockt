@@ -2,7 +2,10 @@
   import { onMount } from 'svelte';
   import { fetchApi } from '$lib/api';
   import { formatRupiah, formatDate } from '$lib/format';
+  import { currentLang, translations } from '$lib/i18n';
   import { Wallet, Receipt, CalendarCheck, HandCoins, ArrowUpRight, ArrowDownLeft, Clock, RefreshCw } from 'lucide-svelte';
+
+  $: t = translations[$currentLang];
 
   interface DashboardData {
     currentBalance: number;
@@ -58,7 +61,7 @@
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div class="space-y-2">
           <div class="text-xs font-mono font-semibold uppercase tracking-wider text-[var(--color-ink-muted)]">
-            Free to Spend (Net Disposable Income)
+            {t.dash_hero}
           </div>
 
           <div class="text-4xl sm:text-5xl font-extrabold text-[var(--color-ink)] font-mono tracking-tight">
@@ -66,26 +69,26 @@
           </div>
 
           <p class="text-xs text-[var(--color-ink-muted)] max-w-lg leading-relaxed">
-            Sisa uang yang aman dibelanjakan hari ini setelah memperhitungkan saldo saat ini, tagihan berjalan, dan sisa pokok hutang.
+            {t.dash_hero_desc}
           </p>
         </div>
 
         <!-- Financial Equation Card -->
         <div class="w-full lg:w-80 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md p-3.5 space-y-2 font-mono text-xs">
           <div class="flex items-center justify-between pb-1.5 border-b border-[var(--color-border)]">
-            <span class="text-[var(--color-ink-muted)]">Total Saldo Kas</span>
+            <span class="text-[var(--color-ink-muted)]">{t.dash_cash_balance}</span>
             <span class="font-bold">{formatRupiah(dashboard.currentBalance)}</span>
           </div>
           <div class="flex items-center justify-between text-[var(--color-ink-muted)]">
-            <span>- Tagihan ({dashboard.unpaidBillsCount})</span>
+            <span>- {t.dash_bills} ({dashboard.unpaidBillsCount})</span>
             <span class="font-semibold">{formatRupiah(dashboard.outstandingBills)}</span>
           </div>
           <div class="flex items-center justify-between text-[var(--color-ink-muted)]">
-            <span>- Sisa Hutang ({dashboard.unpaidDebtsCount})</span>
+            <span>- {t.dash_debts} ({dashboard.unpaidDebtsCount})</span>
             <span class="font-semibold">{formatRupiah(dashboard.outstandingDebt)}</span>
           </div>
           <div class="pt-1.5 border-t border-[var(--color-border)] flex items-center justify-between text-[var(--color-accent)] font-bold">
-            <span>= Net Disposable</span>
+            <span>{t.dash_net}</span>
             <span>{formatRupiah(dashboard.freeToSpend)}</span>
           </div>
         </div>
@@ -96,7 +99,7 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 space-y-1">
         <div class="flex items-start justify-between gap-2 text-[var(--color-ink-muted)]">
-          <span class="text-xs font-mono font-semibold uppercase tracking-wider min-w-0">Pemasukan Bulan Ini</span>
+          <span class="text-xs font-mono font-semibold uppercase tracking-wider min-w-0">{t.stat_income}</span>
           <Wallet class="w-4 h-4 text-[var(--color-accent)] shrink-0 mt-0.5" />
         </div>
         <div class="text-lg sm:text-xl font-bold font-mono text-[var(--color-ink)]">
@@ -106,7 +109,7 @@
 
       <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 space-y-1">
         <div class="flex items-start justify-between gap-2 text-[var(--color-ink-muted)]">
-          <span class="text-xs font-mono font-semibold uppercase tracking-wider min-w-0">Pengeluaran Bulan Ini</span>
+          <span class="text-xs font-mono font-semibold uppercase tracking-wider min-w-0">{t.stat_expenses}</span>
           <Receipt class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5" />
         </div>
         <div class="text-lg sm:text-xl font-bold font-mono text-[var(--color-ink)]">
@@ -116,7 +119,7 @@
 
       <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 space-y-1">
         <div class="flex items-start justify-between gap-2 text-[var(--color-ink-muted)]">
-          <span class="text-xs font-mono font-semibold uppercase tracking-wider min-w-0">Tagihan Belum Lunas</span>
+          <span class="text-xs font-mono font-semibold uppercase tracking-wider min-w-0">{t.stat_bills}</span>
           <CalendarCheck class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5" />
         </div>
         <div class="text-lg sm:text-xl font-bold font-mono text-[var(--color-ink)]">
@@ -126,7 +129,7 @@
 
       <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 space-y-1">
         <div class="flex items-start justify-between gap-2 text-[var(--color-ink-muted)]">
-          <span class="text-xs font-mono font-semibold uppercase tracking-wider min-w-0">Total Sisa Hutang</span>
+          <span class="text-xs font-mono font-semibold uppercase tracking-wider min-w-0">{t.stat_debt}</span>
           <HandCoins class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5" />
         </div>
         <div class="text-lg sm:text-xl font-bold font-mono text-[var(--color-ink)]">
@@ -141,7 +144,7 @@
     <div class="flex items-center justify-between border-b border-[var(--color-border)] pb-2.5">
       <div class="flex items-center gap-2">
         <Clock class="w-4 h-4 text-[var(--color-accent)]" />
-        <h2 class="text-base font-bold text-[var(--color-ink)] font-mono">Timeline Alur Keuangan</h2>
+        <h2 class="text-base font-bold text-[var(--color-ink)] font-mono">{t.timeline_feed}</h2>
       </div>
 
       <button
@@ -149,16 +152,16 @@
         class="flex items-center gap-1.5 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-accent)] transition-colors cursor-pointer"
       >
         <RefreshCw class="w-3.5 h-3.5" />
-        <span>Refresh</span>
+        <span>{t.common_refresh}</span>
       </button>
     </div>
 
     {#if isLoading}
-      <div class="p-8 text-center text-[var(--color-ink-muted)] text-xs font-mono">Memuat timeline...</div>
+      <div class="p-8 text-center text-[var(--color-ink-muted)] text-xs font-mono">{t.dash_loading_timeline}</div>
     {:else if timeline.length === 0}
       <div class="p-10 text-center border border-dashed border-[var(--color-border)] rounded-md space-y-1">
-        <p class="text-[var(--color-ink)] font-semibold text-sm">Belum Ada Transaksi</p>
-        <p class="text-xs text-[var(--color-ink-muted)]">Klik "Catat Transaksi" untuk menambahkan catatan pertama.</p>
+        <p class="text-[var(--color-ink)] font-semibold text-sm">{t.dash_no_transactions}</p>
+        <p class="text-xs text-[var(--color-ink-muted)]">{t.dash_no_transactions_hint}</p>
       </div>
     {:else}
       <div class="space-y-2">
@@ -205,7 +208,7 @@
                 {item.type === 'income' ? '+' : '-'}{formatRupiah(item.amount)}
               </div>
               <div class="text-[10px] uppercase font-bold tracking-wider text-[var(--color-ink-muted)] mt-0.5">
-                {item.type.replace('_', ' ')}
+                {item.type === 'income' ? t.type_income : item.type === 'expense' ? t.type_expense : item.type === 'bill' ? t.type_bill : t.type_debt_payment}
               </div>
             </div>
           </div>
