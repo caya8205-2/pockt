@@ -1,8 +1,8 @@
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import * as schema from './schema.js';
+import { dbPath } from './path.js';
 
-const dbPath = process.env.DATABASE_URL || (process.env.NODE_ENV === 'production' ? 'pockt.prod.db' : 'pockt.dev.db');
 const sqlite = new Database(dbPath);
 sqlite.pragma('journal_mode = WAL');
 
@@ -81,6 +81,13 @@ export function initDb() {
       date TEXT NOT NULL,
       notes TEXT,
       created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS sessions (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_at TEXT NOT NULL,
+      expires_at TEXT NOT NULL
     );
   `);
 

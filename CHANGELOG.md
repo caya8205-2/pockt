@@ -2,6 +2,23 @@
 
 All notable changes to Pockt are documented in this file. Grouped by release, with the primary release changes at the top.
 
+## [0.1.1] — 2026-08-08
+
+### Security Hardening
+
+- **Opaque server-side sessions**: login now issues a random 256-bit token (previously the raw user ID) stored in a new `sessions` table with 30-day expiry. Every protected request validates the session against the DB (exists + not expired + real user); expired/invalid sessions are deleted on sight.
+- **Logout invalidates sessions server-side**: the session row is deleted on logout, so a stolen cookie stops working immediately.
+- **Rate limiting on auth endpoints**: login/setup/register are limited to 10 attempts per 15 minutes per IP (honors `CF-Connecting-IP` behind Cloudflare Tunnel), returning `429` + `Retry-After`. Successful logins reset the bucket.
+- **Secure cookie flags**: `pockt_session` cookie is now `HttpOnly` + `SameSite=Lax` + `Secure` in production (30-day maxAge).
+- **Registration locked to setup**: `/api/auth/register` and `/api/auth/setup` are rejected with `403` once the owner exists (single-owner app); previously anyone could create extra accounts.
+- **Fail-closed COOKIE_SECRET**: in production the backend refuses to boot when `COOKIE_SECRET` is missing or one of the known placeholders (`pockt-secret-key-321`, `pockt-prod-secret-change-this-987`).
+- **CORS same-origin only**: `origin: false` — no cross-origin API access.
+- **Auth hook now sets `request.userId`** from the validated session; all route files read that instead of trusting the cookie value directly.
+- **DB backup script**: `pnpm --filter @pockt/backend backup` creates a WAL-safe snapshot via the SQLite online backup API into `backups/` next to the DB file, keeping the last 14. Works inside the Docker container (`/app/apps/backend/data/backups/` in the volume).
+- **Test suite expanded to 17 backend tests**: opaque-session flow, server-side invalidation after logout, expired-session cleanup, invalid-session 401, single-owner registration lock, brute-force rate limiting (10 fails → 429), and fail-closed boot without a strong secret.
+
+> Note: existing browser sessions created before this release are invalidated — sign in once more after deploying.
+
 ## [0.1.0] — 2026-08-08
 
 ### Authentication & Security

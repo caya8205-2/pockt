@@ -15,7 +15,7 @@ export interface TimelineItem {
 }
 
 function getUserId(request: any): string {
-  return request.cookies.pockt_session || 'default';
+  return request.userId || 'default';
 }
 
 export async function timelineRoutes(fastify: FastifyInstance) {

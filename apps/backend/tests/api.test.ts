@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { buildApp } from '../src/app.js';
+import { db } from '../src/db/index.js';
+import { sessions } from '../src/db/schema.js';
+import { eq } from 'drizzle-orm';
+import { resetRateLimits } from '../src/utils/rate-limit.js';
 import type { FastifyInstance } from 'fastify';
 
 describe('Pockt Full Backend API Suite', () => {
@@ -336,54 +340,165 @@ describe('Pockt Full Backend API Suite', () => {
     expect(res.body).toContain('Type,ID,Title/Name,Amount,Category,Date,Notes');
   });
 
-  it('Auth - register new user, duplicate rejected, login, logout', async () => {
-    const uniqueUsername = `testuser_${Date.now()}`;
+  it('Auth - register rejected after setup (single-owner app)', async () => {
+    // Once the owner exists, registration is locked down
+    for (const url of ['/api/auth/register', '/api/auth/setup']) {
+      const res = await app.inject({
+        method: 'POST',
+        url,
+        payload: { username: `late_${Date.now()}`, password: 'dummypass123' },
+      });
+      expect(res.statusCode).toBe(403);
+      expect(JSON.parse(res.body).error).toBe('Setup sudah selesai');
+    }
+  });
 
-    // 1. Register new user (dummy data)
-    const registerRes = await app.inject({
-      method: 'POST',
-      url: '/api/auth/register',
-      payload: { username: uniqueUsername, password: 'dummypass123' },
+  it('Auth - invalid session rejected on protected routes', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/dashboard',
+      cookies: { pockt_session: 'bogus-session-token' },
     });
-    expect(registerRes.statusCode).toBe(200);
-    expect(JSON.parse(registerRes.body).success).toBe(true);
+    expect(res.statusCode).toBe(401);
+  });
 
-    // 2. Duplicate username rejected
-    const dupRes = await app.inject({
-      method: 'POST',
-      url: '/api/auth/register',
-      payload: { username: uniqueUsername, password: 'dummypass123' },
-    });
-    expect(dupRes.statusCode).toBe(400);
+  it('Auth - login issues opaque session cookie, logout invalidates server-side', async () => {
+    resetRateLimits();
 
-    // 3. Login as new user
+    // 1. Login issues an opaque random token (not the raw user id)
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/auth/login',
-      payload: { username: uniqueUsername, password: 'dummypass123' },
+      payload: { username: 'owner', password: 'password123' },
     });
     expect(loginRes.statusCode).toBe(200);
-    const newCookies = { pockt_session: loginRes.cookies.find((c) => c.name === 'pockt_session')!.value };
+    const cookie = loginRes.cookies.find((c) => c.name === 'pockt_session')!;
+    expect(cookie).toBeDefined();
+    expect(cookie.value).toMatch(/^[0-9a-f]{64}$/);
+    expect(cookie.httpOnly).toBe(true);
+    expect(cookie.sameSite?.toLowerCase()).toBe('lax');
 
-    // 4. /me with valid session
-    const meRes = await app.inject({ method: 'GET', url: '/api/auth/me', cookies: newCookies });
+    // 2. Session is stored in the sessions table
+    const stored = await db.select().from(sessions).where(eq(sessions.id, cookie.value)).limit(1);
+    expect(stored.length).toBe(1);
+    expect(stored[0].userId.length).toBeGreaterThan(0);
+
+    // 3. /me with valid session
+    const meRes = await app.inject({
+      method: 'GET',
+      url: '/api/auth/me',
+      cookies: { pockt_session: cookie.value },
+    });
     expect(meRes.statusCode).toBe(200);
     expect(JSON.parse(meRes.body).authenticated).toBe(true);
 
-    // 5. Logout clears the session cookie
+    // 4. Logout clears the cookie and deletes the session row
     const logoutRes = await app.inject({
       method: 'POST',
       url: '/api/auth/logout',
-      cookies: newCookies,
+      cookies: { pockt_session: cookie.value },
     });
     expect(logoutRes.statusCode).toBe(200);
-    const setCookieHeader = logoutRes.headers['set-cookie'];
-    expect(setCookieHeader).toBeDefined();
-    expect(setCookieHeader).toContain('pockt_session=;');
+    expect(logoutRes.headers['set-cookie']).toContain('pockt_session=;');
+
+    const afterLogout = await db.select().from(sessions).where(eq(sessions.id, cookie.value)).limit(1);
+    expect(afterLogout.length).toBe(0);
+
+    // 5. Reusing the old cookie no longer authenticates (server-side invalidation)
+    const meAfter = await app.inject({
+      method: 'GET',
+      url: '/api/auth/me',
+      cookies: { pockt_session: cookie.value },
+    });
+    expect(JSON.parse(meAfter.body).authenticated).toBe(false);
 
     // 6. /me without session cookie - not authenticated
-    const meAfter = await app.inject({ method: 'GET', url: '/api/auth/me' });
-    expect(JSON.parse(meAfter.body).authenticated).toBe(false);
+    const noCookie = await app.inject({ method: 'GET', url: '/api/auth/me' });
+    expect(JSON.parse(noCookie.body).authenticated).toBe(false);
+  });
+
+  it('Auth - expired session is rejected', async () => {
+    resetRateLimits();
+
+    const loginRes = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { username: 'owner', password: 'password123' },
+    });
+    expect(loginRes.statusCode).toBe(200);
+    const token = loginRes.cookies.find((c) => c.name === 'pockt_session')!.value;
+
+    await db
+      .update(sessions)
+      .set({ expiresAt: new Date(Date.now() - 1000).toISOString() })
+      .where(eq(sessions.id, token));
+
+    const meRes = await app.inject({
+      method: 'GET',
+      url: '/api/auth/me',
+      cookies: { pockt_session: token },
+    });
+    expect(JSON.parse(meRes.body).authenticated).toBe(false);
+
+    const dashboardRes = await app.inject({
+      method: 'GET',
+      url: '/api/dashboard',
+      cookies: { pockt_session: token },
+    });
+    expect(dashboardRes.statusCode).toBe(401);
+  });
+
+  it('Auth - brute force is rate limited after repeated failures', async () => {
+    resetRateLimits();
+
+    // 10 failed attempts are allowed (401 each)
+    for (let i = 0; i < 10; i++) {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: { username: 'owner', password: 'wrong-password' },
+      });
+      expect(res.statusCode).toBe(401);
+    }
+
+    // 11th attempt is blocked with 429 + Retry-After
+    const blocked = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { username: 'owner', password: 'wrong-password' },
+    });
+    expect(blocked.statusCode).toBe(429);
+    expect(Number(blocked.headers['retry-after'])).toBeGreaterThan(0);
+    expect(JSON.parse(blocked.body).error).toBe('Terlalu banyak percobaan. Coba lagi nanti.');
+
+    // Even the correct password is blocked while the bucket is full
+    const correctBlocked = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { username: 'owner', password: 'password123' },
+    });
+    expect(correctBlocked.statusCode).toBe(429);
+  });
+
+  it('App fails closed without a strong COOKIE_SECRET in production', async () => {
+    const prevEnv = process.env.NODE_ENV;
+    const prevSecret = process.env.COOKIE_SECRET;
+    try {
+      process.env.NODE_ENV = 'production';
+
+      delete process.env.COOKIE_SECRET;
+      await expect(buildApp()).rejects.toThrow(/COOKIE_SECRET/);
+
+      process.env.COOKIE_SECRET = 'pockt-secret-key-321';
+      await expect(buildApp()).rejects.toThrow(/COOKIE_SECRET/);
+
+      process.env.COOKIE_SECRET = 'pockt-prod-secret-change-this-987';
+      await expect(buildApp()).rejects.toThrow(/COOKIE_SECRET/);
+    } finally {
+      process.env.NODE_ENV = prevEnv;
+      if (prevSecret === undefined) delete process.env.COOKIE_SECRET;
+      else process.env.COOKIE_SECRET = prevSecret;
+    }
   });
 
 });

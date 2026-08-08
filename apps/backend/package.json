@@ -12,6 +12,7 @@
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed.ts",
     "user": "tsx src/scripts/user.ts",
+    "backup": "node dist/scripts/backup.js",
     "test": "vitest run"
   },
   "dependencies": {

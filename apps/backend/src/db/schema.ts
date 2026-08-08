@@ -60,6 +60,13 @@ export const debts = sqliteTable('debts', {
   createdAt: text('created_at').notNull(),
 });
 
+export const sessions = sqliteTable('sessions', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: text('created_at').notNull(),
+  expiresAt: text('expires_at').notNull(),
+});
+
 export const debtPayments = sqliteTable('debt_payments', {
   id: text('id').primaryKey(),
   userId: text('user_id'),

@@ -103,6 +103,8 @@ Pockt uses separate SQLite files so testing never touches your real data:
 
 The schema auto-creates on server start; you can also run `pnpm --filter @pockt/backend db:migrate`. Override any path with the `DATABASE_URL` env var. In Docker, the prod DB lives inside the `pockt-db-data` volume, and the web container proxies `/api` to the backend via `API_INTERNAL_URL` (server-side proxy, no extra reverse proxy needed).
 
+**Backups**: `pnpm --filter @pockt/backend backup` writes a WAL-safe snapshot into `backups/` next to the DB file (keeps the last 14). In Docker, that lands inside the `pockt-db-data` volume (`/app/apps/backend/data/backups/`) — run it regularly (e.g. cron on the host: `docker exec pockt-backend pnpm --filter @pockt/backend backup`).
+
 ### 5. Owner Account (First-Time Setup)
 
 The app asks you to create the owner account on the `/register` page when it detects no owner exists. You can also create or reset the owner via CLI:
@@ -112,6 +114,16 @@ The app asks you to create the owner account on the `/register` page when it det
 pnpm --filter @pockt/backend user
 ```
 
+> Registration is locked once an owner exists (single-owner app). Reset your password with the `user` CLI command if you ever forget it.
+
+### 6. Security Model
+
+- **Sessions**: login issues a random 256-bit token stored server-side in the `sessions` table (30-day expiry). The cookie is `HttpOnly` + `SameSite=Lax` and gets the `Secure` flag in production. Logout deletes the row, so stolen cookies die at logout.
+- **Rate limiting**: login/register are limited to 10 attempts per 15 minutes per IP (honors `CF-Connecting-IP` behind Cloudflare Tunnel).
+- **Fail-closed secret**: in production the backend refuses to start without a strong `COOKIE_SECRET` (placeholder values are rejected).
+- **CORS**: same-origin only (`origin: false`); every `/api/*` route except health/auth validates the session on each request.
+- Password hashing: bcrypt (10 rounds); SQL is parameterized (Drizzle); frontend escapes all output (Svelte).
+
 ---
 
 ## 🧪 Testing Suite
@@ -119,7 +131,7 @@ pnpm --filter @pockt/backend user
 Pockt includes an automated testing suite for both backend APIs and frontend UI viewports. Backend tests run against an isolated `pockt.test.db` database that is wiped on every run; E2E tests use a global setup that ensures an owner exists and seeds dummy data when empty.
 
 ```bash
-# Run backend API integration tests (12 tests via Vitest, isolated test DB)
+# Run backend API integration tests (17 tests via Vitest, isolated test DB)
 pnpm test
 
 # Run frontend E2E layout & responsive tests (33 tests via Playwright, 3 viewports)

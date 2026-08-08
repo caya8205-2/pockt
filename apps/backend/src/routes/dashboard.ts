@@ -4,7 +4,7 @@ import { incomes, expenses, bills, debts, debtPayments } from '../db/schema.js';
 import { eq, or, isNull } from 'drizzle-orm';
 
 function getUserId(request: any): string {
-  return request.cookies.pockt_session || 'default';
+  return request.userId || 'default';
 }
 
 export async function dashboardRoutes(fastify: FastifyInstance) {
