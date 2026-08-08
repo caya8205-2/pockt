@@ -62,8 +62,10 @@ describe('Pockt Full Backend API Suite', () => {
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.body);
     expect(typeof body.salaryReceived).toBe('number');
+    expect(typeof body.debtPaidThisMonth).toBe('number');
+    expect(typeof body.debtDueThisMonth).toBe('number');
     expect(Array.isArray(body.unpaidBills)).toBe(true);
-    expect(Array.isArray(body.unpaidDebts)).toBe(true);
+    expect(Array.isArray(body.dueDebtsThisMonth)).toBe(true);
   });
 
   it('GET /api/timeline - returns combined chronological cashflow feed', async () => {

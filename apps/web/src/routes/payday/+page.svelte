@@ -3,18 +3,21 @@
   import { fetchApi } from '$lib/api';
   import { formatRupiah } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
-  import { CalendarCheck, HandCoins, Receipt, Wallet } from 'lucide-svelte';
+  import { CalendarCheck, HandCoins, Receipt, Wallet, DollarSign } from 'lucide-svelte';
 
   $: t = translations[$currentLang];
 
   interface PaydayData {
     salaryReceived: number;
     billsTotal: number;
-    debtDueTotal: number;
+    debtPaidThisMonth: number;
+    debtDueThisMonth: number;
+    debtPaidCount: number;
+    debtDueCount: number;
     spentTotal: number;
     freeToSpend: number;
     unpaidBills: any[];
-    unpaidDebts: any[];
+    dueDebtsThisMonth: any[];
   }
 
   let data: PaydayData | null = null;
@@ -52,15 +55,10 @@
   {:else if data}
     <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-6 space-y-6 shadow-xs">
       <div class="flex items-center justify-between pb-5 border-b border-[var(--color-border)]">
-        <div class="flex items-center gap-3">
-          <div class="p-2.5 bg-[var(--color-accent-subtle)] text-[var(--color-accent)] rounded-md">
-            <Wallet class="w-5 h-5" />
-          </div>
-          <div>
-            <div class="text-xs font-mono font-semibold uppercase tracking-wider text-[var(--color-ink-muted)]">{t.payday_total_salary}</div>
-            <div class="text-3xl sm:text-4xl font-extrabold font-mono text-[var(--color-ink)] mt-1">
-              {formatRupiah(data.salaryReceived)}
-            </div>
+        <div>
+          <div class="text-xs font-mono font-semibold uppercase tracking-wider text-[var(--color-ink-muted)]">{t.payday_total_salary}</div>
+          <div class="text-3xl sm:text-4xl font-extrabold font-mono text-[var(--color-ink)] mt-1">
+            {formatRupiah(data.salaryReceived)}
           </div>
         </div>
       </div>
@@ -84,14 +82,27 @@
 
           <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
             <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-              <HandCoins class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5 sm:mt-0" />
+              <DollarSign class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5 sm:mt-0" />
               <div class="min-w-0 flex-1">
-                <div class="text-sm font-bold text-[var(--color-ink)]">{t.payday_debts_principal}</div>
-                <div class="text-xs text-[var(--color-ink-muted)]">{data.unpaidDebts.length} {t.payday_active_debts}</div>
+                <div class="text-sm font-bold text-[var(--color-ink)]">{t.payday_debts_paid_this_month}</div>
+                <div class="text-xs text-[var(--color-ink-muted)]">{data.debtPaidCount} {t.payday_payments_made}</div>
               </div>
             </div>
             <div class="text-sm sm:text-base font-bold text-[var(--color-ink)] shrink-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-[var(--color-border)] text-right">
-              - {formatRupiah(data.debtDueTotal)}
+              - {formatRupiah(data.debtPaidThisMonth)}
+            </div>
+          </div>
+
+          <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+            <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+              <HandCoins class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5 sm:mt-0" />
+              <div class="min-w-0 flex-1">
+                <div class="text-sm font-bold text-[var(--color-ink)]">{t.payday_debts_due_this_month}</div>
+                <div class="text-xs text-[var(--color-ink-muted)]">{data.debtDueCount} {t.payday_due_debts_count}</div>
+              </div>
+            </div>
+            <div class="text-sm sm:text-base font-bold text-[var(--color-ink)] shrink-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-[var(--color-border)] text-right">
+              - {formatRupiah(data.debtDueThisMonth)}
             </div>
           </div>
 
@@ -122,3 +133,4 @@
     </div>
   {/if}
 </div>
+

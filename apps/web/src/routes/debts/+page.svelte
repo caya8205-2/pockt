@@ -204,7 +204,7 @@
             item.isPaid ? 'bg-[var(--color-paper-2)]/40 border-[var(--color-border)] opacity-75' : 'bg-[var(--color-paper-2)] border-[var(--color-border)] hover:border-slate-400'
           }`}
         >
-          <div class="flex items-start justify-between gap-3 sm:gap-4">
+          <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
             <div class="flex items-start gap-2.5 min-w-0 flex-1">
               <!-- Drag Handle Icon -->
               <div class="cursor-grab active:cursor-grabbing text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] p-1 shrink-0 mt-0.5" title="Drag to reorder">
@@ -229,7 +229,7 @@
               </div>
             </div>
 
-            <div class="text-right font-mono shrink-0">
+            <div class="text-left sm:text-right font-mono border-t sm:border-t-0 border-[var(--color-border)]/50 pt-2 sm:pt-0 shrink-0">
               <div class="text-xs text-[var(--color-ink-muted)]">{t.debt_remaining}</div>
               <div class="text-base sm:text-lg font-bold text-[var(--color-ink)] whitespace-nowrap">{formatRupiah(item.remainingAmount)}</div>
               <div class="text-[10px] text-[var(--color-ink-muted)] whitespace-nowrap">{t.debt_total_prefix} {formatRupiah(item.totalAmount)}</div>

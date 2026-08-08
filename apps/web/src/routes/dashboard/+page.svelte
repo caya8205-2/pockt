@@ -169,19 +169,19 @@
           <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] hover:border-slate-400 rounded-md p-3 flex items-center justify-between gap-4 transition-colors">
             <div class="flex items-center gap-3 min-w-0">
               {#if item.type === 'income'}
-                <div class="p-2 bg-[var(--color-accent-subtle)] text-[var(--color-accent)] rounded shrink-0">
+                <div class="hidden sm:block p-2 bg-[var(--color-accent-subtle)] text-[var(--color-accent)] rounded shrink-0">
                   <ArrowDownLeft class="w-4 h-4" />
                 </div>
               {:else if item.type === 'expense'}
-                <div class="p-2 bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded shrink-0">
+                <div class="hidden sm:block p-2 bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded shrink-0">
                   <ArrowUpRight class="w-4 h-4" />
                 </div>
               {:else if item.type === 'bill'}
-                <div class="p-2 bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded shrink-0">
+                <div class="hidden sm:block p-2 bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded shrink-0">
                   <CalendarCheck class="w-4 h-4" />
                 </div>
               {:else}
-                <div class="p-2 bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded shrink-0">
+                <div class="hidden sm:block p-2 bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded shrink-0">
                   <HandCoins class="w-4 h-4" />
                 </div>
               {/if}

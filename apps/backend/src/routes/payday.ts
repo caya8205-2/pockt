@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { db } from '../db/index.js';
-import { incomes, expenses, bills, debts } from '../db/schema.js';
+import { incomes, expenses, bills, debts, debtPayments } from '../db/schema.js';
 import { desc, eq, or, isNull } from 'drizzle-orm';
 
 function getUserId(request: any): string {
@@ -32,14 +32,28 @@ export async function paydayRoutes(fastify: FastifyInstance) {
     const unpaidBills = allBills.filter((b) => !b.isPaid);
     const billsTotal = unpaidBills.reduce((acc, curr) => acc + (curr.remainingAmount ?? curr.amount), 0);
 
-    // Outstanding debt for this user
+    // Debt repayments made THIS month
+    const allDebtPayments = await db
+      .select()
+      .from(debtPayments)
+      .where(or(eq(debtPayments.userId, userId), isNull(debtPayments.userId)));
+
+    const monthlyDebtPayments = allDebtPayments.filter((dp) => dp.date.startsWith(currentMonth));
+    const debtPaidThisMonth = monthlyDebtPayments.reduce((acc, curr) => acc + curr.amount, 0);
+
+    // Debts due THIS month (or past due / no due date). Debts due in future months are excluded from this month's Payday Planning.
     const allDebts = await db
       .select()
       .from(debts)
       .where(or(eq(debts.userId, userId), isNull(debts.userId)));
 
     const unpaidDebts = allDebts.filter((d) => !d.isPaid);
-    const debtDueTotal = unpaidDebts.reduce((acc, curr) => acc + curr.remainingAmount, 0);
+    const dueDebtsThisMonth = unpaidDebts.filter((d) => {
+      if (!d.dueDate) return true; // No due date = due/active
+      return d.dueDate.slice(0, 7) <= currentMonth; // Due in current month or overdue
+    });
+
+    const debtDueThisMonth = dueDebtsThisMonth.reduce((acc, curr) => acc + curr.remainingAmount, 0);
 
     // Expenses spent this month for this user
     const allExpenses = await db
@@ -50,16 +64,23 @@ export async function paydayRoutes(fastify: FastifyInstance) {
     const monthlyExpenses = allExpenses.filter((e) => e.date.startsWith(currentMonth));
     const spentTotal = monthlyExpenses.reduce((acc, curr) => acc + curr.amount, 0);
 
-    const freeToSpend = totalSalaryReceived - billsTotal - debtDueTotal - spentTotal;
+    const freeToSpend = totalSalaryReceived - billsTotal - debtPaidThisMonth - debtDueThisMonth - spentTotal;
 
     return {
       salaryReceived: totalSalaryReceived,
       billsTotal,
-      debtDueTotal,
+      debtPaidThisMonth,
+      debtDueThisMonth,
+      debtPaidCount: monthlyDebtPayments.length,
+      debtDueCount: dueDebtsThisMonth.length,
       spentTotal,
       freeToSpend,
       unpaidBills,
-      unpaidDebts,
+      dueDebtsThisMonth,
+      // Backward compatibility keys
+      debtDueTotal: debtDueThisMonth,
+      unpaidDebts: dueDebtsThisMonth,
     };
   });
 }
+

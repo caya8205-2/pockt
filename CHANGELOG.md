@@ -2,6 +2,22 @@
 
 All notable changes to Pockt are documented in this file. Grouped by release, with the primary release changes at the top.
 
+## [0.2.0] — 2026-08-08
+
+### UI Refinements & Mobile Responsive Polish
+
+- **Removed wallet icon badge on Payday Planning**: Removed redundant wallet icon badge next to "Total Monthly Salary / Incomes" header on the `/payday` overview page.
+- **Hidden left icon badge on mobile Timeline Feed**: Hid the left square icon badge on `/dashboard` timeline feed cards for mobile viewports (`hidden sm:block`) to give title and transaction amounts more horizontal breathing room.
+- **Fixed Debts list mobile overflow**: Updated debt item card layout on `/debts` to responsive stacking (`flex-col sm:flex-row`), preventing text, due dates, and remaining/total amounts from overflowing or clipping on narrow mobile screens.
+
+### Payday Planning Debt Isolation
+
+- **Divided Payday debt obligations into 2 separate categories**:
+  - `Angsuran / Hutang Dibayar Bulan Ini` (`debtPaidThisMonth`): total debt repayments executed in the current month.
+  - `Sisa Hutang Jatuh Tempo Bulan Ini` (`debtDueThisMonth`): remaining debt principal due in the current month (or past due / no due date).
+- **Excluded future-month debts from monthly net calculation**: Debts due in future months (e.g. November 2026, December 2026, January 2027 during August 2026) are no longer deducted from this month's Payday net income calculation (`freeToSpend`).
+- **Updated `/api/payday` response endpoint**: returns `debtPaidThisMonth`, `debtDueThisMonth`, `debtPaidCount`, `debtDueCount`, and `dueDebtsThisMonth`.
+
 ## [0.1.1] — 2026-08-08
 
 ### Security Hardening
