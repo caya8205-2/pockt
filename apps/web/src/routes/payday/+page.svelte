@@ -1,13 +1,17 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { fetchApi } from '$lib/api';
-  import { formatRupiah } from '$lib/format';
+  import { formatRupiah, formatDate } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
-  import { CalendarCheck, HandCoins, Receipt, Wallet, DollarSign } from 'lucide-svelte';
+  import { CalendarCheck, HandCoins, Receipt, Wallet, DollarSign, Settings, Calendar } from 'lucide-svelte';
+  import Modal from '$components/Modal.svelte';
 
   $: t = translations[$currentLang];
 
   interface PaydayData {
+    paydayDate: number;
+    cycleStart: string;
+    cycleEnd: string;
     salaryReceived: number;
     billsTotal: number;
     debtPaidThisMonth: number;
@@ -23,14 +27,39 @@
   let data: PaydayData | null = null;
   let isLoading = true;
 
+  // Setting modal
+  let showSettingsModal = false;
+  let newPaydayDate = 5;
+  let isSavingSettings = false;
+
   async function loadPaydayData() {
     isLoading = true;
     try {
       data = await fetchApi<PaydayData>('/payday');
+      if (data) {
+        newPaydayDate = data.paydayDate || 5;
+      }
     } catch (err) {
       console.error('Failed to load payday data:', err);
     } finally {
       isLoading = false;
+    }
+  }
+
+  async function handleSaveSettings() {
+    if (newPaydayDate < 1 || newPaydayDate > 31) return;
+    isSavingSettings = true;
+    try {
+      await fetchApi('/user/settings', {
+        method: 'PUT',
+        body: JSON.stringify({ paydayDate: Number(newPaydayDate) }),
+      });
+      showSettingsModal = false;
+      await loadPaydayData();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      isSavingSettings = false;
     }
   }
 
@@ -40,25 +69,45 @@
 </script>
 
 <div class="space-y-6 max-w-4xl mx-auto">
-  <div class="flex items-center gap-3">
-    <div class="p-2.5 bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)] rounded-md">
-      <Wallet class="w-5 h-5" />
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="p-2.5 bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)] rounded-md">
+        <Wallet class="w-5 h-5" />
+      </div>
+      <div>
+        <h1 class="text-xl font-bold font-mono text-[var(--color-ink)]">{t.payday_title}</h1>
+        <p class="text-xs text-[var(--color-ink-muted)]">{t.payday_subtitle}</p>
+      </div>
     </div>
-    <div>
-      <h1 class="text-xl font-bold font-mono text-[var(--color-ink)]">{t.payday_title}</h1>
-      <p class="text-xs text-[var(--color-ink-muted)]">{t.payday_subtitle}</p>
-    </div>
+
+    {#if data}
+      <button
+        on:click={() => { newPaydayDate = data.paydayDate; showSettingsModal = true; }}
+        class="flex items-center gap-2 px-3 py-2 bg-[var(--color-paper-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink)] text-xs font-mono font-bold rounded-md transition-colors cursor-pointer shrink-0 self-start sm:self-auto shadow-xs"
+      >
+        <Settings class="w-3.5 h-3.5 text-[var(--color-accent)]" />
+        <span>{t.payday_change_date} ({data.paydayDate})</span>
+      </button>
+    {/if}
   </div>
 
   {#if isLoading}
     <div class="p-10 text-center font-mono text-xs text-[var(--color-ink-muted)]">{t.payday_loading}</div>
   {:else if data}
     <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-6 space-y-6 shadow-xs">
-      <div class="flex items-center justify-between pb-5 border-b border-[var(--color-border)]">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[var(--color-border)]">
         <div>
           <div class="text-xs font-mono font-semibold uppercase tracking-wider text-[var(--color-ink-muted)]">{t.payday_total_salary}</div>
           <div class="text-3xl sm:text-4xl font-extrabold font-mono text-[var(--color-ink)] mt-1">
             {formatRupiah(data.salaryReceived)}
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2.5 px-3.5 py-2.5 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-xs font-mono shrink-0">
+          <Calendar class="w-4 h-4 text-[var(--color-accent)] shrink-0" />
+          <div>
+            <span class="text-[var(--color-ink-muted)]">{t.payday_cycle_badge}: </span>
+            <span class="font-bold text-[var(--color-ink)]">{formatDate(data.cycleStart)} – {formatDate(data.cycleEnd)}</span>
           </div>
         </div>
       </div>
@@ -131,6 +180,43 @@
         </div>
       </div>
     </div>
+  {/if}
+
+  {#if showSettingsModal}
+    <Modal title={t.payday_date_modal_title} on:close={() => (showSettingsModal = false)}>
+      <form on:submit|preventDefault={handleSaveSettings} class="space-y-4 font-mono text-xs">
+        <div>
+          <label class="block text-[var(--color-ink-muted)] mb-1" for="paydayDateInput">{t.payday_date_label}</label>
+          <input
+            id="paydayDateInput"
+            type="number"
+            min="1"
+            max="31"
+            bind:value={newPaydayDate}
+            class="w-full bg-[var(--color-paper)] border border-[var(--color-border)] rounded px-3 py-2 text-[var(--color-ink)] text-sm font-bold focus:outline-none focus:border-[var(--color-accent)]"
+            required
+          />
+          <p class="text-[11px] text-[var(--color-ink-muted)] mt-1.5 leading-relaxed font-sans">{t.payday_date_hint}</p>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-[var(--color-border)]">
+          <button
+            type="button"
+            on:click={() => (showSettingsModal = false)}
+            class="px-3.5 py-2 border border-[var(--color-border)] rounded hover:bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] cursor-pointer"
+          >
+            {t.common_cancel}
+          </button>
+          <button
+            type="submit"
+            disabled={isSavingSettings}
+            class="px-4 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-bold rounded cursor-pointer transition-colors"
+          >
+            {isSavingSettings ? t.common_saving : t.common_save}
+          </button>
+        </div>
+      </form>
+    </Modal>
   {/if}
 </div>
 

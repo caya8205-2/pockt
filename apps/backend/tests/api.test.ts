@@ -57,15 +57,27 @@ describe('Pockt Full Backend API Suite', () => {
     expect(body.freeToSpend).toBe(body.currentBalance - body.outstandingBills - body.outstandingDebt);
   });
 
-  it('GET /api/payday - provides salary allocation analysis', async () => {
+  it('GET /api/payday & PUT /api/user/settings - calculates dynamic payday cycle window', async () => {
     const res = await app.inject({ method: 'GET', url: '/api/payday', cookies });
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.body);
     expect(typeof body.salaryReceived).toBe('number');
-    expect(typeof body.debtPaidThisMonth).toBe('number');
-    expect(typeof body.debtDueThisMonth).toBe('number');
-    expect(Array.isArray(body.unpaidBills)).toBe(true);
-    expect(Array.isArray(body.dueDebtsThisMonth)).toBe(true);
+    expect(typeof body.paydayDate).toBe('number');
+    expect(body.cycleStart).toBeDefined();
+    expect(body.cycleEnd).toBeDefined();
+
+    // Update paydayDate setting
+    const updateRes = await app.inject({
+      method: 'PUT',
+      url: '/api/user/settings',
+      cookies,
+      payload: { paydayDate: 25 },
+    });
+    expect(updateRes.statusCode).toBe(200);
+    expect(JSON.parse(updateRes.body).paydayDate).toBe(25);
+
+    const res2 = await app.inject({ method: 'GET', url: '/api/payday', cookies });
+    expect(JSON.parse(res2.body).paydayDate).toBe(25);
   });
 
   it('GET /api/timeline - returns combined chronological cashflow feed', async () => {

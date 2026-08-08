@@ -1,27 +1,79 @@
 import { FastifyInstance } from 'fastify';
 import { db } from '../db/index.js';
-import { incomes, expenses, bills, debts, debtPayments } from '../db/schema.js';
+import { incomes, expenses, bills, debts, debtPayments, users } from '../db/schema.js';
 import { desc, eq, or, isNull } from 'drizzle-orm';
 
 function getUserId(request: any): string {
   return request.userId || 'default';
 }
 
+export function getPaydayCycleWindow(now: Date = new Date(), paydayDate: number = 5): { cycleStart: string; cycleEnd: string } {
+  const validDay = Math.min(Math.max(paydayDate, 1), 31);
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const currentDate = now.getDate();
+
+  let startYear: number;
+  let startMonth: number;
+
+  if (currentDate >= validDay) {
+    startYear = currentYear;
+    startMonth = currentMonth;
+  } else {
+    if (currentMonth === 0) {
+      startYear = currentYear - 1;
+      startMonth = 11;
+    } else {
+      startYear = currentYear;
+      startMonth = currentMonth - 1;
+    }
+  }
+
+  const maxStartDays = new Date(startYear, startMonth + 1, 0).getDate();
+  const actualStartDay = Math.min(validDay, maxStartDays);
+  const cycleStartObj = new Date(startYear, startMonth, actualStartDay);
+
+  let endYear = startYear;
+  let endMonth = startMonth + 1;
+  if (endMonth > 11) {
+    endYear = startYear + 1;
+    endMonth = 0;
+  }
+
+  const maxEndDays = new Date(endYear, endMonth + 1, 0).getDate();
+  const actualEndDay = Math.min(validDay, maxEndDays);
+  const nextCycleStartObj = new Date(endYear, endMonth, actualEndDay);
+  const cycleEndObj = new Date(nextCycleStartObj.getTime() - 86400000);
+
+  const formatISO = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+  return {
+    cycleStart: formatISO(cycleStartObj),
+    cycleEnd: formatISO(cycleEndObj),
+  };
+}
+
 export async function paydayRoutes(fastify: FastifyInstance) {
   fastify.get('/api/payday', async (request) => {
     const userId = getUserId(request);
-    const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-    // Recent main salary income for this user
+    // Fetch user's preferred payday date (default: 5)
+    const userRow = await db.select({ paydayDate: users.paydayDate }).from(users).where(eq(users.id, userId)).limit(1);
+    const queryDay = (request.query as any)?.paydayDate;
+    const paydayDate = queryDay ? Number(queryDay) : (userRow[0]?.paydayDate ?? 5);
+
+    const now = new Date();
+    const { cycleStart, cycleEnd } = getPaydayCycleWindow(now, paydayDate);
+
+    // Main salary incomes within this payday cycle
     const allIncomes = await db
       .select()
       .from(incomes)
       .where(or(eq(incomes.userId, userId), isNull(incomes.userId)))
       .orderBy(desc(incomes.date));
 
-    const monthlyIncomes = allIncomes.filter((i) => i.date.startsWith(currentMonth));
-    const totalSalaryReceived = monthlyIncomes.reduce((acc, curr) => acc + curr.amount, 0);
+    const cycleIncomes = allIncomes.filter((i) => i.date >= cycleStart && i.date <= cycleEnd);
+    const totalSalaryReceived = cycleIncomes.reduce((acc, curr) => acc + curr.amount, 0);
 
     // Outstanding bills for this user
     const allBills = await db
@@ -32,16 +84,16 @@ export async function paydayRoutes(fastify: FastifyInstance) {
     const unpaidBills = allBills.filter((b) => !b.isPaid);
     const billsTotal = unpaidBills.reduce((acc, curr) => acc + (curr.remainingAmount ?? curr.amount), 0);
 
-    // Debt repayments made THIS month
+    // Debt repayments made THIS payday cycle
     const allDebtPayments = await db
       .select()
       .from(debtPayments)
       .where(or(eq(debtPayments.userId, userId), isNull(debtPayments.userId)));
 
-    const monthlyDebtPayments = allDebtPayments.filter((dp) => dp.date.startsWith(currentMonth));
-    const debtPaidThisMonth = monthlyDebtPayments.reduce((acc, curr) => acc + curr.amount, 0);
+    const cycleDebtPayments = allDebtPayments.filter((dp) => dp.date >= cycleStart && dp.date <= cycleEnd);
+    const debtPaidThisMonth = cycleDebtPayments.reduce((acc, curr) => acc + curr.amount, 0);
 
-    // Debts due THIS month (or past due / no due date). Debts due in future months are excluded from this month's Payday Planning.
+    // Debts due within this payday cycle (or past due / no due date)
     const allDebts = await db
       .select()
       .from(debts)
@@ -50,28 +102,31 @@ export async function paydayRoutes(fastify: FastifyInstance) {
     const unpaidDebts = allDebts.filter((d) => !d.isPaid);
     const dueDebtsThisMonth = unpaidDebts.filter((d) => {
       if (!d.dueDate) return true; // No due date = due/active
-      return d.dueDate.slice(0, 7) <= currentMonth; // Due in current month or overdue
+      return d.dueDate <= cycleEnd; // Due date on or before end of current payday cycle
     });
 
     const debtDueThisMonth = dueDebtsThisMonth.reduce((acc, curr) => acc + curr.remainingAmount, 0);
 
-    // Expenses spent this month for this user
+    // Expenses spent during this payday cycle
     const allExpenses = await db
       .select()
       .from(expenses)
       .where(or(eq(expenses.userId, userId), isNull(expenses.userId)));
 
-    const monthlyExpenses = allExpenses.filter((e) => e.date.startsWith(currentMonth));
-    const spentTotal = monthlyExpenses.reduce((acc, curr) => acc + curr.amount, 0);
+    const cycleExpenses = allExpenses.filter((e) => e.date >= cycleStart && e.date <= cycleEnd);
+    const spentTotal = cycleExpenses.reduce((acc, curr) => acc + curr.amount, 0);
 
     const freeToSpend = totalSalaryReceived - billsTotal - debtPaidThisMonth - debtDueThisMonth - spentTotal;
 
     return {
+      paydayDate,
+      cycleStart,
+      cycleEnd,
       salaryReceived: totalSalaryReceived,
       billsTotal,
       debtPaidThisMonth,
       debtDueThisMonth,
-      debtPaidCount: monthlyDebtPayments.length,
+      debtPaidCount: cycleDebtPayments.length,
       debtDueCount: dueDebtsThisMonth.length,
       spentTotal,
       freeToSpend,
@@ -82,5 +137,18 @@ export async function paydayRoutes(fastify: FastifyInstance) {
       unpaidDebts: dueDebtsThisMonth,
     };
   });
+
+  fastify.put('/api/user/settings', async (request, reply) => {
+    const userId = getUserId(request);
+    const { paydayDate } = request.body as { paydayDate?: number };
+
+    if (!paydayDate || typeof paydayDate !== 'number' || paydayDate < 1 || paydayDate > 31) {
+      return reply.status(400).send({ error: 'paydayDate harus berupa angka antara 1 dan 31' });
+    }
+
+    await db.update(users).set({ paydayDate }).where(eq(users.id, userId));
+    return { success: true, paydayDate };
+  });
 }
+
 

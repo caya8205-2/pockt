@@ -17,6 +17,7 @@ export function initDb() {
       id TEXT PRIMARY KEY,
       username TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
+      payday_date INTEGER NOT NULL DEFAULT 5,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -110,6 +111,12 @@ export function initDb() {
     } catch (e) {
       // Column user_id already exists, ignore
     }
+  }
+
+  try {
+    sqlite.exec(`ALTER TABLE users ADD COLUMN payday_date INTEGER NOT NULL DEFAULT 5;`);
+  } catch (e) {
+    // Column payday_date already exists, ignore
   }
 
   try {

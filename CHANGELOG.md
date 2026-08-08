@@ -2,6 +2,15 @@
 
 All notable changes to Pockt are documented in this file. Grouped by release, with the primary release changes at the top.
 
+## [0.2.1] — 2026-08-08
+
+### Custom Payday Cycle Window & Setting
+
+- **Dynamic Payday Cycle Window**: Replaced calendar-month filtering on `/payday` with custom salary cycle windows calculated from the user's monthly salary date (default: 5th of every month, e.g. Aug 5 – Sep 4).
+- **Eliminated Fake Free-to-Spend Illusion**: Debts and bills due on the 1st of next month (which fall before the next salary arrives on the 5th) are now automatically included as mandatory obligations in the current salary cycle.
+- **Configurable Payday Date Setting**: Added user setting `paydayDate` (1–31) in `users` table, updatable via `PUT /api/user/settings` and interactive modal on `/payday`.
+- **Payday Header Cycle Badge**: Added active cycle date range display (e.g. `Payday Cycle: 5 Aug 2026 – 4 Sep 2026`) in `/payday` overview header.
+
 ## [0.2.0] — 2026-08-08
 
 ### UI Refinements & Mobile Responsive Polish
