@@ -101,7 +101,7 @@ Pockt uses separate SQLite files so testing never touches your real data:
 | Production | `pockt.prod.db` | Docker deploy / `pnpm start` with `NODE_ENV=production` |
 | Backend tests | `pockt.test.db` | Vitest (wiped on every run) |
 
-The schema auto-creates on server start; you can also run `pnpm --filter @pockt/backend db:migrate`. Override any path with the `DATABASE_URL` env var.
+The schema auto-creates on server start; you can also run `pnpm --filter @pockt/backend db:migrate`. Override any path with the `DATABASE_URL` env var. In Docker, the prod DB lives inside the `pockt-db-data` volume, and the web container proxies `/api` to the backend via `API_INTERNAL_URL` (server-side proxy, no extra reverse proxy needed).
 
 ### 5. Owner Account (First-Time Setup)
 
