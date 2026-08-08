@@ -247,15 +247,27 @@ describe('Pockt Full Backend API Suite', () => {
     });
     expect(updateRes.statusCode).toBe(200);
 
-    // 4. Toggle paid status
-    const toggleRes = await app.inject({
+    // 4. Pay bill installment & fetch payment history
+    const payRes = await app.inject({
       method: 'POST',
-      url: `/api/bills/${bill.id}/toggle-paid`,
+      url: `/api/bills/${bill.id}/pay`,
+      cookies,
+      payload: { amount: 50000, date: '2026-08-08', notes: 'Installment 1' },
+    });
+    expect(payRes.statusCode).toBe(200);
+
+    const paymentsRes = await app.inject({
+      method: 'GET',
+      url: `/api/bills/${bill.id}/payments`,
       cookies,
     });
-    expect(toggleRes.statusCode).toBe(200);
-    const toggled = JSON.parse(toggleRes.body);
-    expect(toggled.isPaid).toBe(true);
+    expect(paymentsRes.statusCode).toBe(200);
+    const payments = JSON.parse(paymentsRes.body);
+    expect(Array.isArray(payments)).toBe(true);
+    expect(payments.length).toBe(1);
+    expect(payments[0].amount).toBe(50000);
+
+    // 5. Toggle paid status
 
     // 5. Reset monthly bills
     const resetRes = await app.inject({

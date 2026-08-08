@@ -6,6 +6,7 @@
   import { sortWithCustomOrder, saveCustomOrder } from '$lib/order';
   import { HandCoins, Plus, Trash2, Edit3, DollarSign, History, GripVertical } from 'lucide-svelte';
   import Modal from '$components/Modal.svelte';
+  import AmountInput from '$components/AmountInput.svelte';
 
   $: t = translations[$currentLang];
   const STORAGE_KEY = 'pockt_order_debts';
@@ -179,7 +180,7 @@
       on:click={openCreateModal}
       class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 self-center leading-none text-center w-full sm:w-auto"
     >
-      <Plus class="w-4 h-4 stroke-[3] shrink-0 my-auto" />
+      <Plus class="w-4 h-4 stroke-[3] shrink-0" />
       <span class="leading-none">{t.add_debt}</span>
     </button>
   </div>
@@ -191,9 +192,11 @@
       <p class="text-[var(--color-ink)] font-semibold text-sm">{t.no_debts}</p>
     </div>
   {:else}
-    <div class="grid gap-2.5">
+    <div class="grid gap-2.5" role="list">
       {#each debts as item, index (item.id)}
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
+          role="listitem"
           draggable="true"
           on:dragstart={(e) => handleDragStart(e, index)}
           on:dragover={(e) => handleDragOver(e, index)}
@@ -212,17 +215,21 @@
               </div>
 
               <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2 min-w-0 flex-wrap sm:flex-nowrap">
-                  <span class="font-bold text-sm sm:text-base text-[var(--color-ink)] truncate">{item.person}</span>
-                  {#if item.isPaid}
-                    <span class="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)] rounded shrink-0 whitespace-nowrap">
-                      {t.common_paid}
-                    </span>
-                  {/if}
+                <div class="font-bold text-sm sm:text-base text-[var(--color-ink)] truncate">
+                  {item.person}
                 </div>
-                {#if item.notes}
-                  <div class="text-xs text-[var(--color-ink-muted)] mt-0.5 truncate">{item.notes}</div>
-                {/if}
+                <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-1 flex items-center gap-2 flex-wrap">
+                  {#if item.isPaid || item.remainingAmount === 0}
+                    <span class="text-[var(--color-accent)] font-semibold">{t.common_paid}</span>
+                  {:else if item.remainingAmount < item.totalAmount}
+                    <span class="text-amber-500 font-semibold">
+                      {$currentLang === 'id' ? `DIBAYAR SEBAGIAN (Terbayar ${formatRupiah(item.totalAmount - item.remainingAmount)})` : `PARTIALLY PAID (${formatRupiah(item.totalAmount - item.remainingAmount)} paid)`}
+                    </span>
+                  {:else}
+                    <span class="font-semibold text-[var(--color-ink-muted)]">{t.common_unpaid}</span>
+                  {/if}
+                  {#if item.notes} • <span class="italic text-[var(--color-ink-muted)] font-sans">{item.notes}</span>{/if}
+                </div>
                 {#if item.dueDate}
                   <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-0.5">{t.debt_due_prefix} {formatDateNumeric(item.dueDate)} ({formatDate(item.dueDate)})</div>
                 {/if}
@@ -238,7 +245,7 @@
 
           <div class="pt-2.5 border-t border-[var(--color-border)] flex items-center justify-between">
             <div class="flex items-center gap-2">
-              {#if !item.isPaid}
+              {#if !item.isPaid && item.remainingAmount > 0}
                 <button
                   on:click={() => openPayModal(item)}
                   class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 rounded-md transition-colors cursor-pointer shadow-xs"
@@ -294,18 +301,13 @@
         class="modal-input"
       />
     </div>
-    <div>
-      <label for="inp-dbt-amount" class="modal-label">{t.debt_total_label}</label>
-      <input
-        id="inp-dbt-amount"
-        type="number"
-        bind:value={totalAmount}
-        placeholder="0"
-        required
-        min="1"
-        class="modal-input"
-      />
-    </div>
+    <AmountInput
+      id="inp-dbt-amount"
+      bind:value={totalAmount}
+      label={t.debt_total_label}
+      placeholder="0"
+      required
+    />
     <div>
       <label for="inp-dbt-date" class="modal-label">
         {t.debt_due_label} <span class="text-[10px] text-[var(--color-ink-muted)] font-normal">(Format: DD/MM/YYYY)</span>
@@ -337,17 +339,13 @@
 <!-- Pay Modal -->
 <Modal isOpen={showPayModal} title={t.pay_title} onClose={() => (showPayModal = false)}>
   <form on:submit|preventDefault={handlePaySubmit} class="space-y-3.5 font-mono">
-    <div>
-      <label for="inp-pay-amount" class="modal-label">{t.pay_amount_label}</label>
-      <input
-        id="inp-pay-amount"
-        type="number"
-        bind:value={payAmount}
-        required
-        min="1"
-        class="modal-input"
-      />
-    </div>
+    <AmountInput
+      id="inp-pay-amount"
+      bind:value={payAmount}
+      label={t.pay_amount_label}
+      placeholder="0"
+      required
+    />
     <div>
       <label for="inp-pay-date" class="modal-label">
         {t.pay_date_label} <span class="text-[10px] text-[var(--color-ink-muted)] font-normal">(Format: DD/MM/YYYY)</span>

@@ -29,6 +29,17 @@
     }
   });
 
+  import { runAuthTransition } from '$lib/authTransition';
+
+  async function handleNavLogin(e: Event) {
+    e.preventDefault();
+    await runAuthTransition(
+      'navigating',
+      $currentLang === 'id' ? 'Menuju Halaman Masuk...' : 'Navigating to Login...',
+      () => goto('/login')
+    );
+  }
+
   async function handleSubmit() {
     errorMessage = '';
 
@@ -58,7 +69,11 @@
         return;
       }
 
-      goto('/login');
+      await runAuthTransition(
+        'register_to_login',
+        $currentLang === 'id' ? 'Menyiapkan Akun Baru...' : 'Setting Up New Account...',
+        () => goto('/login')
+      );
     } catch (err) {
       errorMessage = $currentLang === 'id' ? 'Gagal terhubung ke server' : 'Failed to connect to server';
     } finally {
@@ -174,7 +189,7 @@
         </button>
 
         <div class="text-center pt-2 border-t border-[var(--color-border)]">
-          <a href="/login" class="text-xs text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] transition-colors">
+          <a href="/login" on:click={handleNavLogin} class="text-xs text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] transition-colors">
             {$currentLang === 'id' ? 'Sudah punya akun? Masuk di sini' : 'Already have an account? Sign In'}
           </a>
         </div>

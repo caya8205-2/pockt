@@ -3,6 +3,7 @@
   import { currentLang, translations, categoryLabel } from '$lib/i18n';
   import { Plus, ArrowUpRight, ArrowDownLeft } from 'lucide-svelte';
   import Modal from '$components/Modal.svelte';
+  import AmountInput from '$components/AmountInput.svelte';
 
   $: t = translations[$currentLang];
   $: catLabel = (cat: string) => categoryLabel($currentLang, cat);
@@ -118,18 +119,13 @@
       />
     </div>
 
-    <div>
-      <label for="input-amount" class="modal-label">{t.amount_label}</label>
-      <input
-        id="input-amount"
-        type="number"
-        bind:value={amount}
-        placeholder="0"
-        required
-        min="1"
-        class="modal-input"
-      />
-    </div>
+    <AmountInput
+      id="input-amount"
+      bind:value={amount}
+      label={t.amount_label}
+      placeholder="0"
+      required
+    />
 
     {#if type === 'expense'}
       <div>

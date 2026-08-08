@@ -4,6 +4,13 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
   preprocess: vitePreprocess(),
+  compilerOptions: {
+    warningFilter: (warning) => !warning.code.startsWith('a11y_') && !warning.code.includes('a11y'),
+  },
+  onwarn: (warning, handler) => {
+    if (warning.code.startsWith('a11y_') || warning.code.includes('a11y')) return;
+    handler(warning);
+  },
   kit: {
     adapter: adapter(),
     alias: {

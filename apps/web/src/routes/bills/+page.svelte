@@ -1,11 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { fetchApi } from '$lib/api';
-  import { formatRupiah } from '$lib/format';
+  import { formatRupiah, formatDate, formatDateNumeric } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
   import { sortWithCustomOrder, saveCustomOrder } from '$lib/order';
-  import { CalendarCheck, Plus, Trash2, Edit3, CheckCircle2, RotateCcw, DollarSign, GripVertical } from 'lucide-svelte';
+  import { CalendarCheck, Plus, Trash2, Edit3, CheckCircle2, RotateCcw, DollarSign, History, GripVertical } from 'lucide-svelte';
   import Modal from '$components/Modal.svelte';
+  import AmountInput from '$components/AmountInput.svelte';
 
   $: t = translations[$currentLang];
   const STORAGE_KEY = 'pockt_order_bills';
@@ -39,6 +40,28 @@
   let payAmount: number | null = null;
   let payDate = new Date().toISOString().split('T')[0];
   let payNotes = '';
+
+  interface Payment {
+    id: string;
+    amount: number;
+    date: string;
+    notes: string | null;
+  }
+
+  // History modal
+  let showHistoryModal = false;
+  let historyPayments: Payment[] = [];
+  let historyBillName = '';
+
+  async function openHistoryModal(item: Bill) {
+    historyBillName = item.name;
+    try {
+      historyPayments = await fetchApi<Payment[]>(`/bills/${item.id}/payments`);
+      showHistoryModal = true;
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   async function loadBills() {
     isLoading = true;
@@ -178,7 +201,7 @@
         on:click={openCreateModal}
         class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors shadow-xs cursor-pointer leading-none self-center text-center"
       >
-        <Plus class="w-4 h-4 stroke-[3] my-auto" />
+        <Plus class="w-4 h-4 stroke-[3]" />
         <span class="leading-none">{t.add_bill}</span>
       </button>
     </div>
@@ -191,11 +214,13 @@
       <p class="text-[var(--color-ink)] font-semibold text-sm">{t.bills_empty}</p>
     </div>
   {:else}
-    <div class="grid gap-2.5">
+    <div class="grid gap-2.5" role="list">
       {#each bills as item, index (item.id)}
         {@const remaining = item.remainingAmount ?? item.amount}
         {@const isPartiallyPaid = !item.isPaid && remaining < item.amount}
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
+          role="listitem"
           draggable="true"
           on:dragstart={(e) => handleDragStart(e, index)}
           on:dragover={(e) => handleDragOver(e, index)}
@@ -215,40 +240,24 @@
                 <GripVertical class="w-4 h-4" />
               </div>
 
-              <button
-                on:click={() => togglePaidStatus(item.id)}
-                class={`p-2 rounded shrink-0 transition-colors cursor-pointer mt-0.5 sm:mt-0 ${
-                  item.isPaid
-                    ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)]'
-                    : 'bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]'
-                }`}
-                title={item.isPaid ? t.bills_mark_unpaid : t.bills_mark_paid}
-                aria-label={t.bills_toggle_paid}
-              >
-                <CheckCircle2 class="w-4 h-4" />
-              </button>
-
               <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <span class={`font-bold text-sm sm:text-base ${item.isPaid ? 'line-through text-[var(--color-ink-muted)]' : 'text-[var(--color-ink)]'}`}>
-                    {item.name}
-                  </span>
-                  <span class="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded shrink-0">
-                    {t.bills_due_prefix} {item.dueDate} / {t.bills_per_month}
-                  </span>
-                  {#if isPartiallyPaid}
-                    <span class="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded shrink-0">
-                      {$currentLang === 'id' ? `Dicicil (Sisa ${formatRupiah(remaining)})` : `Partial (Sisa ${formatRupiah(remaining)})`}
-                    </span>
-                  {/if}
+                <div class={`font-bold text-sm sm:text-base ${item.isPaid || remaining === 0 ? 'line-through text-[var(--color-ink-muted)]' : 'text-[var(--color-ink)]'}`}>
+                  {item.name}
                 </div>
                 <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-1 flex items-center gap-2 flex-wrap">
-                  {#if item.isPaid}
+                  {#if item.isPaid || remaining === 0}
                     <span class="text-[var(--color-accent)] font-semibold">{t.common_paid}</span>
+                  {:else if remaining < item.amount}
+                    <span class="text-amber-500 font-semibold">
+                      {$currentLang === 'id' ? `DIBAYAR SEBAGIAN (Terbayar ${formatRupiah(item.amount - remaining)})` : `PARTIALLY PAID (${formatRupiah(item.amount - remaining)} paid)`}
+                    </span>
                   {:else}
                     <span class="font-semibold text-[var(--color-ink-muted)]">{t.common_unpaid}</span>
                   {/if}
                   {#if item.notes} • <span class="italic text-[var(--color-ink-muted)] font-sans">{item.notes}</span>{/if}
+                </div>
+                <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-0.5">
+                  {$currentLang === 'id' ? `Jatuh tempo: Tgl ${item.dueDate} / bulan` : `Due date: Day ${item.dueDate} / month`}
                 </div>
               </div>
             </div>
@@ -271,7 +280,7 @@
           <!-- Bottom Action Buttons -->
           <div class="pt-2.5 border-t border-[var(--color-border)] flex items-center justify-between">
             <div class="flex items-center gap-2">
-              {#if !item.isPaid}
+              {#if !item.isPaid && remaining > 0}
                 <button
                   on:click={() => openPayModal(item)}
                   class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 rounded-md transition-colors cursor-pointer shadow-xs"
@@ -280,6 +289,14 @@
                   <span>{$currentLang === 'id' ? 'Bayar / Cicil Tagihan' : 'Pay / Installment'}</span>
                 </button>
               {/if}
+
+              <button
+                on:click={() => openHistoryModal(item)}
+                class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] rounded-md transition-colors cursor-pointer"
+              >
+                <History class="w-3.5 h-3.5" />
+                <span>{t.history}</span>
+              </button>
             </div>
 
             <div class="flex items-center gap-1">
@@ -319,18 +336,13 @@
         class="modal-input"
       />
     </div>
-    <div>
-      <label for="inp-bill-amount" class="modal-label">{t.bill_amount}</label>
-      <input
-        id="inp-bill-amount"
-        type="number"
-        bind:value={amount}
-        placeholder="0"
-        required
-        min="1"
-        class="modal-input"
-      />
-    </div>
+    <AmountInput
+      id="inp-bill-amount"
+      bind:value={amount}
+      label={t.bill_amount}
+      placeholder="0"
+      required
+    />
     <div>
       <label for="inp-bill-due" class="modal-label">{t.bill_due_label}</label>
       <input
@@ -363,17 +375,13 @@
 <!-- Pay Modal -->
 <Modal isOpen={showPayModal} title={$currentLang === 'id' ? `Bayar Tagihan: ${selectedBill?.name || ''}` : `Pay Bill: ${selectedBill?.name || ''}`} onClose={() => (showPayModal = false)}>
   <form on:submit|preventDefault={handlePaySubmit} class="space-y-3.5 font-mono">
-    <div>
-      <label for="inp-pay-bill-amount" class="modal-label">{t.pay_amount_label}</label>
-      <input
-        id="inp-pay-bill-amount"
-        type="number"
-        bind:value={payAmount}
-        required
-        min="1"
-        class="modal-input"
-      />
-    </div>
+    <AmountInput
+      id="inp-pay-bill-amount"
+      bind:value={payAmount}
+      label={t.pay_amount_label}
+      placeholder="0"
+      required
+    />
     <div>
       <label for="inp-pay-bill-date" class="modal-label">{t.pay_date_label}</label>
       <input
@@ -399,4 +407,25 @@
       <button type="submit" class="px-4 py-2 text-xs font-bold text-slate-950 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] rounded-md shadow-xs">{t.confirm_payment}</button>
     </div>
   </form>
+</Modal>
+
+<!-- History Modal -->
+<Modal isOpen={showHistoryModal} title={`${t.debt_history_title} — ${historyBillName}`} onClose={() => (showHistoryModal = false)}>
+  {#if historyPayments.length === 0}
+    <p class="text-xs font-mono text-[var(--color-ink-muted)] py-6 text-center">{t.no_payments}</p>
+  {:else}
+    <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+      {#each historyPayments as hp}
+        <div class="bg-[var(--color-paper)] p-3 rounded-md flex items-center justify-between text-xs border border-[var(--color-border)] font-mono">
+          <div>
+            <div class="font-bold text-[var(--color-ink)]">{formatDateNumeric(hp.date)} ({formatDate(hp.date)})</div>
+            {#if hp.notes}<div class="text-[var(--color-ink-muted)] text-[11px] font-sans">{hp.notes}</div>{/if}
+          </div>
+          <div class="font-bold text-[var(--color-accent)]">
+            {formatRupiah(hp.amount)}
+          </div>
+        </div>
+      {/each}
+    </div>
+  {/if}
 </Modal>

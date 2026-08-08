@@ -80,7 +80,7 @@
   });
 </script>
 
-<div class="space-y-6 max-w-4xl mx-auto">
+<div class="space-y-6">
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div class="flex items-center gap-3">
       <div class="p-2.5 bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)] rounded-md">
@@ -94,9 +94,9 @@
 
     <button
       on:click={() => { newPaydayDate = data?.paydayDate || 5; settingsError = ''; showSettingsModal = true; }}
-      class="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 bg-[var(--color-paper-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink)] text-xs font-mono font-bold rounded-md transition-colors cursor-pointer shrink-0 self-start sm:self-center leading-none text-center shadow-xs"
+      class="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-[var(--color-paper-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink)] text-xs font-mono font-bold rounded-md transition-colors cursor-pointer shrink-0 self-start sm:self-center leading-none text-center shadow-xs"
     >
-      <Settings class="w-3.5 h-3.5 text-[var(--color-accent)] shrink-0 my-auto" />
+      <Settings class="w-3.5 h-3.5 text-[var(--color-accent)] shrink-0" />
       <span class="leading-none">{t.payday_change_date} ({data?.paydayDate || 5})</span>
     </button>
   </div>
@@ -192,63 +192,60 @@
     </div>
   {/if}
 
-  {#if showSettingsModal}
-    <Modal title={t.payday_date_modal_title} on:close={() => (showSettingsModal = false)}>
-      <form on:submit|preventDefault={handleSaveSettings} class="space-y-4 font-mono text-xs">
-        {#if settingsError}
-          <div class="p-2.5 bg-red-500/10 border border-red-500/30 text-red-400 rounded text-xs">
-            {settingsError}
-          </div>
-        {/if}
-
-        <div>
-          <label class="block text-[var(--color-ink-muted)] mb-1" for="paydayDateInput">{t.payday_date_label}</label>
-          <input
-            id="paydayDateInput"
-            type="number"
-            min="1"
-            max="31"
-            bind:value={newPaydayDate}
-            class="w-full bg-[var(--color-paper)] border border-[var(--color-border)] rounded px-3 py-2 text-[var(--color-ink)] text-sm font-bold focus:outline-none focus:border-[var(--color-accent)]"
-            required
-          />
-          <div class="flex items-center gap-1.5 mt-2 flex-wrap">
-            <span class="text-[11px] text-[var(--color-ink-muted)]">Pilih cepat:</span>
-            {#each [1, 5, 25, 28, 30] as presetDay}
-              <button
-                type="button"
-                on:click={() => (newPaydayDate = presetDay)}
-                class={`px-2 py-1 text-[11px] font-mono rounded border transition-colors cursor-pointer ${
-                  newPaydayDate === presetDay
-                    ? 'bg-[var(--color-accent)] text-slate-950 font-bold border-[var(--color-accent)]'
-                    : 'bg-[var(--color-paper-3)] text-[var(--color-ink)] border-[var(--color-border)] hover:border-slate-400'
-                }`}
-              >
-                Tgl {presetDay}
-              </button>
-            {/each}
-          </div>
-          <p class="text-[11px] text-[var(--color-ink-muted)] mt-2 leading-relaxed font-sans">{t.payday_date_hint}</p>
+  <Modal isOpen={showSettingsModal} title={t.payday_date_modal_title} onClose={() => (showSettingsModal = false)}>
+    <form on:submit|preventDefault={handleSaveSettings} class="space-y-4 font-mono text-xs">
+      {#if settingsError}
+        <div class="p-2.5 bg-red-500/10 border border-red-500/30 text-red-400 rounded text-xs">
+          {settingsError}
         </div>
+      {/if}
 
-        <div class="flex justify-end gap-2 pt-2 border-t border-[var(--color-border)]">
-          <button
-            type="button"
-            on:click={() => (showSettingsModal = false)}
-            class="px-3.5 py-2 border border-[var(--color-border)] rounded hover:bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] cursor-pointer"
-          >
-            {t.common_cancel}
-          </button>
-          <button
-            type="submit"
-            disabled={isSavingSettings}
-            class="px-4 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-bold rounded cursor-pointer transition-colors"
-          >
-            {isSavingSettings ? t.common_saving : t.common_save}
-          </button>
+      <div>
+        <label class="block text-[var(--color-ink-muted)] mb-1" for="paydayDateInput">{t.payday_date_label}</label>
+        <input
+          id="paydayDateInput"
+          type="number"
+          min="1"
+          max="31"
+          bind:value={newPaydayDate}
+          class="w-full bg-[var(--color-paper)] border border-[var(--color-border)] rounded px-3 py-2 text-[var(--color-ink)] text-sm font-bold focus:outline-none focus:border-[var(--color-accent)]"
+          required
+        />
+        <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+          <span class="text-[11px] text-[var(--color-ink-muted)]">Pilih cepat:</span>
+          {#each [1, 5, 25, 28, 30] as presetDay}
+            <button
+              type="button"
+              on:click={() => (newPaydayDate = presetDay)}
+              class={`px-2 py-1 text-[11px] font-mono rounded border transition-colors cursor-pointer ${
+                newPaydayDate === presetDay
+                  ? 'bg-[var(--color-accent)] text-slate-950 font-bold border-[var(--color-accent)]'
+                  : 'bg-[var(--color-paper-3)] text-[var(--color-ink)] border-[var(--color-border)] hover:border-slate-400'
+              }`}
+            >
+              Tgl {presetDay}
+            </button>
+          {/each}
         </div>
-      </form>
-    </Modal>
-  {/if}
+        <p class="text-[11px] text-[var(--color-ink-muted)] mt-2 leading-relaxed font-sans">{t.payday_date_hint}</p>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-[var(--color-border)]">
+        <button
+          type="button"
+          on:click={() => (showSettingsModal = false)}
+          class="px-3.5 py-2 border border-[var(--color-border)] rounded hover:bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] cursor-pointer"
+        >
+          {t.common_cancel}
+        </button>
+        <button
+          type="submit"
+          disabled={isSavingSettings}
+          class="px-4 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-bold rounded cursor-pointer transition-colors"
+        >
+          {isSavingSettings ? t.common_saving : t.common_save}
+        </button>
+      </div>
+    </form>
+  </Modal>
 </div>
-

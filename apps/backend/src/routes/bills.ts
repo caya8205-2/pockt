@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db } from '../db/index.js';
 import { bills, billPayments } from '../db/schema.js';
-import { eq, asc, and, or, isNull } from 'drizzle-orm';
+import { eq, asc, desc, and, or, isNull } from 'drizzle-orm';
 import { cryptoNative } from '../utils/id.js';
 
 const billSchema = z.object({
@@ -136,6 +136,17 @@ export async function billRoutes(fastify: FastifyInstance) {
       .where(eq(bills.id, id));
 
     return { success: true, remainingAmount: newRemaining, isPaid };
+  });
+
+  fastify.get('/api/bills/:id/payments', async (request, reply) => {
+    const userId = getUserId(request);
+    const { id } = request.params as { id: string };
+    const payments = await db
+      .select()
+      .from(billPayments)
+      .where(and(eq(billPayments.billId, id), or(eq(billPayments.userId, userId), isNull(billPayments.userId))))
+      .orderBy(desc(billPayments.date));
+    return payments;
   });
 
   fastify.post('/api/bills/:id/toggle-paid', async (request, reply) => {

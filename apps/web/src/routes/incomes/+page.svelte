@@ -6,6 +6,7 @@
   import { sortWithCustomOrder, saveCustomOrder } from '$lib/order';
   import { Wallet, Plus, ArrowDownLeft, Trash2, Edit3, GripVertical } from 'lucide-svelte';
   import Modal from '$components/Modal.svelte';
+  import AmountInput from '$components/AmountInput.svelte';
 
   $: t = translations[$currentLang];
   const STORAGE_KEY = 'pockt_order_incomes';
@@ -128,7 +129,7 @@
       on:click={openCreateModal}
       class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 self-center leading-none text-center w-full sm:w-auto"
     >
-      <Plus class="w-4 h-4 stroke-[3] shrink-0 my-auto" />
+      <Plus class="w-4 h-4 stroke-[3] shrink-0" />
       <span class="leading-none">{t.add_income}</span>
     </button>
   </div>
@@ -140,9 +141,11 @@
       <p class="text-[var(--color-ink)] font-semibold text-sm">{t.no_incomes}</p>
     </div>
   {:else}
-    <div class="grid gap-2.5">
+    <div class="grid gap-2.5" role="list">
       {#each incomes as item, index (item.id)}
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
+          role="listitem"
           draggable="true"
           on:dragstart={(e) => handleDragStart(e, index)}
           on:dragover={(e) => handleDragOver(e, index)}
@@ -210,18 +213,13 @@
         class="modal-input"
       />
     </div>
-    <div>
-      <label for="inp-inc-amount" class="modal-label">{t.amount_label}</label>
-      <input
-        id="inp-inc-amount"
-        type="number"
-        bind:value={amount}
-        placeholder="0"
-        required
-        min="1"
-        class="modal-input"
-      />
-    </div>
+    <AmountInput
+      id="inp-inc-amount"
+      bind:value={amount}
+      label={t.amount_label}
+      placeholder="0"
+      required
+    />
     <div>
       <label for="inp-inc-date" class="modal-label">
         {t.date_label} <span class="text-[10px] text-[var(--color-ink-muted)] font-normal">(Format: DD/MM/YYYY)</span>

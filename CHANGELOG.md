@@ -11,6 +11,15 @@ All notable changes to Pockt are documented in this file. Grouped by release, wi
 - **Configurable Payday Date Setting**: Added user setting `paydayDate` (1–31) in `users` table, updatable via `PUT /api/user/settings` and interactive modal on `/payday`.
 - **Payday Header Cycle Badge**: Added active cycle date range display (e.g. `Payday Cycle: 5 Aug 2026 – 4 Sep 2026`) in `/payday` overview header.
 
+### Payment Statuses, Bill History & UX Polish
+
+- **Dynamic Payment Statuses & Clean Cards**: Added automatic status indicators across `/bills` and `/debts` (`BELUM DIBAYAR`, `DIBAYAR SEBAGIAN`, `LUNAS`). Statuses update automatically from payments made without manual toggling. Removed redundant card badges and placed status & due date info directly under item names (`Jatuh tempo: Tgl {dueDate} / bulan`).
+- **Bill Payment History Modal & API Endpoint**: Added `GET /api/bills/:id/payments` Fastify backend endpoint and interactive "Riwayat" modal for `/bills`, matching installment payment history tracking on `/debts`.
+- **Automatic Thousand Separator Input (`AmountInput.svelte`)**: Created reusable number input displaying live Indonesian thousand dots (`1.500.000`), live Rupiah badge (`= Rp 1.500.000`), quick zero buttons (`+000` Ribuan, `+000.000` Jutaan), and enforced `padding-left` styling to eliminate text overlap with the `Rp` prefix.
+- **Full Width Layout & Dashboard Skeleton Loader**: Removed restrictive `max-w-4xl` from `/payday` to stretch cards full width. Added initial skeleton loader to `/dashboard` Hero and Stat Grid, preventing layout shift of section "Timeline Alur Keuangan".
+- **Animated Auth Transitions & Theme-Matching Loading Screens (`authTransition.ts`)**: Built a smooth transition system for Login, Logout, and Register. Features an animated Pockt logo gliding down from above, pulsing softly in the center with status messages, and sliding downward off-screen to unveil target pages.
+- **Isolated Dev vs Prod Database Environments**: Configured `.env.example` templates and updated `vite.config.ts` / `+server.ts` to respect `VITE_BACKEND_URL` / `API_INTERNAL_URL`. Relocated Docker container backend port to `3002:3001` so host port `3001` is reserved for local dev (`pockt.dev.db`).
+
 ## [0.2.0] — 2026-08-08
 
 ### UI Refinements & Mobile Responsive Polish

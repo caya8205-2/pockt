@@ -64,6 +64,10 @@ export const translations = {
     common_saving: 'Menyimpan...',
     common_paid: 'LUNAS',
     common_unpaid: 'BELUM DIBAYAR',
+    common_partially_paid: 'DIBAYAR SEBAGIAN',
+    add_category_btn: 'Tambah Kategori',
+    category_placeholder: 'Nama kategori baru...',
+    add_btn: 'Tambah',
 
     // Dashboard
     dash_hero: 'Uang Bebas Dipakai',
@@ -124,8 +128,10 @@ export const translations = {
     expenses_title: 'Kelola Pengeluaran',
     expenses_subtitle: 'Catat transaksi harian dengan cepat dalam waktu kurang dari 10 detik.',
     record_expense: 'Catat Pengeluaran',
+    add_expense: 'Tambah Pengeluaran',
     expenses_loading: 'Memuat pengeluaran...',
     expenses_empty: 'Tidak Ada Transaksi Ditemukan',
+    no_expenses: 'Belum Ada Catatan Pengeluaran',
     expenses_search_placeholder: 'Cari transaksi...',
     expenses_all: 'Semua',
     add_expense_title: 'Tambah Pengeluaran Baru',
@@ -230,6 +236,10 @@ export const translations = {
     common_saving: 'Saving...',
     common_paid: 'PAID',
     common_unpaid: 'UNPAID',
+    common_partially_paid: 'PARTIALLY PAID',
+    add_category_btn: 'Add Category',
+    category_placeholder: 'New category name...',
+    add_btn: 'Add',
 
     // Dashboard
     dash_hero: 'Free to Spend (Net Disposable Income)',
@@ -290,8 +300,10 @@ export const translations = {
     expenses_title: 'Manage Expenses',
     expenses_subtitle: 'Record daily expenses quickly in less than 10 seconds.',
     record_expense: 'Record Expense',
+    add_expense: 'Add Expense',
     expenses_loading: 'Loading expenses...',
     expenses_empty: 'No Transactions Found',
+    no_expenses: 'No Expense Records Yet',
     expenses_search_placeholder: 'Search transactions...',
     expenses_all: 'All',
     add_expense_title: 'Add New Expense',

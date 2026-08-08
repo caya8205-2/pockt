@@ -56,7 +56,27 @@
 
 <!-- Hallmark Bloom Stat-Led Hero Section -->
 <div class="space-y-6">
-  {#if dashboard}
+  {#if isLoading && !dashboard}
+    <!-- Skeleton Hero Section -->
+    <div class="border border-[var(--color-border)] bg-[var(--color-paper-2)] rounded-md p-6 space-y-6 shadow-xs animate-pulse">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div class="space-y-3 flex-1">
+          <div class="h-3 w-32 bg-[var(--color-paper-3)] rounded"></div>
+          <div class="h-10 w-64 bg-[var(--color-paper-3)] rounded"></div>
+          <div class="h-3 w-80 bg-[var(--color-paper-3)] rounded"></div>
+        </div>
+        <div class="w-full lg:w-80 h-28 bg-[var(--color-paper-3)] rounded-md"></div>
+      </div>
+    </div>
+
+    <!-- Skeleton Stat Grid -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 animate-pulse">
+      <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 h-20"></div>
+      <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 h-20"></div>
+      <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 h-20"></div>
+      <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 h-20"></div>
+    </div>
+  {:else if dashboard}
     <section class="border border-[var(--color-border)] bg-[var(--color-paper-2)] rounded-md p-6 space-y-6 shadow-xs">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div class="space-y-2">

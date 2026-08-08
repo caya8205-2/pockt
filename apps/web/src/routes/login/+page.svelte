@@ -33,6 +33,17 @@
     }
   });
 
+  import { runAuthTransition } from '$lib/authTransition';
+
+  async function handleNavRegister(e: Event) {
+    e.preventDefault();
+    await runAuthTransition(
+      'navigating',
+      $currentLang === 'id' ? 'Menuju Pendaftaran...' : 'Navigating to Register...',
+      () => goto('/register')
+    );
+  }
+
   async function handleSubmit() {
     errorMessage = '';
 
@@ -57,7 +68,11 @@
         return;
       }
 
-      goto('/dashboard');
+      await runAuthTransition(
+        'login_to_dash',
+        $currentLang === 'id' ? 'Menyiapkan Halaman Dasbor...' : 'Preparing Dashboard...',
+        () => goto('/dashboard')
+      );
     } catch (err) {
       errorMessage = $currentLang === 'id' ? 'Gagal terhubung ke server' : 'Failed to connect to server';
     } finally {
@@ -151,7 +166,7 @@
         </button>
 
         <div class="text-center pt-2 border-t border-[var(--color-border)]">
-          <a href="/register" class="text-xs text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] transition-colors">
+          <a href="/register" on:click={handleNavRegister} class="text-xs text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] transition-colors">
             {$currentLang === 'id' ? 'Belum punya akun? Daftar di sini' : "Don't have an account? Register here"}
           </a>
         </div>

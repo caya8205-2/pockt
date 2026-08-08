@@ -77,14 +77,22 @@
     }
   }
 
+  import { authTransition, runAuthTransition } from '$lib/authTransition';
+
   async function handleLogout() {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch (err) {
-      console.error(err);
-    }
-    isAuthenticated = false;
-    goto('/login');
+    await runAuthTransition(
+      'logout',
+      $currentLang === 'id' ? 'Mengakhiri Sesi Akun...' : 'Signing Out...',
+      async () => {
+        try {
+          await fetch('/api/auth/logout', { method: 'POST' });
+        } catch (err) {
+          console.error(err);
+        }
+        isAuthenticated = false;
+        goto('/login');
+      }
+    );
   }
 
   function applyTheme(theme: 'light' | 'dark') {
@@ -423,4 +431,42 @@
 
   <!-- Quick Add Modal -->
   <QuickAddModal bind:isOpen={isQuickAddOpen} />
+{/if}
+
+<!-- Fullscreen Auth Transition Overlay (Logo Glide Animation) -->
+{#if $authTransition.mode !== 'none'}
+  <div
+    class={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-[var(--color-paper)] text-[var(--color-ink)] transition-transform duration-500 ease-in-out ${
+      $authTransition.stage === 'enter'
+        ? 'translate-y-0 opacity-100'
+        : $authTransition.stage === 'hold'
+        ? 'translate-y-0 opacity-100'
+        : $authTransition.stage === 'exit'
+        ? 'translate-y-full opacity-0 pointer-events-none'
+        : '-translate-y-full opacity-0'
+    }`}
+  >
+    <div
+      class={`flex flex-col items-center gap-4 transition-all duration-500 transform ${
+        $authTransition.stage === 'hold'
+          ? 'scale-105 translate-y-0'
+          : 'scale-100 translate-y-0'
+      }`}
+    >
+      <div class="relative flex items-center justify-center p-4 rounded-2xl bg-[var(--color-paper-2)] border border-[var(--color-border)] shadow-xl">
+        <img src="/logo-no-bg.png" alt="Pockt Logo" class="h-16 w-auto object-contain animate-bounce" />
+      </div>
+
+      <div class="text-center space-y-1.5 font-mono">
+        <div class="font-bold text-2xl tracking-tight text-[var(--color-ink)]">
+          POCKT
+        </div>
+        {#if $authTransition.message}
+          <div class="text-xs text-[var(--color-accent)] font-bold tracking-wide animate-pulse">
+            {$authTransition.message}
+          </div>
+        {/if}
+      </div>
+    </div>
+  </div>
 {/if}
