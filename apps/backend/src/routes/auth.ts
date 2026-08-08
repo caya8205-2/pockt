@@ -53,14 +53,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       createdAt: new Date().toISOString(),
     });
 
-    reply.setCookie('pockt_session', userId, {
-      path: '/',
-      httpOnly: true,
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-    });
-
-    return reply.status(200).send({ success: true, message: 'User created' });
+    return reply.status(200).send({ success: true, message: 'User created successfully' });
   };
 
   fastify.post('/api/auth/setup', handleRegister);

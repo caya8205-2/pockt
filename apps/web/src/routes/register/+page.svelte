@@ -58,7 +58,7 @@
         return;
       }
 
-      goto('/');
+      goto('/login');
     } catch (err) {
       errorMessage = $currentLang === 'id' ? 'Gagal terhubung ke server' : 'Failed to connect to server';
     } finally {
