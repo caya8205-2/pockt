@@ -62,6 +62,16 @@ export function initDb() {
       created_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS bill_payments (
+      id TEXT PRIMARY KEY,
+      user_id TEXT,
+      bill_id TEXT NOT NULL REFERENCES bills(id) ON DELETE CASCADE,
+      amount REAL NOT NULL,
+      date TEXT NOT NULL,
+      notes TEXT,
+      created_at TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS debts (
       id TEXT PRIMARY KEY,
       user_id TEXT,
@@ -93,7 +103,7 @@ export function initDb() {
   `);
 
   // Safely attempt to add user_id column to existing tables if missing
-  const tables = ['categories', 'incomes', 'expenses', 'bills', 'debts', 'debt_payments'];
+  const tables = ['categories', 'incomes', 'expenses', 'bills', 'bill_payments', 'debts', 'debt_payments'];
   for (const table of tables) {
     try {
       sqlite.exec(`ALTER TABLE ${table} ADD COLUMN user_id TEXT;`);
@@ -106,5 +116,12 @@ export function initDb() {
     sqlite.exec(`ALTER TABLE bills ADD COLUMN remaining_amount REAL;`);
   } catch (e) {
     // Column remaining_amount already exists, ignore
+  }
+
+  // Clean up any legacy expense rows generated from bill payments so expenses table is strictly daily expenses
+  try {
+    sqlite.exec(`DELETE FROM expenses WHERE category = 'Tagihan' OR title LIKE 'Pembayaran Tagihan:%';`);
+  } catch (e) {
+    // Ignore cleanup error if table empty
   }
 }

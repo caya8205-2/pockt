@@ -49,6 +49,16 @@ export const bills = sqliteTable('bills', {
   createdAt: text('created_at').notNull(),
 });
 
+export const billPayments = sqliteTable('bill_payments', {
+  id: text('id').primaryKey(),
+  userId: text('user_id'),
+  billId: text('bill_id').notNull().references(() => bills.id, { onDelete: 'cascade' }),
+  amount: real('amount').notNull(),
+  date: text('date').notNull(), // YYYY-MM-DD
+  notes: text('notes'),
+  createdAt: text('created_at').notNull(),
+});
+
 export const debts = sqliteTable('debts', {
   id: text('id').primaryKey(),
   userId: text('user_id'),

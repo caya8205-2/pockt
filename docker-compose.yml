@@ -5,6 +5,7 @@ services:
       dockerfile: apps/backend/Dockerfile
     container_name: pockt-backend
     restart: unless-stopped
+    mem_limit: 256m
     ports:
       - "3001:3001"
     environment:
@@ -22,6 +23,7 @@ services:
       dockerfile: apps/web/Dockerfile
     container_name: pockt-web
     restart: unless-stopped
+    mem_limit: 256m
     ports:
       - "3000:3000"
     environment:

@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { db } from '../db/index.js';
-import { incomes, expenses, bills, debts, debtPayments } from '../db/schema.js';
+import { incomes, expenses, bills, billPayments, debts, debtPayments } from '../db/schema.js';
 import { eq, or, isNull } from 'drizzle-orm';
 
 function getUserId(request: any): string {
@@ -24,7 +24,7 @@ export async function dashboardRoutes(fastify: FastifyInstance) {
       .filter((i) => i.date.startsWith(currentMonth))
       .reduce((acc, curr) => acc + curr.amount, 0);
 
-    // Total Expenses for this user
+    // Total Expenses for this user (strictly daily operational expenses)
     const allExpenses = await db
       .select()
       .from(expenses)
@@ -43,8 +43,16 @@ export async function dashboardRoutes(fastify: FastifyInstance) {
 
     const totalDebtPaidAllTime = allDebtPayments.reduce((acc, curr) => acc + curr.amount, 0);
 
-    // Current Balance = Total Income - Total Expenses - Total Debt Payments
-    const currentBalance = totalIncomeAllTime - totalExpensesAllTime - totalDebtPaidAllTime;
+    // Total Bill Payments for this user
+    const allBillPayments = await db
+      .select()
+      .from(billPayments)
+      .where(or(eq(billPayments.userId, userId), isNull(billPayments.userId)));
+
+    const totalBillPaidAllTime = allBillPayments.reduce((acc, curr) => acc + curr.amount, 0);
+
+    // Current Balance = Total Income - Total Expenses - Total Debt Payments - Total Bill Payments
+    const currentBalance = totalIncomeAllTime - totalExpensesAllTime - totalDebtPaidAllTime - totalBillPaidAllTime;
 
     // Outstanding Bills (unpaid bills remaining amount) for this user
     const allBills = await db

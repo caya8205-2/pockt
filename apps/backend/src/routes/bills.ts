@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db } from '../db/index.js';
-import { bills, expenses } from '../db/schema.js';
+import { bills, billPayments } from '../db/schema.js';
 import { eq, asc, and, or, isNull } from 'drizzle-orm';
 import { cryptoNative } from '../utils/id.js';
 
@@ -113,6 +113,18 @@ export async function billRoutes(fastify: FastifyInstance) {
     const newRemaining = Math.max(0, currentRemaining - body.amount);
     const isPaid = newRemaining === 0;
 
+    // Record bill payment in bill_payments table (NOT expenses table!)
+    const paymentId = cryptoNative();
+    await db.insert(billPayments).values({
+      id: paymentId,
+      userId,
+      billId: id,
+      amount: body.amount,
+      date: body.date,
+      notes: body.notes || bill.notes || null,
+      createdAt: new Date().toISOString(),
+    });
+
     // Update bill remaining amount and paid status
     await db
       .update(bills)
@@ -122,19 +134,6 @@ export async function billRoutes(fastify: FastifyInstance) {
         lastPaidAt: body.date,
       })
       .where(eq(bills.id, id));
-
-    // Record expense transaction so cash balance is automatically updated
-    const expenseId = cryptoNative();
-    await db.insert(expenses).values({
-      id: expenseId,
-      userId,
-      title: `Pembayaran Tagihan: ${bill.name}`,
-      amount: body.amount,
-      category: 'Tagihan',
-      date: body.date,
-      notes: body.notes || bill.notes || null,
-      createdAt: new Date().toISOString(),
-    });
 
     return { success: true, remainingAmount: newRemaining, isPaid };
   });

@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { db } from '../db/index.js';
-import { incomes, expenses, bills, debtPayments, debts } from '../db/schema.js';
+import { incomes, expenses, bills, billPayments, debtPayments, debts } from '../db/schema.js';
 import { eq, or, isNull } from 'drizzle-orm';
 
 export interface TimelineItem {
@@ -36,6 +36,11 @@ export async function timelineRoutes(fastify: FastifyInstance) {
       .from(bills)
       .where(or(eq(bills.userId, userId), isNull(bills.userId)));
 
+    const allBillPayments = await db
+      .select()
+      .from(billPayments)
+      .where(or(eq(billPayments.userId, userId), isNull(billPayments.userId)));
+
     const allDebtPayments = await db
       .select()
       .from(debtPayments)
@@ -47,6 +52,7 @@ export async function timelineRoutes(fastify: FastifyInstance) {
       .where(or(eq(debts.userId, userId), isNull(debts.userId)));
 
     const debtMap = new Map(allDebts.map((d) => [d.id, d.person]));
+    const billMap = new Map(allBills.map((b) => [b.id, b.name]));
 
     const items: TimelineItem[] = [];
 
@@ -75,19 +81,18 @@ export async function timelineRoutes(fastify: FastifyInstance) {
       });
     }
 
-    // Add Paid Bills or Due Bills
-    for (const bill of allBills) {
-      if (bill.isPaid && bill.lastPaidAt) {
-        items.push({
-          id: `bill-${bill.id}`,
-          type: 'bill',
-          title: `Tagihan: ${bill.name}`,
-          amount: bill.amount,
-          date: bill.lastPaidAt.split('T')[0],
-          notes: bill.notes,
-          status: 'Lunas',
-        });
-      }
+    // Add Bill Payments
+    for (const bp of allBillPayments) {
+      const billName = billMap.get(bp.billId) || 'Tagihan';
+      items.push({
+        id: bp.id,
+        type: 'bill',
+        title: `Pembayaran Tagihan: ${billName}`,
+        amount: bp.amount,
+        date: bp.date,
+        notes: bp.notes,
+        status: 'Lunas',
+      });
     }
 
     // Add Debt Payments
