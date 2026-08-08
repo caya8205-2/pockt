@@ -30,7 +30,7 @@
   let currentTheme: 'light' | 'dark' = 'light';
   let isAuthenticated = false;
 
-  $: isLoginPage = $page.url.pathname === '/login';
+  $: isAuthPage = $page.url.pathname === '/login' || $page.url.pathname === '/register';
 
   onMount(async () => {
     const saved = localStorage.getItem('pockt-theme') as 'light' | 'dark' | null;
@@ -50,15 +50,22 @@
       const data = await res.json();
       if (data.authenticated) {
         isAuthenticated = true;
+        if (isAuthPage) {
+          goto('/');
+        }
       } else {
         isAuthenticated = false;
-        if (!isLoginPage) {
-          goto('/login');
+        if (!isAuthPage) {
+          if (data.needsSetup) {
+            goto('/register');
+          } else {
+            goto('/login');
+          }
         }
       }
     } catch (err) {
       isAuthenticated = false;
-      if (!isLoginPage) {
+      if (!isAuthPage) {
         goto('/login');
       }
     }
@@ -109,11 +116,11 @@
   }
 </script>
 
-{#if isLoginPage}
+{#if isAuthPage}
   <main class="min-h-screen bg-[var(--color-paper)] text-[var(--color-ink)] transition-colors duration-150">
     <slot />
   </main>
-{:else}
+{:else if isAuthenticated}
   <div class="min-h-screen flex flex-col md:flex-row bg-[var(--color-paper)] text-[var(--color-ink)] selection:bg-[var(--color-accent-subtle)] selection:text-[var(--color-accent)] transition-colors duration-150">
     <!-- Mobile Header Bar -->
     <header class="md:hidden sticky top-0 z-40 bg-[var(--color-paper-2)] border-b border-[var(--color-border)] px-4 py-3 flex items-center justify-between shadow-xs">

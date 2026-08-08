@@ -2,15 +2,16 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { currentLang, toggleLang, translations } from '$lib/i18n';
-  import { User, KeyRound, ArrowRight, Languages } from 'lucide-svelte';
+  import { User, KeyRound, ArrowRight, Languages, ShieldCheck } from 'lucide-svelte';
 
   $: t = translations[$currentLang];
 
   let isLoading = true;
   let isSubmitting = false;
 
-  let username = '';
+  let username = 'owner';
   let password = '';
+  let confirmPassword = '';
   let errorMessage = '';
 
   onMount(async () => {
@@ -21,9 +22,9 @@
         goto('/');
         return;
       }
-      // If system needs initial setup, redirect to /register
-      if (data.needsSetup) {
-        goto('/register');
+      // If system is already set up, redirect to /login
+      if (!data.needsSetup) {
+        goto('/login');
         return;
       }
     } catch (err) {
@@ -41,10 +42,15 @@
       return;
     }
 
+    if (password !== confirmPassword) {
+      errorMessage = $currentLang === 'id' ? 'Konfirmasi password tidak cocok' : 'Password confirmation does not match';
+      return;
+    }
+
     isSubmitting = true;
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -53,7 +59,7 @@
       const data = await res.json();
 
       if (!res.ok) {
-        errorMessage = data.error || ($currentLang === 'id' ? 'Username atau password salah' : 'Invalid username or password');
+        errorMessage = data.error || ($currentLang === 'id' ? 'Gagal registrasi akun pemilik' : 'Failed to register owner account');
         return;
       }
 
@@ -67,7 +73,7 @@
 </script>
 
 <svelte:head>
-  <title>{t.login_title} — Pockt</title>
+  <title>{t.setup_title} — Pockt</title>
 </svelte:head>
 
 <div class="min-h-[85vh] flex flex-col items-center justify-center p-4 relative">
@@ -90,14 +96,19 @@
         <span class="font-mono font-extrabold text-3xl tracking-tight text-[var(--color-ink)]">POCKT</span>
       </div>
 
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-[var(--color-accent-subtle)] text-[var(--color-accent)] text-[11px] font-mono rounded-full font-semibold">
+        <ShieldCheck class="w-3.5 h-3.5" />
+        <span>First-Time Setup</span>
+      </div>
+
       <p class="text-xs font-mono text-[var(--color-ink-muted)] max-w-xs mx-auto leading-relaxed">
-        {t.login_desc}
+        {t.setup_desc}
       </p>
     </div>
 
     {#if isLoading}
       <div class="p-8 text-center font-mono text-xs text-[var(--color-ink-muted)]">
-        {$currentLang === 'id' ? 'Memeriksa status autentikasi...' : 'Checking authentication status...'}
+        {$currentLang === 'id' ? 'Memeriksa status sistem...' : 'Checking system status...'}
       </div>
     {:else}
       <form on:submit|preventDefault={handleSubmit} class="space-y-4 font-mono">
@@ -137,6 +148,21 @@
           </div>
         </div>
 
+        <div class="space-y-1.5">
+          <label for="confirm-password-input" class="text-xs font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider block">{t.confirm_password}</label>
+          <div class="relative">
+            <KeyRound class="w-4 h-4 text-[var(--color-ink-muted)] absolute left-3 top-3" />
+            <input
+              id="confirm-password-input"
+              type="password"
+              bind:value={confirmPassword}
+              placeholder={$currentLang === 'id' ? 'Ulangi password' : 'Confirm password'}
+              required
+              class="w-full pl-9 pr-3 py-2 bg-[var(--color-paper-3)] border border-[var(--color-border)] rounded-md text-sm text-[var(--color-ink)] focus:outline-hidden focus:border-[var(--color-accent)] transition-colors"
+            />
+          </div>
+        </div>
+
         <button
           type="submit"
           disabled={isSubmitting}
@@ -145,7 +171,7 @@
           {#if isSubmitting}
             <span>{$currentLang === 'id' ? 'Memproses...' : 'Processing...'}</span>
           {:else}
-            <span>{t.btn_login}</span>
+            <span>{t.btn_setup}</span>
             <ArrowRight class="w-4 h-4" />
           {/if}
         </button>
