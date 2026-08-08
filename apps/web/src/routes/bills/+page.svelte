@@ -176,10 +176,10 @@
 
       <button
         on:click={openCreateModal}
-        class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3.5 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors shadow-xs cursor-pointer"
+        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors shadow-xs cursor-pointer leading-none self-center text-center"
       >
-        <Plus class="w-4 h-4 stroke-[3]" />
-        <span>{t.add_bill}</span>
+        <Plus class="w-4 h-4 stroke-[3] my-auto" />
+        <span class="leading-none">{t.add_bill}</span>
       </button>
     </div>
   </div>

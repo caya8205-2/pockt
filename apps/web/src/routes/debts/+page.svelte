@@ -177,10 +177,10 @@
 
     <button
       on:click={openCreateModal}
-      class="flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 w-full sm:w-auto text-center"
+      class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 self-center leading-none text-center w-full sm:w-auto"
     >
-      <Plus class="w-4 h-4 stroke-[3] shrink-0" />
-      <span>{t.add_debt}</span>
+      <Plus class="w-4 h-4 stroke-[3] shrink-0 my-auto" />
+      <span class="leading-none">{t.add_debt}</span>
     </button>
   </div>
 

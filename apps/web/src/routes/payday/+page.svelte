@@ -46,18 +46,30 @@
     }
   }
 
+  let settingsError = '';
+
   async function handleSaveSettings() {
-    if (newPaydayDate < 1 || newPaydayDate > 31) return;
+    const day = Number(newPaydayDate);
+    if (isNaN(day) || day < 1 || day > 31) {
+      settingsError = 'Tanggal gajian harus berupa angka antara 1 dan 31';
+      return;
+    }
+
     isSavingSettings = true;
+    settingsError = '';
     try {
-      await fetchApi('/user/settings', {
+      const res = await fetchApi('/user/settings', {
         method: 'PUT',
-        body: JSON.stringify({ paydayDate: Number(newPaydayDate) }),
+        body: JSON.stringify({ paydayDate: day }),
       });
-      showSettingsModal = false;
-      await loadPaydayData();
-    } catch (err) {
-      console.error(err);
+
+      if (res && res.success) {
+        showSettingsModal = false;
+        await loadPaydayData();
+      }
+    } catch (err: any) {
+      console.error('Failed to save settings:', err);
+      settingsError = err?.message || 'Gagal menyimpan tanggal gajian';
     } finally {
       isSavingSettings = false;
     }
@@ -81,11 +93,11 @@
     </div>
 
     <button
-      on:click={() => { newPaydayDate = data?.paydayDate || 5; showSettingsModal = true; }}
-      class="flex items-center gap-2 px-3 py-2 bg-[var(--color-paper-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink)] text-xs font-mono font-bold rounded-md transition-colors cursor-pointer shrink-0 self-start sm:self-auto shadow-xs"
+      on:click={() => { newPaydayDate = data?.paydayDate || 5; settingsError = ''; showSettingsModal = true; }}
+      class="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 bg-[var(--color-paper-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink)] text-xs font-mono font-bold rounded-md transition-colors cursor-pointer shrink-0 self-start sm:self-center leading-none text-center shadow-xs"
     >
-      <Settings class="w-3.5 h-3.5 text-[var(--color-accent)]" />
-      <span>{t.payday_change_date} ({data?.paydayDate || 5})</span>
+      <Settings class="w-3.5 h-3.5 text-[var(--color-accent)] shrink-0 my-auto" />
+      <span class="leading-none">{t.payday_change_date} ({data?.paydayDate || 5})</span>
     </button>
   </div>
 
@@ -183,6 +195,12 @@
   {#if showSettingsModal}
     <Modal title={t.payday_date_modal_title} on:close={() => (showSettingsModal = false)}>
       <form on:submit|preventDefault={handleSaveSettings} class="space-y-4 font-mono text-xs">
+        {#if settingsError}
+          <div class="p-2.5 bg-red-500/10 border border-red-500/30 text-red-400 rounded text-xs">
+            {settingsError}
+          </div>
+        {/if}
+
         <div>
           <label class="block text-[var(--color-ink-muted)] mb-1" for="paydayDateInput">{t.payday_date_label}</label>
           <input
