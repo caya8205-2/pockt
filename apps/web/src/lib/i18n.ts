@@ -2,6 +2,20 @@ import { writable } from 'svelte/store';
 
 export type Language = 'id' | 'en';
 
+export const expenseCategoryLabels: Record<string, Record<Language, string>> = {
+  'Makanan & Minuman': { id: 'Makanan & Minuman', en: 'Food & Drinks' },
+  Transportasi: { id: 'Transportasi', en: 'Transportation' },
+  Belanja: { id: 'Belanja', en: 'Shopping' },
+  Hiburan: { id: 'Hiburan', en: 'Entertainment' },
+  Kesehatan: { id: 'Kesehatan', en: 'Health' },
+  Tagihan: { id: 'Tagihan', en: 'Bills' },
+  Lainnya: { id: 'Lainnya', en: 'Others' },
+};
+
+export function categoryLabel(lang: Language, cat: string): string {
+  return expenseCategoryLabels[cat]?.[lang] ?? cat;
+}
+
 const initialLang: Language = (typeof localStorage !== 'undefined' && localStorage.getItem('pockt-lang') as Language) || 'id';
 
 export const currentLang = writable<Language>(initialLang);
@@ -20,7 +34,7 @@ export const translations = {
   id: {
     // Layout & Nav
     nav_timeline: 'Timeline & Status',
-    nav_payday: 'Payday View',
+    nav_payday: 'Hari Gajian',
     nav_incomes: 'Pemasukan',
     nav_expenses: 'Pengeluaran',
     nav_bills: 'Tagihan',
@@ -52,12 +66,12 @@ export const translations = {
     common_unpaid: 'BELUM DIBAYAR',
 
     // Dashboard
-    dash_hero: 'Free to Spend (Net Disposable Income)',
+    dash_hero: 'Uang Bebas Dipakai',
     dash_hero_desc: 'Sisa uang yang aman dibelanjakan hari ini setelah memperhitungkan saldo saat ini, tagihan berjalan, dan sisa pokok hutang.',
     dash_cash_balance: 'Total Saldo Kas',
     dash_bills: 'Tagihan',
     dash_debts: 'Sisa Hutang',
-    dash_net: '= Net Disposable',
+    dash_net: '= Uang Bebas Dipakai',
     stat_income: 'Pemasukan Bulan Ini',
     stat_expenses: 'Pengeluaran Bulan Ini',
     stat_bills: 'Tagihan Belum Lunas',
@@ -72,9 +86,9 @@ export const translations = {
     type_debt_payment: 'Pembayaran Hutang',
 
     // Payday
-    payday_title: 'Payday Planning Overview',
+    payday_title: 'Ringkasan Perencanaan Hari Gajian',
     payday_subtitle: 'Ringkasan alokasi dana bulanan instan setiap kali gaji diterima.',
-    payday_loading: 'Memuat kalkulasi Payday...',
+    payday_loading: 'Memuat kalkulasi hari gajian...',
     payday_total_salary: 'Total Gaji / Pemasukan Bulan Ini',
     payday_scheduled: 'Kewajiban & Komitmen Terjadwal',
     payday_bills: 'Tagihan Bulanan (Bills)',
@@ -83,7 +97,7 @@ export const translations = {
     payday_active_debts: 'catatan hutang aktif',
     payday_spent: 'Pengeluaran Terjadi (Spent)',
     payday_spent_this_month: 'Total belanja bulan ini',
-    payday_final_net: 'HASIL AKHIR: NET DISPOSABLE INCOME',
+    payday_final_net: 'HASIL AKHIR: DANA BERSIH BEBAS',
     payday_net_desc: 'Dana bersih bebas yang aman dipakai belanja atau ditabung.',
 
     // Incomes

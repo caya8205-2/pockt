@@ -33,12 +33,12 @@ test.describe('Pockt Automated E2E & Layout Suite', () => {
     await page.getByRole('button', { name: /Masuk ke Pockt|Sign In to Pockt/ }).click();
 
     await page.waitForURL('**/dashboard');
-    await expect(page.getByText('Free to Spend')).toBeVisible();
+    await expect(page.getByText('Uang Bebas Dipakai', { exact: true })).toBeVisible();
   });
 
   test('Logout from dashboard returns to login page', async ({ page }) => {
     await login(page);
-    await expect(page.getByText('Free to Spend')).toBeVisible();
+    await expect(page.getByText('Uang Bebas Dipakai', { exact: true })).toBeVisible();
 
     await logout(page);
     await expect(page.locator('#username-input')).toBeVisible();
@@ -55,7 +55,7 @@ test.describe('Pockt Automated E2E & Layout Suite', () => {
 
   test('Quick Add modal opens and saves a dummy expense', async ({ page }) => {
     await login(page);
-    await expect(page.getByText('Free to Spend')).toBeVisible();
+    await expect(page.getByText('Uang Bebas Dipakai', { exact: true })).toBeVisible();
 
     const quickAddBtn = page
       .locator('[title="Catat Transaksi"], [aria-label="Catat Transaksi"], [title="Record Transaction"], [aria-label="Record Transaction"]')
@@ -73,13 +73,13 @@ test.describe('Pockt Automated E2E & Layout Suite', () => {
     await expect(page.getByText('Tambah Transaksi Baru')).toBeHidden();
   });
 
-  test('Dashboard loads Free to Spend and Timeline Feed', async ({ page }) => {
+  test('Dashboard loads Uang Bebas Dipakai and Timeline Feed', async ({ page }) => {
     await login(page);
     await page.goto('/dashboard');
     await expect(page).toHaveTitle(/Pockt/);
     
     // Verify main stat hero text
-    const freeToSpendLabel = page.locator('text=Free to Spend');
+    const freeToSpendLabel = page.locator('text=Uang Bebas Dipakai').first();
     await expect(freeToSpendLabel).toBeVisible();
 
     // Verify logo image renders cleanly (either header or sidebar)
@@ -98,7 +98,7 @@ test.describe('Pockt Automated E2E & Layout Suite', () => {
     const salaryLabel = page.locator('text=Total Gaji / Pemasukan Bulan Ini');
     await expect(salaryLabel).toBeVisible();
 
-    const netDisposable = page.locator('text=Hasil Akhir: Net Disposable Income');
+    const netDisposable = page.locator('text=Hasil Akhir: Dana Bersih Bebas');
     await expect(netDisposable).toBeVisible();
 
     // Check no horizontal scrollbar on body

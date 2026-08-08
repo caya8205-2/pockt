@@ -1,9 +1,10 @@
 <script lang="ts">
   import { fetchApi } from '$lib/api';
-  import { currentLang, translations } from '$lib/i18n';
+  import { currentLang, translations, categoryLabel } from '$lib/i18n';
   import { Plus, X, ArrowUpRight, ArrowDownLeft } from 'lucide-svelte';
 
   $: t = translations[$currentLang];
+  $: catLabel = (cat: string) => categoryLabel($currentLang, cat);
 
   export let isOpen = false;
   export let onSuccess: () => void = () => {};
@@ -153,7 +154,7 @@
               class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] focus:outline-none focus:border-[var(--color-accent)] text-sm"
             >
               {#each defaultCategories as cat}
-                <option value={cat}>{cat}</option>
+                <option value={cat}>{catLabel(cat)}</option>
               {/each}
             </select>
           </div>

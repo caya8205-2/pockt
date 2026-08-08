@@ -2,10 +2,11 @@
   import { onMount } from 'svelte';
   import { fetchApi } from '$lib/api';
   import { formatRupiah, formatDate } from '$lib/format';
-  import { currentLang, translations } from '$lib/i18n';
+  import { currentLang, translations, categoryLabel } from '$lib/i18n';
   import { Receipt, Plus, Trash2, Edit3, ArrowUpRight, Search, X } from 'lucide-svelte';
 
   $: t = translations[$currentLang];
+  $: catLabel = (cat: string) => categoryLabel($currentLang, cat);
 
   interface Expense {
     id: string;
@@ -156,7 +157,7 @@
             selectedCategoryFilter === cat ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] font-bold' : 'text-[var(--color-ink-muted)] hover:bg-[var(--color-paper-3)]'
           }`}
         >
-          {cat}
+          {catLabel(cat)}
         </button>
       {/each}
     </div>
@@ -180,7 +181,7 @@
               <div class="flex items-center gap-2 flex-wrap">
                 <span class="font-bold text-[var(--color-ink)] text-sm">{item.title}</span>
                 <span class="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded shrink-0">
-                  {item.category}
+                  {catLabel(item.category)}
                 </span>
               </div>
               <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-0.5">
@@ -257,7 +258,7 @@
             class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm focus:outline-none focus:border-[var(--color-accent)]"
           >
             {#each categories as cat}
-              <option value={cat}>{cat}</option>
+              <option value={cat}>{catLabel(cat)}</option>
             {/each}
           </select>
         </div>
