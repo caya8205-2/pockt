@@ -9,13 +9,15 @@ export const users = sqliteTable('users', {
 
 export const categories = sqliteTable('categories', {
   id: text('id').primaryKey(),
-  name: text('name').notNull().unique(),
+  userId: text('user_id'),
+  name: text('name').notNull(),
   color: text('color').notNull().default('#64748b'),
   createdAt: text('created_at').notNull(),
 });
 
 export const incomes = sqliteTable('incomes', {
   id: text('id').primaryKey(),
+  userId: text('user_id'),
   title: text('title').notNull(),
   amount: real('amount').notNull(),
   date: text('date').notNull(), // YYYY-MM-DD
@@ -25,6 +27,7 @@ export const incomes = sqliteTable('incomes', {
 
 export const expenses = sqliteTable('expenses', {
   id: text('id').primaryKey(),
+  userId: text('user_id'),
   title: text('title').notNull(),
   amount: real('amount').notNull(),
   category: text('category').notNull().default('Umum'),
@@ -35,6 +38,7 @@ export const expenses = sqliteTable('expenses', {
 
 export const bills = sqliteTable('bills', {
   id: text('id').primaryKey(),
+  userId: text('user_id'),
   name: text('name').notNull(),
   amount: real('amount').notNull(),
   dueDate: integer('due_date').notNull(), // Day of month 1-31
@@ -46,6 +50,7 @@ export const bills = sqliteTable('bills', {
 
 export const debts = sqliteTable('debts', {
   id: text('id').primaryKey(),
+  userId: text('user_id'),
   person: text('person').notNull(),
   totalAmount: real('total_amount').notNull(),
   remainingAmount: real('remaining_amount').notNull(),
@@ -57,6 +62,7 @@ export const debts = sqliteTable('debts', {
 
 export const debtPayments = sqliteTable('debt_payments', {
   id: text('id').primaryKey(),
+  userId: text('user_id'),
   debtId: text('debt_id').notNull().references(() => debts.id, { onDelete: 'cascade' }),
   amount: real('amount').notNull(),
   date: text('date').notNull(), // YYYY-MM-DD

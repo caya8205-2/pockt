@@ -1,11 +1,24 @@
 import { FastifyInstance } from 'fastify';
 import { db } from '../db/index.js';
-import { incomes, expenses, bills, debts } from '../db/schema.js';
+import { incomes, expenses } from '../db/schema.js';
+import { eq, or, isNull } from 'drizzle-orm';
+
+function getUserId(request: any): string {
+  return request.cookies.pockt_session || 'default';
+}
 
 export async function backupRoutes(fastify: FastifyInstance) {
   fastify.get('/api/export/csv', async (request, reply) => {
-    const allIncomes = await db.select().from(incomes);
-    const allExpenses = await db.select().from(expenses);
+    const userId = getUserId(request);
+    const allIncomes = await db
+      .select()
+      .from(incomes)
+      .where(or(eq(incomes.userId, userId), isNull(incomes.userId)));
+
+    const allExpenses = await db
+      .select()
+      .from(expenses)
+      .where(or(eq(expenses.userId, userId), isNull(expenses.userId)));
 
     let csvContent = 'Type,ID,Title/Name,Amount,Category,Date,Notes\n';
 

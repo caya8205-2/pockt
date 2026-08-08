@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { db } from '../db/index.js';
 import { incomes, expenses, bills, debtPayments, debts } from '../db/schema.js';
-import { eq } from 'drizzle-orm';
+import { eq, or, isNull } from 'drizzle-orm';
 
 export interface TimelineItem {
   id: string;
@@ -14,13 +14,37 @@ export interface TimelineItem {
   status?: string;
 }
 
+function getUserId(request: any): string {
+  return request.cookies.pockt_session || 'default';
+}
+
 export async function timelineRoutes(fastify: FastifyInstance) {
-  fastify.get('/api/timeline', async () => {
-    const allIncomes = await db.select().from(incomes);
-    const allExpenses = await db.select().from(expenses);
-    const allBills = await db.select().from(bills);
-    const allDebtPayments = await db.select().from(debtPayments);
-    const allDebts = await db.select().from(debts);
+  fastify.get('/api/timeline', async (request) => {
+    const userId = getUserId(request);
+    const allIncomes = await db
+      .select()
+      .from(incomes)
+      .where(or(eq(incomes.userId, userId), isNull(incomes.userId)));
+
+    const allExpenses = await db
+      .select()
+      .from(expenses)
+      .where(or(eq(expenses.userId, userId), isNull(expenses.userId)));
+
+    const allBills = await db
+      .select()
+      .from(bills)
+      .where(or(eq(bills.userId, userId), isNull(bills.userId)));
+
+    const allDebtPayments = await db
+      .select()
+      .from(debtPayments)
+      .where(or(eq(debtPayments.userId, userId), isNull(debtPayments.userId)));
+
+    const allDebts = await db
+      .select()
+      .from(debts)
+      .where(or(eq(debts.userId, userId), isNull(debts.userId)));
 
     const debtMap = new Map(allDebts.map((d) => [d.id, d.person]));
 

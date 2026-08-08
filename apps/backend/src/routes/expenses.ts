@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db } from '../db/index.js';
 import { expenses, categories } from '../db/schema.js';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and, or, isNull } from 'drizzle-orm';
 import { cryptoNative } from '../utils/id.js';
 
 const expenseSchema = z.object({
@@ -18,18 +18,29 @@ const categorySchema = z.object({
   color: z.string().optional(),
 });
 
+function getUserId(request: any): string {
+  return request.cookies.pockt_session || 'default';
+}
+
 export async function expenseRoutes(fastify: FastifyInstance) {
   // Expenses CRUD
-  fastify.get('/api/expenses', async () => {
-    const list = await db.select().from(expenses).orderBy(desc(expenses.date), desc(expenses.createdAt));
+  fastify.get('/api/expenses', async (request) => {
+    const userId = getUserId(request);
+    const list = await db
+      .select()
+      .from(expenses)
+      .where(or(eq(expenses.userId, userId), isNull(expenses.userId)))
+      .orderBy(desc(expenses.date), desc(expenses.createdAt));
     return list;
   });
 
   fastify.post('/api/expenses', async (request, reply) => {
+    const userId = getUserId(request);
     const body = expenseSchema.parse(request.body);
     const id = cryptoNative();
     const newItem = {
       id,
+      userId,
       title: body.title,
       amount: body.amount,
       category: body.category,
@@ -42,34 +53,52 @@ export async function expenseRoutes(fastify: FastifyInstance) {
   });
 
   fastify.put('/api/expenses/:id', async (request, reply) => {
+    const userId = getUserId(request);
     const { id } = request.params as { id: string };
     const body = expenseSchema.parse(request.body);
 
-    const existing = await db.select().from(expenses).where(eq(expenses.id, id)).limit(1);
+    const existing = await db
+      .select()
+      .from(expenses)
+      .where(and(eq(expenses.id, id), or(eq(expenses.userId, userId), isNull(expenses.userId))))
+      .limit(1);
+
     if (existing.length === 0) {
       return reply.status(404).send({ error: 'Expense not found' });
     }
 
-    await db.update(expenses).set({
-      title: body.title,
-      amount: body.amount,
-      category: body.category,
-      date: body.date,
-      notes: body.notes || null,
-    }).where(eq(expenses.id, id));
+    await db
+      .update(expenses)
+      .set({
+        title: body.title,
+        amount: body.amount,
+        category: body.category,
+        date: body.date,
+        notes: body.notes || null,
+      })
+      .where(eq(expenses.id, id));
 
     return { success: true };
   });
 
   fastify.delete('/api/expenses/:id', async (request, reply) => {
+    const userId = getUserId(request);
     const { id } = request.params as { id: string };
-    await db.delete(expenses).where(eq(expenses.id, id));
+    await db
+      .delete(expenses)
+      .where(and(eq(expenses.id, id), or(eq(expenses.userId, userId), isNull(expenses.userId))));
     return { success: true };
   });
 
   // Categories CRUD
-  fastify.get('/api/categories', async () => {
-    const list = await db.select().from(categories).orderBy(categories.name);
+  fastify.get('/api/categories', async (request) => {
+    const userId = getUserId(request);
+    const list = await db
+      .select()
+      .from(categories)
+      .where(or(eq(categories.userId, userId), isNull(categories.userId)))
+      .orderBy(categories.name);
+
     if (list.length === 0) {
       // Return default categories if empty
       return [
@@ -85,10 +114,12 @@ export async function expenseRoutes(fastify: FastifyInstance) {
   });
 
   fastify.post('/api/categories', async (request, reply) => {
+    const userId = getUserId(request);
     const body = categorySchema.parse(request.body);
     const id = cryptoNative();
     const newItem = {
       id,
+      userId,
       name: body.name,
       color: body.color || '#64748b',
       createdAt: new Date().toISOString(),

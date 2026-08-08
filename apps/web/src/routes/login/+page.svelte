@@ -149,6 +149,12 @@
             <ArrowRight class="w-4 h-4" />
           {/if}
         </button>
+
+        <div class="text-center pt-2 border-t border-[var(--color-border)]">
+          <a href="/register" class="text-xs text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] transition-colors">
+            {$currentLang === 'id' ? 'Belum punya akun? Daftar di sini' : "Don't have an account? Register here"}
+          </a>
+        </div>
       </form>
     {/if}
   </div>

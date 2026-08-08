@@ -2,14 +2,14 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { currentLang, toggleLang, translations } from '$lib/i18n';
-  import { User, KeyRound, ArrowRight, Languages, ShieldCheck } from 'lucide-svelte';
+  import { User, KeyRound, ArrowRight, Languages, UserPlus } from 'lucide-svelte';
 
   $: t = translations[$currentLang];
 
   let isLoading = true;
   let isSubmitting = false;
 
-  let username = 'owner';
+  let username = '';
   let password = '';
   let confirmPassword = '';
   let errorMessage = '';
@@ -20,11 +20,6 @@
       const data = await res.json();
       if (data.authenticated) {
         goto('/');
-        return;
-      }
-      // If system is already set up, redirect to /login
-      if (!data.needsSetup) {
-        goto('/login');
         return;
       }
     } catch (err) {
@@ -50,7 +45,7 @@
     isSubmitting = true;
 
     try {
-      const res = await fetch('/api/auth/setup', {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -59,7 +54,7 @@
       const data = await res.json();
 
       if (!res.ok) {
-        errorMessage = data.error || ($currentLang === 'id' ? 'Gagal registrasi akun pemilik' : 'Failed to register owner account');
+        errorMessage = data.error || ($currentLang === 'id' ? 'Gagal membuat akun' : 'Failed to create account');
         return;
       }
 
@@ -73,7 +68,7 @@
 </script>
 
 <svelte:head>
-  <title>{t.setup_title} — Pockt</title>
+  <title>{$currentLang === 'id' ? 'Daftar Akun Baru' : 'Register Account'} — Pockt</title>
 </svelte:head>
 
 <div class="min-h-[85vh] flex flex-col items-center justify-center p-4 relative">
@@ -97,12 +92,14 @@
       </div>
 
       <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-[var(--color-accent-subtle)] text-[var(--color-accent)] text-[11px] font-mono rounded-full font-semibold">
-        <ShieldCheck class="w-3.5 h-3.5" />
-        <span>First-Time Setup</span>
+        <UserPlus class="w-3.5 h-3.5" />
+        <span>{$currentLang === 'id' ? 'Registrasi Akun Baru' : 'New Account Registration'}</span>
       </div>
 
       <p class="text-xs font-mono text-[var(--color-ink-muted)] max-w-xs mx-auto leading-relaxed">
-        {t.setup_desc}
+        {$currentLang === 'id'
+          ? 'Buat akun kamu untuk mulai mengelola catatan keuangan pribadi yang aman.'
+          : 'Create your account to start managing your private financial records.'}
       </p>
     </div>
 
@@ -171,10 +168,16 @@
           {#if isSubmitting}
             <span>{$currentLang === 'id' ? 'Memproses...' : 'Processing...'}</span>
           {:else}
-            <span>{t.btn_setup}</span>
+            <span>{$currentLang === 'id' ? 'Daftar Akun Baru' : 'Register Account'}</span>
             <ArrowRight class="w-4 h-4" />
           {/if}
         </button>
+
+        <div class="text-center pt-2 border-t border-[var(--color-border)]">
+          <a href="/login" class="text-xs text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] transition-colors">
+            {$currentLang === 'id' ? 'Sudah punya akun? Masuk di sini' : 'Already have an account? Sign In'}
+          </a>
+        </div>
       </form>
     {/if}
   </div>

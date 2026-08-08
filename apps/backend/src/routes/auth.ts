@@ -14,7 +14,7 @@ const loginSchema = z.object({
 export async function authRoutes(fastify: FastifyInstance) {
   // Check auth status
   fastify.get('/api/auth/me', async (request, reply) => {
-    // 1. Check if database has any registered owner user
+    // 1. Check if database has any registered user
     const userList = await db.select().from(users).limit(1);
     if (userList.length === 0) {
       return reply.status(200).send({ authenticated: false, needsSetup: true });
@@ -26,17 +26,23 @@ export async function authRoutes(fastify: FastifyInstance) {
       return reply.status(200).send({ authenticated: false, needsSetup: false });
     }
 
-    return reply.status(200).send({ authenticated: true, user: { username: userList[0].username } });
-  });
-
-  // Initial Setup / Register first admin
-  fastify.post('/api/auth/setup', async (request, reply) => {
-    const existingUsers = await db.select().from(users).limit(1);
-    if (existingUsers.length > 0) {
-      return reply.status(400).send({ error: 'System already set up' });
+    const sessionUser = await db.select().from(users).where(eq(users.id, sessionId)).limit(1);
+    if (sessionUser.length === 0) {
+      return reply.status(200).send({ authenticated: false, needsSetup: false });
     }
 
+    return reply.status(200).send({ authenticated: true, user: { username: sessionUser[0].username } });
+  });
+
+  // User Registration
+  const handleRegister = async (request: any, reply: any) => {
     const { username, password } = loginSchema.parse(request.body);
+
+    const existingUsers = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    if (existingUsers.length > 0) {
+      return reply.status(400).send({ error: 'Username sudah digunakan' });
+    }
+
     const passwordHash = await bcrypt.hash(password, 10);
     const userId = cryptoNative();
 
@@ -54,8 +60,11 @@ export async function authRoutes(fastify: FastifyInstance) {
       maxAge: 60 * 60 * 24 * 30, // 30 days
     });
 
-    return reply.status(200).send({ success: true, message: 'Initial user created' });
-  });
+    return reply.status(200).send({ success: true, message: 'User created' });
+  };
+
+  fastify.post('/api/auth/setup', handleRegister);
+  fastify.post('/api/auth/register', handleRegister);
 
   // Login
   fastify.post('/api/auth/login', async (request, reply) => {

@@ -1,8 +1,6 @@
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import * as schema from './schema.js';
-import path from 'path';
-import fs from 'fs';
 
 const dbPath = process.env.DATABASE_URL || 'pockt.db';
 const sqlite = new Database(dbPath);
@@ -10,7 +8,7 @@ sqlite.pragma('journal_mode = WAL');
 
 export const db = drizzle(sqlite, { schema });
 
-// Helper for initial schema creation without external CLI if running standalone
+// Helper for initial schema creation and automatic multi-tenant user_id column migrations
 export function initDb() {
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS users (
@@ -22,13 +20,15 @@ export function initDb() {
 
     CREATE TABLE IF NOT EXISTS categories (
       id TEXT PRIMARY KEY,
-      name TEXT NOT NULL UNIQUE,
+      user_id TEXT,
+      name TEXT NOT NULL,
       color TEXT NOT NULL DEFAULT '#64748b',
       created_at TEXT NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS incomes (
       id TEXT PRIMARY KEY,
+      user_id TEXT,
       title TEXT NOT NULL,
       amount REAL NOT NULL,
       date TEXT NOT NULL,
@@ -38,6 +38,7 @@ export function initDb() {
 
     CREATE TABLE IF NOT EXISTS expenses (
       id TEXT PRIMARY KEY,
+      user_id TEXT,
       title TEXT NOT NULL,
       amount REAL NOT NULL,
       category TEXT NOT NULL DEFAULT 'Umum',
@@ -48,6 +49,7 @@ export function initDb() {
 
     CREATE TABLE IF NOT EXISTS bills (
       id TEXT PRIMARY KEY,
+      user_id TEXT,
       name TEXT NOT NULL,
       amount REAL NOT NULL,
       due_date INTEGER NOT NULL,
@@ -59,6 +61,7 @@ export function initDb() {
 
     CREATE TABLE IF NOT EXISTS debts (
       id TEXT PRIMARY KEY,
+      user_id TEXT,
       person TEXT NOT NULL,
       total_amount REAL NOT NULL,
       remaining_amount REAL NOT NULL,
@@ -70,6 +73,7 @@ export function initDb() {
 
     CREATE TABLE IF NOT EXISTS debt_payments (
       id TEXT PRIMARY KEY,
+      user_id TEXT,
       debt_id TEXT NOT NULL REFERENCES debts(id) ON DELETE CASCADE,
       amount REAL NOT NULL,
       date TEXT NOT NULL,
@@ -77,4 +81,14 @@ export function initDb() {
       created_at TEXT NOT NULL
     );
   `);
+
+  // Safely attempt to add user_id column to existing tables if missing
+  const tables = ['categories', 'incomes', 'expenses', 'bills', 'debts', 'debt_payments'];
+  for (const table of tables) {
+    try {
+      sqlite.exec(`ALTER TABLE ${table} ADD COLUMN user_id TEXT;`);
+    } catch (e) {
+      // Column user_id already exists, ignore
+    }
+  }
 }
