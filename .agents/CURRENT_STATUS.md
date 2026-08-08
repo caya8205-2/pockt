@@ -10,7 +10,7 @@ Last Updated: 2026-08-08 (Release v0.1.1)
 * **WSL 2 Configuration (`C:\Users\Caya\.wslconfig`)**:
   ```ini
   [wsl2]
-  memory=1GB
+  memory=1.5GB
   swap=1GB
   processors=2
   vmIdleTimeout=-1
@@ -39,9 +39,9 @@ Last Updated: 2026-08-08 (Release v0.1.1)
    Windows host runs `cloudflared.exe` (PID 6060) for legacy project `noctune-tunnel` (`ccd7857a`), while WSL Linux runs `cloudflared` for `pockt-tunnel` (`b079efbd`). Both tunnel credentials and targets are isolated.
 3. **UDP QUIC vs TCP HTTP/2**:
    Switched `cloudflared` in WSL from UDP QUIC (port 7844) to TCP HTTP/2 (`--protocol http2`) to prevent packet drops on Indonesian ISPs / office firewalls. Binding updated to `http://127.0.0.1:3000`. CNAME synced via `cloudflared tunnel route dns b079efbd pockt.caya.web.id`.
-4. **Systemd Timeout Kill Bug (FIXED)**:
-   - Root Cause: `/etc/systemd/system/cloudflared.service` was configured with `Type=notify` and `TimeoutStartSec=15`. Because registration of 4 QUIC/HTTP2 connections takes ~20 seconds, systemd repeatedly killed `cloudflared` with SIGKILL every 15 seconds.
-   - Resolution: Updated `/etc/systemd/system/cloudflared.service` to `Type=simple` and `TimeoutStartSec=0`.
+4. **Systemd Timeout Kill Bug & Memory Allocation**:
+   - Systemd Timeout: `/etc/systemd/system/cloudflared.service` was updated to `Type=simple` & `TimeoutStartSec=0` (stopping systemd from killing cloudflared every 15s).
+   - WSL Memory Allocation: WSL RAM limit updated to `1.5GB` (with 1GB swap) to give Linux kernel + Docker daemon + cloudflared headroom and prevent memory thrashing.
    - Current Tunnel Status: 4/4 active edge connections (`1xsin07, 1xsin09, 1xsin15, 1xsin18`). `Invoke-WebRequest` and external `curl` return `StatusCode: 200 OK`.
 
 ---
