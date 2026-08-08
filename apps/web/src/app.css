@@ -19,7 +19,7 @@
   --color-ink: oklch(0.18 0.015 60);
   --color-ink-muted: oklch(0.46 0.012 60);
   --color-border: oklch(0.88 0.010 75);
-  
+
   /* Signal Terracotta Accent */
   --color-accent: oklch(0.64 0.18 40);
   --color-accent-subtle: oklch(0.94 0.04 40);
@@ -34,7 +34,7 @@
   --color-ink: oklch(0.94 0.006 250);
   --color-ink-muted: oklch(0.66 0.012 250);
   --color-border: oklch(0.25 0.015 250);
-  
+
   /* Aurora Emerald / Teal Accent */
   --color-accent: oklch(0.74 0.16 170);
   --color-accent-subtle: oklch(0.22 0.04 170);
@@ -70,4 +70,32 @@ h1, h2, h3, h4, h5, h6 {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-border);
+}
+
+/* Reusable Global Modal Tokens */
+.modal-label {
+  display: block;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--color-ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  color: var(--color-ink);
+  font-size: 0.875rem;
+  transition: border-color 0.15s ease;
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
 }

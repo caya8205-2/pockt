@@ -2,11 +2,11 @@
   import { onMount } from 'svelte';
   import { fetchApi } from '$lib/api';
   import { formatRupiah, formatDate } from '$lib/format';
-  import { currentLang, translations, categoryLabel } from '$lib/i18n';
-  import { Receipt, Plus, Trash2, Edit3, ArrowUpRight, Search, X } from 'lucide-svelte';
+  import { currentLang, translations } from '$lib/i18n';
+  import { Receipt, Plus, ArrowUpRight, Trash2, Edit3, Tag } from 'lucide-svelte';
+  import Modal from '$components/Modal.svelte';
 
   $: t = translations[$currentLang];
-  $: catLabel = (cat: string) => categoryLabel($currentLang, cat);
 
   interface Expense {
     id: string;
@@ -17,34 +17,60 @@
     notes: string | null;
   }
 
+  interface Category {
+    id: string;
+    name: string;
+    color: string;
+  }
+
   let expenses: Expense[] = [];
+  let categories: Category[] = [];
   let isLoading = true;
-  let searchQuery = '';
-  let selectedCategoryFilter = 'ALL';
+
+  // Filter category
+  let selectedFilterCategory = 'ALL';
 
   // Form modal
   let showModal = false;
   let editingId: string | null = null;
   let title = '';
   let amount: number | null = null;
-  let category = 'Makanan & Minuman';
+  let category = 'Umum';
   let date = new Date().toISOString().split('T')[0];
   let notes = '';
 
-  const categories = [
-    'Makanan & Minuman',
-    'Transportasi',
-    'Belanja',
-    'Hiburan',
-    'Kesehatan',
-    'Tagihan',
-    'Lainnya',
-  ];
+  // New category inline
+  let showNewCatInput = false;
+  let newCatName = '';
 
-  async function loadExpenses() {
+  const CATEGORY_TRANSLATIONS: Record<string, { id: string; en: string }> = {
+    'Makanan & Minuman': { id: 'Makanan & Minuman', en: 'Food & Drinks' },
+    'Transportasi': { id: 'Transportasi', en: 'Transportation' },
+    'Belanja': { id: 'Belanja', en: 'Shopping' },
+    'Hiburan': { id: 'Hiburan', en: 'Entertainment' },
+    'Kesehatan': { id: 'Kesehatan', en: 'Health' },
+    'Lainnya': { id: 'Lainnya', en: 'Others' },
+    'Tagihan': { id: 'Tagihan', en: 'Bills' },
+    'Umum': { id: 'Umum', en: 'General' },
+  };
+
+  function catLabel(name: string): string {
+    const found = CATEGORY_TRANSLATIONS[name];
+    if (found) {
+      return $currentLang === 'en' ? found.en : found.id;
+    }
+    return name;
+  }
+
+  async function loadData() {
     isLoading = true;
     try {
-      expenses = await fetchApi<Expense[]>('/expenses');
+      const [expRes, catRes] = await Promise.all([
+        fetchApi<Expense[]>('/expenses'),
+        fetchApi<Category[]>('/categories'),
+      ]);
+      expenses = expRes;
+      categories = catRes;
     } catch (err) {
       console.error(err);
     } finally {
@@ -56,9 +82,11 @@
     editingId = null;
     title = '';
     amount = null;
-    category = 'Makanan & Minuman';
+    category = categories[0]?.name || 'Umum';
     date = new Date().toISOString().split('T')[0];
     notes = '';
+    showNewCatInput = false;
+    newCatName = '';
     showModal = true;
   }
 
@@ -69,7 +97,25 @@
     category = item.category;
     date = item.date;
     notes = item.notes || '';
+    showNewCatInput = false;
+    newCatName = '';
     showModal = true;
+  }
+
+  async function handleAddCategory() {
+    if (!newCatName.trim()) return;
+    try {
+      const created = await fetchApi<Category>('/categories', {
+        method: 'POST',
+        body: JSON.stringify({ name: newCatName.trim() }),
+      });
+      categories = [...categories, created];
+      category = created.name;
+      newCatName = '';
+      showNewCatInput = false;
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async function handleSubmit() {
@@ -88,23 +134,21 @@
     }
 
     showModal = false;
-    loadExpenses();
+    loadData();
   }
 
   async function handleDelete(id: string) {
     if (!confirm(t.delete_expense_confirm)) return;
     await fetchApi(`/expenses/${id}`, { method: 'DELETE' });
-    loadExpenses();
+    loadData();
   }
 
-  $: filteredExpenses = expenses.filter((e) => {
-    const matchCategory = selectedCategoryFilter === 'ALL' || e.category === selectedCategoryFilter;
-    const matchSearch = e.title.toLowerCase().includes(searchQuery.toLowerCase()) || (e.notes && e.notes.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchCategory && matchSearch;
-  });
+  $: filteredExpenses = selectedFilterCategory === 'ALL'
+    ? expenses
+    : expenses.filter((e) => e.category === selectedFilterCategory);
 
   onMount(() => {
-    loadExpenses();
+    loadData();
   });
 </script>
 
@@ -125,49 +169,43 @@
       class="flex items-center justify-center gap-2 px-3.5 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 w-full sm:w-auto"
     >
       <Plus class="w-4 h-4 stroke-[3]" />
-      <span>{t.record_expense}</span>
+      <span>{t.add_expense}</span>
     </button>
   </div>
 
-  <!-- Search & Filter Bar -->
-  <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-2.5">
-    <div class="relative w-full sm:w-72">
-      <Search class="w-4 h-4 absolute left-3 top-2.5 text-[var(--color-ink-muted)]" />
-      <input
-        type="text"
-        bind:value={searchQuery}
-        placeholder={t.expenses_search_placeholder}
-        class="w-full pl-9 pr-3 py-1.5 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-xs focus:outline-none focus:border-[var(--color-accent)] font-mono"
-      />
-    </div>
-
-    <div class="flex items-center gap-1 overflow-x-auto w-full sm:w-auto scrollbar-none py-0.5">
+  <!-- Category Filter Chips -->
+  {#if categories.length > 0}
+    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none font-mono text-xs">
       <button
-        on:click={() => (selectedCategoryFilter = 'ALL')}
-        class={`px-2.5 py-1 text-xs font-mono font-semibold rounded transition-colors cursor-pointer ${
-          selectedCategoryFilter === 'ALL' ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] font-bold' : 'text-[var(--color-ink-muted)] hover:bg-[var(--color-paper-3)]'
+        on:click={() => (selectedFilterCategory = 'ALL')}
+        class={`px-3 py-1.5 rounded-md border transition-colors cursor-pointer whitespace-nowrap ${
+          selectedFilterCategory === 'ALL'
+            ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border-[var(--color-border)] font-bold'
+            : 'bg-[var(--color-paper-2)] text-[var(--color-ink-muted)] border-[var(--color-border)] hover:text-[var(--color-ink)]'
         }`}
       >
-        {t.expenses_all}
+        {t.filter_all_cat}
       </button>
       {#each categories as cat}
         <button
-          on:click={() => (selectedCategoryFilter = cat)}
-          class={`px-2.5 py-1 text-xs font-mono font-semibold rounded transition-colors whitespace-nowrap cursor-pointer ${
-            selectedCategoryFilter === cat ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] font-bold' : 'text-[var(--color-ink-muted)] hover:bg-[var(--color-paper-3)]'
+          on:click={() => (selectedFilterCategory = cat.name)}
+          class={`px-3 py-1.5 rounded-md border transition-colors cursor-pointer whitespace-nowrap ${
+            selectedFilterCategory === cat.name
+              ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border-[var(--color-border)] font-bold'
+              : 'bg-[var(--color-paper-2)] text-[var(--color-ink-muted)] border-[var(--color-border)] hover:text-[var(--color-ink)]'
           }`}
         >
-          {catLabel(cat)}
+          {catLabel(cat.name)}
         </button>
       {/each}
     </div>
-  </div>
+  {/if}
 
   {#if isLoading}
     <div class="p-10 text-center font-mono text-xs text-[var(--color-ink-muted)]">{t.expenses_loading}</div>
   {:else if filteredExpenses.length === 0}
     <div class="p-10 text-center border border-dashed border-[var(--color-border)] rounded-md space-y-1">
-      <p class="text-[var(--color-ink)] font-semibold text-sm">{t.expenses_empty}</p>
+      <p class="text-[var(--color-ink)] font-semibold text-sm">{t.no_expenses}</p>
     </div>
   {:else}
     <div class="grid gap-2.5">
@@ -218,75 +256,95 @@
 </div>
 
 <!-- Modal Form -->
-{#if showModal}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--color-paper)]/85 backdrop-blur-md">
-    <div class="w-full max-w-md bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-6 space-y-4 shadow-xl relative">
-      <button on:click={() => (showModal = false)} class="absolute top-4 right-4 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] cursor-pointer" aria-label={t.common_close}>
-        <X class="w-5 h-5" />
-      </button>
-
-      <h2 class="text-base font-bold font-mono text-[var(--color-ink)]">{editingId ? t.edit_expense : t.add_expense_title}</h2>
-      <form on:submit|preventDefault={handleSubmit} class="space-y-3.5">
-        <div>
-          <label id="lbl-exp-title" for="inp-exp-title" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.expense_title_label}</label>
-          <input
-            id="inp-exp-title"
-            type="text"
-            bind:value={title}
-            placeholder={t.expense_title_placeholder}
-            required
-            class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm focus:outline-none focus:border-[var(--color-accent)]"
-          />
-        </div>
-        <div>
-          <label id="lbl-exp-amount" for="inp-exp-amount" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.amount_label}</label>
-          <input
-            id="inp-exp-amount"
-            type="number"
-            bind:value={amount}
-            placeholder="0"
-            required
-            min="1"
-            class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm font-mono focus:outline-none focus:border-[var(--color-accent)]"
-          />
-        </div>
-        <div>
-          <label id="lbl-exp-cat" for="sel-exp-cat" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.category_label}</label>
-          <select
-            id="sel-exp-cat"
-            bind:value={category}
-            class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm focus:outline-none focus:border-[var(--color-accent)]"
-          >
-            {#each categories as cat}
-              <option value={cat}>{catLabel(cat)}</option>
-            {/each}
-          </select>
-        </div>
-        <div>
-          <label id="lbl-exp-date" for="inp-exp-date" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.date_label}</label>
-          <input
-            id="inp-exp-date"
-            type="date"
-            bind:value={date}
-            required
-            class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm font-mono focus:outline-none focus:border-[var(--color-accent)]"
-          />
-        </div>
-        <div>
-          <label id="lbl-exp-notes" for="inp-exp-notes" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.notes_label}</label>
-          <input
-            id="inp-exp-notes"
-            type="text"
-            bind:value={notes}
-            placeholder={t.notes_placeholder}
-            class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm focus:outline-none focus:border-[var(--color-accent)]"
-          />
-        </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" on:click={() => (showModal = false)} class="px-4 py-2 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]">{t.common_cancel}</button>
-          <button type="submit" class="px-4 py-2 text-xs font-mono font-bold text-white bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] rounded-md">{t.common_save}</button>
-        </div>
-      </form>
+<Modal isOpen={showModal} title={editingId ? t.edit_expense : t.add_expense_title} onClose={() => (showModal = false)}>
+  <form on:submit|preventDefault={handleSubmit} class="space-y-3.5 font-mono">
+    <div>
+      <label for="inp-exp-title" class="modal-label">{t.expense_title_label}</label>
+      <input
+        id="inp-exp-title"
+        type="text"
+        bind:value={title}
+        placeholder={t.expense_title_placeholder}
+        required
+        class="modal-input"
+      />
     </div>
-  </div>
-{/if}
+    <div>
+      <label for="inp-exp-amount" class="modal-label">{t.amount_label}</label>
+      <input
+        id="inp-exp-amount"
+        type="number"
+        bind:value={amount}
+        placeholder="0"
+        required
+        min="1"
+        class="modal-input"
+      />
+    </div>
+    <div>
+      <div class="flex items-center justify-between mb-1">
+        <label for="sel-exp-cat" class="modal-label mb-0">{t.category_label}</label>
+        <button
+          type="button"
+          on:click={() => (showNewCatInput = !showNewCatInput)}
+          class="text-[11px] text-[var(--color-accent)] hover:underline flex items-center gap-1 cursor-pointer"
+        >
+          <Tag class="w-3 h-3" />
+          <span>{showNewCatInput ? t.common_cancel : t.add_category_btn}</span>
+        </button>
+      </div>
+
+      {#if showNewCatInput}
+        <div class="flex gap-2">
+          <input
+            type="text"
+            bind:value={newCatName}
+            placeholder={t.category_placeholder}
+            class="modal-input"
+          />
+          <button
+            type="button"
+            on:click={handleAddCategory}
+            class="px-3 py-2 bg-[var(--color-paper-3)] border border-[var(--color-border)] text-xs text-[var(--color-ink)] rounded-md hover:bg-[var(--color-border)] font-bold cursor-pointer"
+          >
+            {t.add_btn}
+          </button>
+        </div>
+      {:else}
+        <select
+          id="sel-exp-cat"
+          bind:value={category}
+          class="modal-input"
+        >
+          {#each categories as cat}
+            <option value={cat.name}>{catLabel(cat.name)}</option>
+          {/each}
+        </select>
+      {/if}
+    </div>
+    <div>
+      <label for="inp-exp-date" class="modal-label">{t.date_label}</label>
+      <input
+        id="inp-exp-date"
+        type="date"
+        bind:value={date}
+        required
+        class="modal-input"
+      />
+    </div>
+    <div>
+      <label for="inp-exp-notes" class="modal-label">{t.notes_label}</label>
+      <input
+        id="inp-exp-notes"
+        type="text"
+        bind:value={notes}
+        placeholder={t.notes_placeholder}
+        class="modal-input"
+      />
+    </div>
+    <div class="flex justify-end gap-2 pt-2">
+      <button type="button" on:click={() => (showModal = false)} class="px-4 py-2 text-xs text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]">{t.common_cancel}</button>
+      <button type="submit" class="px-4 py-2 text-xs font-bold text-slate-950 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] rounded-md shadow-xs">{t.common_save}</button>
+    </div>
+  </form>
+</Modal>

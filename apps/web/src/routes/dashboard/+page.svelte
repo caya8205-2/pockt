@@ -97,42 +97,42 @@
 
     <!-- Unified Stat Cards Grid (Single Accent Tone) -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 space-y-1">
-        <div class="flex items-start justify-between gap-2 text-[var(--color-ink-muted)]">
-          <span class="text-xs font-mono font-semibold uppercase tracking-wider min-w-0">{t.stat_income}</span>
-          <Wallet class="w-4 h-4 text-[var(--color-accent)] shrink-0 mt-0.5" />
+      <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-3.5 sm:p-4 flex flex-col justify-between gap-2 min-w-0">
+        <div class="flex items-center justify-between gap-1 text-[var(--color-ink-muted)]">
+          <span class="text-[11px] sm:text-xs font-mono font-semibold uppercase tracking-wider min-w-0 truncate">{t.stat_income}</span>
+          <Wallet class="w-4 h-4 text-[var(--color-accent)] shrink-0" />
         </div>
-        <div class="text-lg sm:text-xl font-bold font-mono text-[var(--color-ink)]">
+        <div class="text-base sm:text-lg lg:text-xl font-bold font-mono text-[var(--color-ink)] truncate" title={formatRupiah(dashboard.monthlyIncome)}>
           {formatRupiah(dashboard.monthlyIncome)}
         </div>
       </div>
 
-      <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 space-y-1">
-        <div class="flex items-start justify-between gap-2 text-[var(--color-ink-muted)]">
-          <span class="text-xs font-mono font-semibold uppercase tracking-wider min-w-0">{t.stat_expenses}</span>
-          <Receipt class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5" />
+      <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-3.5 sm:p-4 flex flex-col justify-between gap-2 min-w-0">
+        <div class="flex items-center justify-between gap-1 text-[var(--color-ink-muted)]">
+          <span class="text-[11px] sm:text-xs font-mono font-semibold uppercase tracking-wider min-w-0 truncate">{t.stat_expenses}</span>
+          <Receipt class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0" />
         </div>
-        <div class="text-lg sm:text-xl font-bold font-mono text-[var(--color-ink)]">
+        <div class="text-base sm:text-lg lg:text-xl font-bold font-mono text-[var(--color-ink)] truncate" title={formatRupiah(dashboard.monthlyExpenses)}>
           {formatRupiah(dashboard.monthlyExpenses)}
         </div>
       </div>
 
-      <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 space-y-1">
-        <div class="flex items-start justify-between gap-2 text-[var(--color-ink-muted)]">
-          <span class="text-xs font-mono font-semibold uppercase tracking-wider min-w-0">{t.stat_bills}</span>
-          <CalendarCheck class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5" />
+      <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-3.5 sm:p-4 flex flex-col justify-between gap-2 min-w-0">
+        <div class="flex items-center justify-between gap-1 text-[var(--color-ink-muted)]">
+          <span class="text-[11px] sm:text-xs font-mono font-semibold uppercase tracking-wider min-w-0 truncate">{t.stat_bills}</span>
+          <CalendarCheck class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0" />
         </div>
-        <div class="text-lg sm:text-xl font-bold font-mono text-[var(--color-ink)]">
+        <div class="text-base sm:text-lg lg:text-xl font-bold font-mono text-[var(--color-ink)] truncate" title={formatRupiah(dashboard.outstandingBills)}>
           {formatRupiah(dashboard.outstandingBills)}
         </div>
       </div>
 
-      <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 space-y-1">
-        <div class="flex items-start justify-between gap-2 text-[var(--color-ink-muted)]">
-          <span class="text-xs font-mono font-semibold uppercase tracking-wider min-w-0">{t.stat_debt}</span>
-          <HandCoins class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5" />
+      <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-3.5 sm:p-4 flex flex-col justify-between gap-2 min-w-0">
+        <div class="flex items-center justify-between gap-1 text-[var(--color-ink-muted)]">
+          <span class="text-[11px] sm:text-xs font-mono font-semibold uppercase tracking-wider min-w-0 truncate">{t.stat_debt}</span>
+          <HandCoins class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0" />
         </div>
-        <div class="text-lg sm:text-xl font-bold font-mono text-[var(--color-ink)]">
+        <div class="text-base sm:text-lg lg:text-xl font-bold font-mono text-[var(--color-ink)] truncate" title={formatRupiah(dashboard.outstandingDebt)}>
           {formatRupiah(dashboard.outstandingDebt)}
         </div>
       </div>

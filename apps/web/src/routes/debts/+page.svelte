@@ -3,7 +3,8 @@
   import { fetchApi } from '$lib/api';
   import { formatRupiah, formatDate } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
-  import { HandCoins, Plus, Trash2, Edit3, DollarSign, History, X } from 'lucide-svelte';
+  import { HandCoins, Plus, Trash2, Edit3, DollarSign, History } from 'lucide-svelte';
+  import Modal from '$components/Modal.svelte';
 
   $: t = translations[$currentLang];
 
@@ -199,7 +200,7 @@
               {#if !item.isPaid}
                 <button
                   on:click={() => openPayModal(item)}
-                  class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white rounded-md transition-colors cursor-pointer"
+                  class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 rounded-md transition-colors cursor-pointer shadow-xs"
                 >
                   <DollarSign class="w-3.5 h-3.5" />
                   <span>{t.pay_installment}</span>
@@ -239,144 +240,115 @@
 </div>
 
 <!-- Modal Form -->
-{#if showModal}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--color-paper)]/85 backdrop-blur-md">
-    <div class="w-full max-w-md bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-6 space-y-4 shadow-xl relative">
-      <button on:click={() => (showModal = false)} class="absolute top-4 right-4 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] cursor-pointer" aria-label={t.common_close}>
-        <X class="w-5 h-5" />
-      </button>
-
-      <h2 class="text-base font-bold font-mono text-[var(--color-ink)]">{editingId ? t.edit_debt : t.add_new_debt}</h2>
-      <form on:submit|preventDefault={handleSubmit} class="space-y-3.5">
-        <div>
-          <label id="lbl-dbt-person" for="inp-dbt-person" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.debtor_name}</label>
-          <input
-            id="inp-dbt-person"
-            type="text"
-            bind:value={person}
-            placeholder={t.debtor_placeholder}
-            required
-            class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm focus:outline-none focus:border-[var(--color-accent)]"
-          />
-        </div>
-        <div>
-          <label id="lbl-dbt-amount" for="inp-dbt-amount" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.debt_total_label}</label>
-          <input
-            id="inp-dbt-amount"
-            type="number"
-            bind:value={totalAmount}
-            placeholder="0"
-            required
-            min="1"
-            class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm font-mono focus:outline-none focus:border-[var(--color-accent)]"
-          />
-        </div>
-        <div>
-          <label id="lbl-dbt-date" for="inp-dbt-date" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.debt_due_label}</label>
-          <input
-            id="inp-dbt-date"
-            type="date"
-            bind:value={dueDate}
-            class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm font-mono focus:outline-none focus:border-[var(--color-accent)]"
-          />
-        </div>
-        <div>
-          <label id="lbl-dbt-notes" for="inp-dbt-notes" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.notes_label}</label>
-          <input
-            id="inp-dbt-notes"
-            type="text"
-            bind:value={notes}
-            placeholder={t.notes_placeholder}
-            class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm focus:outline-none focus:border-[var(--color-accent)]"
-          />
-        </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" on:click={() => (showModal = false)} class="px-4 py-2 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]">{t.common_cancel}</button>
-          <button type="submit" class="px-4 py-2 text-xs font-mono font-bold text-white bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] rounded-md">{t.common_save}</button>
-        </div>
-      </form>
+<Modal isOpen={showModal} title={editingId ? t.edit_debt : t.add_new_debt} onClose={() => (showModal = false)}>
+  <form on:submit|preventDefault={handleSubmit} class="space-y-3.5 font-mono">
+    <div>
+      <label for="inp-dbt-person" class="modal-label">{t.debtor_name}</label>
+      <input
+        id="inp-dbt-person"
+        type="text"
+        bind:value={person}
+        placeholder={t.debtor_placeholder}
+        required
+        class="modal-input"
+      />
     </div>
-  </div>
-{/if}
+    <div>
+      <label for="inp-dbt-amount" class="modal-label">{t.debt_total_label}</label>
+      <input
+        id="inp-dbt-amount"
+        type="number"
+        bind:value={totalAmount}
+        placeholder="0"
+        required
+        min="1"
+        class="modal-input"
+      />
+    </div>
+    <div>
+      <label for="inp-dbt-date" class="modal-label">{t.debt_due_label}</label>
+      <input
+        id="inp-dbt-date"
+        type="date"
+        bind:value={dueDate}
+        class="modal-input"
+      />
+    </div>
+    <div>
+      <label for="inp-dbt-notes" class="modal-label">{t.notes_label}</label>
+      <input
+        id="inp-dbt-notes"
+        type="text"
+        bind:value={notes}
+        placeholder={t.notes_placeholder}
+        class="modal-input"
+      />
+    </div>
+    <div class="flex justify-end gap-2 pt-2">
+      <button type="button" on:click={() => (showModal = false)} class="px-4 py-2 text-xs text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]">{t.common_cancel}</button>
+      <button type="submit" class="px-4 py-2 text-xs font-bold text-slate-950 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] rounded-md shadow-xs">{t.common_save}</button>
+    </div>
+  </form>
+</Modal>
 
 <!-- Pay Modal -->
-{#if showPayModal}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--color-paper)]/85 backdrop-blur-md">
-    <div class="w-full max-w-md bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-6 space-y-4 shadow-xl relative">
-      <button on:click={() => (showPayModal = false)} class="absolute top-4 right-4 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] cursor-pointer" aria-label={t.common_close}>
-        <X class="w-5 h-5" />
-      </button>
-
-      <h2 class="text-base font-bold font-mono text-[var(--color-ink)]">{t.pay_title}</h2>
-      <form on:submit|preventDefault={handlePaySubmit} class="space-y-3.5">
-        <div>
-          <label id="lbl-pay-amount" for="inp-pay-amount" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.pay_amount_label}</label>
-          <input
-            id="inp-pay-amount"
-            type="number"
-            bind:value={payAmount}
-            required
-            min="1"
-            class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm font-mono focus:outline-none focus:border-[var(--color-accent)]"
-          />
-        </div>
-        <div>
-          <label id="lbl-pay-date" for="inp-pay-date" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.pay_date_label}</label>
-          <input
-            id="inp-pay-date"
-            type="date"
-            bind:value={payDate}
-            required
-            class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm font-mono focus:outline-none focus:border-[var(--color-accent)]"
-          />
-        </div>
-        <div>
-          <label id="lbl-pay-notes" for="inp-pay-notes" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.notes_label}</label>
-          <input
-            id="inp-pay-notes"
-            type="text"
-            bind:value={payNotes}
-            placeholder={t.pay_notes_placeholder}
-            class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm focus:outline-none focus:border-[var(--color-accent)]"
-          />
-        </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" on:click={() => (showPayModal = false)} class="px-4 py-2 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]">{t.common_cancel}</button>
-          <button type="submit" class="px-4 py-2 text-xs font-mono font-bold text-white bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] rounded-md">{t.confirm_payment}</button>
-        </div>
-      </form>
+<Modal isOpen={showPayModal} title={t.pay_title} onClose={() => (showPayModal = false)}>
+  <form on:submit|preventDefault={handlePaySubmit} class="space-y-3.5 font-mono">
+    <div>
+      <label for="inp-pay-amount" class="modal-label">{t.pay_amount_label}</label>
+      <input
+        id="inp-pay-amount"
+        type="number"
+        bind:value={payAmount}
+        required
+        min="1"
+        class="modal-input"
+      />
     </div>
-  </div>
-{/if}
+    <div>
+      <label for="inp-pay-date" class="modal-label">{t.pay_date_label}</label>
+      <input
+        id="inp-pay-date"
+        type="date"
+        bind:value={payDate}
+        required
+        class="modal-input"
+      />
+    </div>
+    <div>
+      <label for="inp-pay-notes" class="modal-label">{t.notes_label}</label>
+      <input
+        id="inp-pay-notes"
+        type="text"
+        bind:value={payNotes}
+        placeholder={t.pay_notes_placeholder}
+        class="modal-input"
+      />
+    </div>
+    <div class="flex justify-end gap-2 pt-2">
+      <button type="button" on:click={() => (showPayModal = false)} class="px-4 py-2 text-xs text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]">{t.common_cancel}</button>
+      <button type="submit" class="px-4 py-2 text-xs font-bold text-slate-950 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] rounded-md shadow-xs">{t.confirm_payment}</button>
+    </div>
+  </form>
+</Modal>
 
 <!-- History Modal -->
-{#if showHistoryModal}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--color-paper)]/85 backdrop-blur-md">
-    <div class="w-full max-w-md bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-6 space-y-4 shadow-xl relative">
-      <div class="flex items-center justify-between">
-        <h2 class="text-base font-bold font-mono text-[var(--color-ink)]">{t.debt_history_title} — {historyPerson}</h2>
-        <button on:click={() => (showHistoryModal = false)} class="text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] cursor-pointer" aria-label={t.common_close}>
-          <X class="w-5 h-5" />
-        </button>
-      </div>
-
-      {#if historyPayments.length === 0}
-        <p class="text-xs font-mono text-[var(--color-ink-muted)] py-6 text-center">{t.no_payments}</p>
-      {:else}
-        <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
-          {#each historyPayments as hp}
-            <div class="bg-[var(--color-paper)] p-3 rounded-md flex items-center justify-between text-xs border border-[var(--color-border)] font-mono">
-              <div>
-                <div class="font-bold text-[var(--color-ink)]">{formatDate(hp.date)}</div>
-                {#if hp.notes}<div class="text-[var(--color-ink-muted)] text-[11px] font-sans">{hp.notes}</div>{/if}
-              </div>
-              <div class="font-bold text-[var(--color-accent)]">
-                {formatRupiah(hp.amount)}
-              </div>
-            </div>
-          {/each}
+<Modal isOpen={showHistoryModal} title={`${t.debt_history_title} — ${historyPerson}`} onClose={() => (showHistoryModal = false)}>
+  {#if historyPayments.length === 0}
+    <p class="text-xs font-mono text-[var(--color-ink-muted)] py-6 text-center">{t.no_payments}</p>
+  {:else}
+    <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+      {#each historyPayments as hp}
+        <div class="bg-[var(--color-paper)] p-3 rounded-md flex items-center justify-between text-xs border border-[var(--color-border)] font-mono">
+          <div>
+            <div class="font-bold text-[var(--color-ink)]">{formatDate(hp.date)}</div>
+            {#if hp.notes}<div class="text-[var(--color-ink-muted)] text-[11px] font-sans">{hp.notes}</div>{/if}
+          </div>
+          <div class="font-bold text-[var(--color-accent)]">
+            {formatRupiah(hp.amount)}
+          </div>
         </div>
-      {/if}
+      {/each}
     </div>
-  </div>
-{/if}
+  {/if}
+</Modal>

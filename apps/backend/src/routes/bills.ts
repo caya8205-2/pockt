@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db } from '../db/index.js';
-import { bills } from '../db/schema.js';
+import { bills, expenses } from '../db/schema.js';
 import { eq, asc, and, or, isNull } from 'drizzle-orm';
 import { cryptoNative } from '../utils/id.js';
 
@@ -9,6 +9,12 @@ const billSchema = z.object({
   name: z.string().min(1),
   amount: z.number().positive(),
   dueDate: z.number().int().min(1).max(31),
+  notes: z.string().optional().nullable(),
+});
+
+const payBillSchema = z.object({
+  amount: z.number().positive(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   notes: z.string().optional().nullable(),
 });
 
@@ -74,6 +80,49 @@ export async function billRoutes(fastify: FastifyInstance) {
     return { success: true };
   });
 
+  fastify.post('/api/bills/:id/pay', async (request, reply) => {
+    const userId = getUserId(request);
+    const { id } = request.params as { id: string };
+    const body = payBillSchema.parse(request.body);
+
+    const existing = await db
+      .select()
+      .from(bills)
+      .where(and(eq(bills.id, id), or(eq(bills.userId, userId), isNull(bills.userId))))
+      .limit(1);
+
+    if (existing.length === 0) {
+      return reply.status(404).send({ error: 'Bill not found' });
+    }
+
+    const bill = existing[0];
+    const isFullPayment = body.amount >= bill.amount;
+
+    // Mark bill as paid if payment covers full or custom amount
+    await db
+      .update(bills)
+      .set({
+        isPaid: true,
+        lastPaidAt: body.date,
+      })
+      .where(eq(bills.id, id));
+
+    // Record expense transaction so cash balance is automatically updated
+    const expenseId = cryptoNative();
+    await db.insert(expenses).values({
+      id: expenseId,
+      userId,
+      title: `Pembayaran Tagihan: ${bill.name}`,
+      amount: body.amount,
+      category: 'Tagihan',
+      date: body.date,
+      notes: body.notes || bill.notes || null,
+      createdAt: new Date().toISOString(),
+    });
+
+    return { success: true, isPaid: true };
+  });
+
   fastify.post('/api/bills/:id/toggle-paid', async (request, reply) => {
     const userId = getUserId(request);
     const { id } = request.params as { id: string };
@@ -89,7 +138,7 @@ export async function billRoutes(fastify: FastifyInstance) {
 
     const bill = existing[0];
     const nextIsPaid = !bill.isPaid;
-    const lastPaidAt = nextIsPaid ? new Date().toISOString() : null;
+    const lastPaidAt = nextIsPaid ? new Date().toISOString().split('T')[0] : null;
 
     await db
       .update(bills)
@@ -104,7 +153,6 @@ export async function billRoutes(fastify: FastifyInstance) {
 
   fastify.post('/api/bills/reset-monthly', async (request) => {
     const userId = getUserId(request);
-    // Reset all bills paid status to false for a new billing cycle for this user
     await db
       .update(bills)
       .set({ isPaid: false })

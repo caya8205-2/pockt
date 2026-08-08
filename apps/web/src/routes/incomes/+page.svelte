@@ -3,7 +3,8 @@
   import { fetchApi } from '$lib/api';
   import { formatRupiah, formatDate } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
-  import { Wallet, Plus, Trash2, Edit3, ArrowDownLeft, X } from 'lucide-svelte';
+  import { Wallet, Plus, ArrowDownLeft, Trash2, Edit3 } from 'lucide-svelte';
+  import Modal from '$components/Modal.svelte';
 
   $: t = translations[$currentLang];
 
@@ -18,7 +19,7 @@
   let incomes: Income[] = [];
   let isLoading = true;
 
-  // Form modal state
+  // Form modal
   let showModal = false;
   let editingId: string | null = null;
   let title = '';
@@ -156,63 +157,54 @@
 </div>
 
 <!-- Modal Form -->
-{#if showModal}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--color-paper)]/85 backdrop-blur-md">
-    <div class="w-full max-w-md bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-6 space-y-4 shadow-xl relative">
-      <button on:click={() => (showModal = false)} class="absolute top-4 right-4 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] cursor-pointer" aria-label={t.common_close}>
-        <X class="w-5 h-5" />
-      </button>
-
-      <h2 class="text-base font-bold font-mono text-[var(--color-ink)]">{editingId ? t.edit_income : t.add_income_title}</h2>
-      <form on:submit|preventDefault={handleSubmit} class="space-y-3.5">
-        <div>
-          <label id="lbl-inc-title" for="inp-inc-title" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.income_title_label}</label>
-          <input
-            id="inp-inc-title"
-            type="text"
-            bind:value={title}
-            placeholder={t.income_title_placeholder}
-            required
-            class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm focus:outline-none focus:border-[var(--color-accent)]"
-          />
-        </div>
-        <div>
-          <label id="lbl-inc-amount" for="inp-inc-amount" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.amount_label}</label>
-          <input
-            id="inp-inc-amount"
-            type="number"
-            bind:value={amount}
-            placeholder="0"
-            required
-            min="1"
-            class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm font-mono focus:outline-none focus:border-[var(--color-accent)]"
-          />
-        </div>
-        <div>
-          <label id="lbl-inc-date" for="inp-inc-date" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.date_label}</label>
-          <input
-            id="inp-inc-date"
-            type="date"
-            bind:value={date}
-            required
-            class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm font-mono focus:outline-none focus:border-[var(--color-accent)]"
-          />
-        </div>
-        <div>
-          <label id="lbl-inc-notes" for="inp-inc-notes" class="block text-xs font-mono font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider mb-1">{t.notes_label}</label>
-          <input
-            id="inp-inc-notes"
-            type="text"
-            bind:value={notes}
-            placeholder={t.notes_placeholder}
-            class="w-full px-3 py-2 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-[var(--color-ink)] text-sm focus:outline-none focus:border-[var(--color-accent)]"
-          />
-        </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" on:click={() => (showModal = false)} class="px-4 py-2 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]">{t.common_cancel}</button>
-          <button type="submit" class="px-4 py-2 text-xs font-mono font-bold text-white bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] rounded-md">{t.common_save}</button>
-        </div>
-      </form>
+<Modal isOpen={showModal} title={editingId ? t.edit_income : t.add_income_title} onClose={() => (showModal = false)}>
+  <form on:submit|preventDefault={handleSubmit} class="space-y-3.5 font-mono">
+    <div>
+      <label for="inp-inc-title" class="modal-label">{t.income_title_label}</label>
+      <input
+        id="inp-inc-title"
+        type="text"
+        bind:value={title}
+        placeholder={t.income_title_placeholder}
+        required
+        class="modal-input"
+      />
     </div>
-  </div>
-{/if}
+    <div>
+      <label for="inp-inc-amount" class="modal-label">{t.amount_label}</label>
+      <input
+        id="inp-inc-amount"
+        type="number"
+        bind:value={amount}
+        placeholder="0"
+        required
+        min="1"
+        class="modal-input"
+      />
+    </div>
+    <div>
+      <label for="inp-inc-date" class="modal-label">{t.date_label}</label>
+      <input
+        id="inp-inc-date"
+        type="date"
+        bind:value={date}
+        required
+        class="modal-input"
+      />
+    </div>
+    <div>
+      <label for="inp-inc-notes" class="modal-label">{t.notes_label}</label>
+      <input
+        id="inp-inc-notes"
+        type="text"
+        bind:value={notes}
+        placeholder={t.notes_placeholder}
+        class="modal-input"
+      />
+    </div>
+    <div class="flex justify-end gap-2 pt-2">
+      <button type="button" on:click={() => (showModal = false)} class="px-4 py-2 text-xs text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]">{t.common_cancel}</button>
+      <button type="submit" class="px-4 py-2 text-xs font-bold text-slate-950 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] rounded-md shadow-xs">{t.common_save}</button>
+    </div>
+  </form>
+</Modal>
