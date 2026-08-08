@@ -3,10 +3,12 @@
   import { fetchApi } from '$lib/api';
   import { formatRupiah, formatDate } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
-  import { Receipt, Plus, ArrowUpRight, Trash2, Edit3, Tag } from 'lucide-svelte';
+  import { sortWithCustomOrder, saveCustomOrder } from '$lib/order';
+  import { Receipt, Plus, ArrowUpRight, Trash2, Edit3, Tag, GripVertical } from 'lucide-svelte';
   import Modal from '$components/Modal.svelte';
 
   $: t = translations[$currentLang];
+  const STORAGE_KEY = 'pockt_order_expenses';
 
   interface Expense {
     id: string;
@@ -26,6 +28,7 @@
   let expenses: Expense[] = [];
   let categories: Category[] = [];
   let isLoading = true;
+  let draggedIndex: number | null = null;
 
   // Filter category
   let selectedFilterCategory = 'ALL';
@@ -69,13 +72,35 @@
         fetchApi<Expense[]>('/expenses'),
         fetchApi<Category[]>('/categories'),
       ]);
-      expenses = expRes;
+      expenses = sortWithCustomOrder(expRes, STORAGE_KEY);
       categories = catRes;
     } catch (err) {
       console.error(err);
     } finally {
       isLoading = false;
     }
+  }
+
+  function handleDragStart(e: DragEvent, index: number) {
+    draggedIndex = index;
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  function handleDragOver(e: DragEvent, index: number) {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    const updated = [...expenses];
+    const [moved] = updated.splice(draggedIndex, 1);
+    updated.splice(index, 0, moved);
+    expenses = updated;
+    draggedIndex = index;
+    saveCustomOrder(expenses, STORAGE_KEY);
+  }
+
+  function handleDragEnd() {
+    draggedIndex = null;
   }
 
   function openCreateModal() {
@@ -209,12 +234,26 @@
     </div>
   {:else}
     <div class="grid gap-2.5">
-      {#each filteredExpenses as item}
-        <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-slate-400 transition-colors">
-          <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+      {#each filteredExpenses as item, index (item.id)}
+        <div
+          draggable="true"
+          on:dragstart={(e) => handleDragStart(e, index)}
+          on:dragover={(e) => handleDragOver(e, index)}
+          on:dragend={handleDragEnd}
+          class={`bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 transition-all ${
+            draggedIndex === index ? 'opacity-40 border-dashed border-[var(--color-accent)]' : 'hover:border-slate-400'
+          }`}
+        >
+          <div class="flex items-start sm:items-center gap-2.5 min-w-0 flex-1">
+            <!-- Drag Handle Icon -->
+            <div class="cursor-grab active:cursor-grabbing text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] p-1 shrink-0 mt-0.5 sm:mt-0" title="Drag to reorder">
+              <GripVertical class="w-4 h-4" />
+            </div>
+
             <div class="p-2 bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded shrink-0 mt-0.5 sm:mt-0">
               <ArrowUpRight class="w-4 h-4" />
             </div>
+
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2 flex-wrap">
                 <span class="font-bold text-[var(--color-ink)] text-sm">{item.title}</span>

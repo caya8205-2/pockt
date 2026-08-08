@@ -3,10 +3,12 @@
   import { fetchApi } from '$lib/api';
   import { formatRupiah, formatDate } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
-  import { HandCoins, Plus, Trash2, Edit3, DollarSign, History } from 'lucide-svelte';
+  import { sortWithCustomOrder, saveCustomOrder } from '$lib/order';
+  import { HandCoins, Plus, Trash2, Edit3, DollarSign, History, GripVertical } from 'lucide-svelte';
   import Modal from '$components/Modal.svelte';
 
   $: t = translations[$currentLang];
+  const STORAGE_KEY = 'pockt_order_debts';
 
   interface Debt {
     id: string;
@@ -27,6 +29,7 @@
 
   let debts: Debt[] = [];
   let isLoading = true;
+  let draggedIndex: number | null = null;
 
   // Form modal
   let showModal = false;
@@ -51,12 +54,35 @@
   async function loadDebts() {
     isLoading = true;
     try {
-      debts = await fetchApi<Debt[]>('/debts');
+      const fetched = await fetchApi<Debt[]>('/debts');
+      debts = sortWithCustomOrder(fetched, STORAGE_KEY);
     } catch (err) {
       console.error(err);
     } finally {
       isLoading = false;
     }
+  }
+
+  function handleDragStart(e: DragEvent, index: number) {
+    draggedIndex = index;
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  function handleDragOver(e: DragEvent, index: number) {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    const updated = [...debts];
+    const [moved] = updated.splice(draggedIndex, 1);
+    updated.splice(index, 0, moved);
+    debts = updated;
+    draggedIndex = index;
+    saveCustomOrder(debts, STORAGE_KEY);
+  }
+
+  function handleDragEnd() {
+    draggedIndex = null;
   }
 
   function openCreateModal() {
@@ -166,26 +192,41 @@
     </div>
   {:else}
     <div class="grid gap-2.5">
-      {#each debts as item}
-        <div class={`border rounded-md p-4 space-y-3 transition-colors ${
-          item.isPaid ? 'bg-[var(--color-paper-2)]/40 border-[var(--color-border)] opacity-75' : 'bg-[var(--color-paper-2)] border-[var(--color-border)] hover:border-slate-400'
-        }`}>
-          <div class="flex items-center justify-between gap-3 sm:gap-4">
-            <div class="min-w-0">
-              <div class="flex items-center gap-2 min-w-0 flex-wrap sm:flex-nowrap">
-                <span class="font-bold text-sm sm:text-base text-[var(--color-ink)] truncate">{item.person}</span>
-                {#if item.isPaid}
-                  <span class="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)] rounded shrink-0 whitespace-nowrap">
-                    {t.common_paid}
-                  </span>
+      {#each debts as item, index (item.id)}
+        <div
+          draggable="true"
+          on:dragstart={(e) => handleDragStart(e, index)}
+          on:dragover={(e) => handleDragOver(e, index)}
+          on:dragend={handleDragEnd}
+          class={`border rounded-md p-4 space-y-3 transition-all ${
+            draggedIndex === index ? 'opacity-40 border-dashed border-[var(--color-accent)]' : ''
+          } ${
+            item.isPaid ? 'bg-[var(--color-paper-2)]/40 border-[var(--color-border)] opacity-75' : 'bg-[var(--color-paper-2)] border-[var(--color-border)] hover:border-slate-400'
+          }`}
+        >
+          <div class="flex items-start justify-between gap-3 sm:gap-4">
+            <div class="flex items-start gap-2.5 min-w-0 flex-1">
+              <!-- Drag Handle Icon -->
+              <div class="cursor-grab active:cursor-grabbing text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] p-1 shrink-0 mt-0.5" title="Drag to reorder">
+                <GripVertical class="w-4 h-4" />
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 min-w-0 flex-wrap sm:flex-nowrap">
+                  <span class="font-bold text-sm sm:text-base text-[var(--color-ink)] truncate">{item.person}</span>
+                  {#if item.isPaid}
+                    <span class="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)] rounded shrink-0 whitespace-nowrap">
+                      {t.common_paid}
+                    </span>
+                  {/if}
+                </div>
+                {#if item.notes}
+                  <div class="text-xs text-[var(--color-ink-muted)] mt-0.5 truncate">{item.notes}</div>
+                {/if}
+                {#if item.dueDate}
+                  <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-0.5">{t.debt_due_prefix} {formatDate(item.dueDate)}</div>
                 {/if}
               </div>
-              {#if item.notes}
-                <div class="text-xs text-[var(--color-ink-muted)] mt-0.5 truncate">{item.notes}</div>
-              {/if}
-              {#if item.dueDate}
-                <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-0.5">{t.debt_due_prefix} {formatDate(item.dueDate)}</div>
-              {/if}
             </div>
 
             <div class="text-right font-mono shrink-0">

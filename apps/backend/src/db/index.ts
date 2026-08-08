@@ -54,6 +54,7 @@ export function initDb() {
       user_id TEXT,
       name TEXT NOT NULL,
       amount REAL NOT NULL,
+      remaining_amount REAL,
       due_date INTEGER NOT NULL,
       is_paid INTEGER NOT NULL DEFAULT 0,
       notes TEXT,
@@ -99,5 +100,11 @@ export function initDb() {
     } catch (e) {
       // Column user_id already exists, ignore
     }
+  }
+
+  try {
+    sqlite.exec(`ALTER TABLE bills ADD COLUMN remaining_amount REAL;`);
+  } catch (e) {
+    // Column remaining_amount already exists, ignore
   }
 }

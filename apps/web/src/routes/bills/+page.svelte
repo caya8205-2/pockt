@@ -3,15 +3,18 @@
   import { fetchApi } from '$lib/api';
   import { formatRupiah } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
-  import { CalendarCheck, Plus, Trash2, Edit3, CheckCircle2, RotateCcw, DollarSign } from 'lucide-svelte';
+  import { sortWithCustomOrder, saveCustomOrder } from '$lib/order';
+  import { CalendarCheck, Plus, Trash2, Edit3, CheckCircle2, RotateCcw, DollarSign, GripVertical } from 'lucide-svelte';
   import Modal from '$components/Modal.svelte';
 
   $: t = translations[$currentLang];
+  const STORAGE_KEY = 'pockt_order_bills';
 
   interface Bill {
     id: string;
     name: string;
     amount: number;
+    remainingAmount?: number;
     dueDate: number;
     isPaid: boolean;
     notes: string | null;
@@ -20,6 +23,7 @@
 
   let bills: Bill[] = [];
   let isLoading = true;
+  let draggedIndex: number | null = null;
 
   // Form modal (Create / Edit)
   let showModal = false;
@@ -39,12 +43,35 @@
   async function loadBills() {
     isLoading = true;
     try {
-      bills = await fetchApi<Bill[]>('/bills');
+      const fetched = await fetchApi<Bill[]>('/bills');
+      bills = sortWithCustomOrder(fetched, STORAGE_KEY);
     } catch (err) {
       console.error(err);
     } finally {
       isLoading = false;
     }
+  }
+
+  function handleDragStart(e: DragEvent, index: number) {
+    draggedIndex = index;
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  function handleDragOver(e: DragEvent, index: number) {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    const updated = [...bills];
+    const [moved] = updated.splice(draggedIndex, 1);
+    updated.splice(index, 0, moved);
+    bills = updated;
+    draggedIndex = index;
+    saveCustomOrder(bills, STORAGE_KEY);
+  }
+
+  function handleDragEnd() {
+    draggedIndex = null;
   }
 
   function openCreateModal() {
@@ -67,7 +94,7 @@
 
   function openPayModal(item: Bill) {
     selectedBill = item;
-    payAmount = item.amount;
+    payAmount = item.remainingAmount ?? item.amount;
     payDate = new Date().toISOString().split('T')[0];
     payNotes = '';
     showPayModal = true;
@@ -165,16 +192,35 @@
     </div>
   {:else}
     <div class="grid gap-2.5">
-      {#each bills as item}
-        <div class={`border rounded-md p-4 space-y-3 transition-colors ${
-          item.isPaid ? 'bg-[var(--color-paper-2)]/40 border-[var(--color-border)] opacity-75' : 'bg-[var(--color-paper-2)] border-[var(--color-border)] hover:border-slate-400'
-        }`}>
+      {#each bills as item, index (item.id)}
+        {@const remaining = item.remainingAmount ?? item.amount}
+        {@const isPartiallyPaid = !item.isPaid && remaining < item.amount}
+        <div
+          draggable="true"
+          on:dragstart={(e) => handleDragStart(e, index)}
+          on:dragover={(e) => handleDragOver(e, index)}
+          on:dragend={handleDragEnd}
+          class={`border rounded-md p-4 space-y-3 transition-all ${
+            draggedIndex === index ? 'opacity-40 border-dashed border-[var(--color-accent)]' : ''
+          } ${
+            item.isPaid
+              ? 'bg-[var(--color-paper-2)]/40 border-[var(--color-border)] opacity-75'
+              : 'bg-[var(--color-paper-2)] border-[var(--color-border)] hover:border-slate-400'
+          }`}
+        >
           <div class="flex items-start sm:items-center justify-between gap-3 sm:gap-4">
-            <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+            <div class="flex items-start sm:items-center gap-2.5 min-w-0 flex-1">
+              <!-- Drag Handle Icon -->
+              <div class="cursor-grab active:cursor-grabbing text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] p-1 shrink-0" title="Drag to reorder">
+                <GripVertical class="w-4 h-4" />
+              </div>
+
               <button
                 on:click={() => togglePaidStatus(item.id)}
                 class={`p-2 rounded shrink-0 transition-colors cursor-pointer mt-0.5 sm:mt-0 ${
-                  item.isPaid ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)]' : 'bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]'
+                  item.isPaid
+                    ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)]'
+                    : 'bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]'
                 }`}
                 title={item.isPaid ? t.bills_mark_unpaid : t.bills_mark_paid}
                 aria-label={t.bills_toggle_paid}
@@ -184,9 +230,17 @@
 
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-2 flex-wrap">
-                  <span class={`font-bold text-sm sm:text-base ${item.isPaid ? 'line-through text-[var(--color-ink-muted)]' : 'text-[var(--color-ink)]'}`}>{item.name}</span>
+                  <span class={`font-bold text-sm sm:text-base ${item.isPaid ? 'line-through text-[var(--color-ink-muted)]' : 'text-[var(--color-ink)]'}`}>
+                    {item.name}
+                  </span>
                   <span class="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded shrink-0">
-                    {t.bills_due_prefix} {item.dueDate} / {t.bills_per_month}</span>
+                    {t.bills_due_prefix} {item.dueDate} / {t.bills_per_month}
+                  </span>
+                  {#if isPartiallyPaid}
+                    <span class="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded shrink-0">
+                      {$currentLang === 'id' ? `Dicicil (Sisa ${formatRupiah(remaining)})` : `Partial (Sisa ${formatRupiah(remaining)})`}
+                    </span>
+                  {/if}
                 </div>
                 <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-1 flex items-center gap-2 flex-wrap">
                   {#if item.isPaid}
@@ -200,9 +254,17 @@
             </div>
 
             <div class="text-right font-mono shrink-0">
-              <div class="text-base sm:text-lg font-bold text-[var(--color-ink)]">
-                {formatRupiah(item.amount)}
+              <div class="text-xs text-[var(--color-ink-muted)]">
+                {$currentLang === 'id' ? 'Sisa Tagihan' : 'Remaining'}
               </div>
+              <div class="text-base sm:text-lg font-bold text-[var(--color-ink)]">
+                {formatRupiah(remaining)}
+              </div>
+              {#if remaining < item.amount}
+                <div class="text-[10px] text-[var(--color-ink-muted)]">
+                  Total: {formatRupiah(item.amount)}
+                </div>
+              {/if}
             </div>
           </div>
 
@@ -215,7 +277,7 @@
                   class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 rounded-md transition-colors cursor-pointer shadow-xs"
                 >
                   <DollarSign class="w-3.5 h-3.5" />
-                  <span>{$currentLang === 'id' ? 'Bayar Tagihan' : 'Pay Bill'}</span>
+                  <span>{$currentLang === 'id' ? 'Bayar / Cicil Tagihan' : 'Pay / Installment'}</span>
                 </button>
               {/if}
             </div>

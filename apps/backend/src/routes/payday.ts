@@ -30,7 +30,7 @@ export async function paydayRoutes(fastify: FastifyInstance) {
       .where(or(eq(bills.userId, userId), isNull(bills.userId)));
 
     const unpaidBills = allBills.filter((b) => !b.isPaid);
-    const billsTotal = unpaidBills.reduce((acc, curr) => acc + curr.amount, 0);
+    const billsTotal = unpaidBills.reduce((acc, curr) => acc + (curr.remainingAmount ?? curr.amount), 0);
 
     // Outstanding debt for this user
     const allDebts = await db

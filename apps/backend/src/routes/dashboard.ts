@@ -46,14 +46,14 @@ export async function dashboardRoutes(fastify: FastifyInstance) {
     // Current Balance = Total Income - Total Expenses - Total Debt Payments
     const currentBalance = totalIncomeAllTime - totalExpensesAllTime - totalDebtPaidAllTime;
 
-    // Outstanding Bills (unpaid bills amount) for this user
+    // Outstanding Bills (unpaid bills remaining amount) for this user
     const allBills = await db
       .select()
       .from(bills)
       .where(or(eq(bills.userId, userId), isNull(bills.userId)));
 
     const unpaidBills = allBills.filter((b) => !b.isPaid);
-    const outstandingBills = unpaidBills.reduce((acc, curr) => acc + curr.amount, 0);
+    const outstandingBills = unpaidBills.reduce((acc, curr) => acc + (curr.remainingAmount ?? curr.amount), 0);
 
     // Outstanding Debt (remaining amount on unpaid debts) for this user
     const allDebts = await db

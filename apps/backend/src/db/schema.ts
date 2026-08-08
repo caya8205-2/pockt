@@ -41,6 +41,7 @@ export const bills = sqliteTable('bills', {
   userId: text('user_id'),
   name: text('name').notNull(),
   amount: real('amount').notNull(),
+  remainingAmount: real('remaining_amount'),
   dueDate: integer('due_date').notNull(), // Day of month 1-31
   isPaid: integer('is_paid', { mode: 'boolean' }).notNull().default(false),
   notes: text('notes'),

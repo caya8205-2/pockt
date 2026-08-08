@@ -30,7 +30,11 @@ export async function billRoutes(fastify: FastifyInstance) {
       .from(bills)
       .where(or(eq(bills.userId, userId), isNull(bills.userId)))
       .orderBy(asc(bills.dueDate));
-    return list;
+
+    return list.map((b) => ({
+      ...b,
+      remainingAmount: b.remainingAmount ?? b.amount,
+    }));
   });
 
   fastify.post('/api/bills', async (request, reply) => {
@@ -42,6 +46,7 @@ export async function billRoutes(fastify: FastifyInstance) {
       userId,
       name: body.name,
       amount: body.amount,
+      remainingAmount: body.amount,
       dueDate: body.dueDate,
       isPaid: false,
       notes: body.notes || null,
@@ -67,11 +72,19 @@ export async function billRoutes(fastify: FastifyInstance) {
       return reply.status(404).send({ error: 'Bill not found' });
     }
 
+    const current = existing[0];
+    const currentRemaining = current.remainingAmount ?? current.amount;
+    const diff = body.amount - current.amount;
+    const newRemaining = Math.max(0, currentRemaining + diff);
+    const isPaid = newRemaining === 0;
+
     await db
       .update(bills)
       .set({
         name: body.name,
         amount: body.amount,
+        remainingAmount: newRemaining,
+        isPaid: isPaid,
         dueDate: body.dueDate,
         notes: body.notes || null,
       })
@@ -96,13 +109,16 @@ export async function billRoutes(fastify: FastifyInstance) {
     }
 
     const bill = existing[0];
-    const isFullPayment = body.amount >= bill.amount;
+    const currentRemaining = bill.remainingAmount ?? bill.amount;
+    const newRemaining = Math.max(0, currentRemaining - body.amount);
+    const isPaid = newRemaining === 0;
 
-    // Mark bill as paid if payment covers full or custom amount
+    // Update bill remaining amount and paid status
     await db
       .update(bills)
       .set({
-        isPaid: true,
+        remainingAmount: newRemaining,
+        isPaid: isPaid,
         lastPaidAt: body.date,
       })
       .where(eq(bills.id, id));
@@ -120,7 +136,7 @@ export async function billRoutes(fastify: FastifyInstance) {
       createdAt: new Date().toISOString(),
     });
 
-    return { success: true, isPaid: true };
+    return { success: true, remainingAmount: newRemaining, isPaid };
   });
 
   fastify.post('/api/bills/:id/toggle-paid', async (request, reply) => {
@@ -138,12 +154,14 @@ export async function billRoutes(fastify: FastifyInstance) {
 
     const bill = existing[0];
     const nextIsPaid = !bill.isPaid;
+    const nextRemaining = nextIsPaid ? 0 : bill.amount;
     const lastPaidAt = nextIsPaid ? new Date().toISOString().split('T')[0] : null;
 
     await db
       .update(bills)
       .set({
         isPaid: nextIsPaid,
+        remainingAmount: nextRemaining,
         lastPaidAt: lastPaidAt,
       })
       .where(eq(bills.id, id));
@@ -153,10 +171,20 @@ export async function billRoutes(fastify: FastifyInstance) {
 
   fastify.post('/api/bills/reset-monthly', async (request) => {
     const userId = getUserId(request);
-    await db
-      .update(bills)
-      .set({ isPaid: false })
+    const userBills = await db
+      .select()
+      .from(bills)
       .where(or(eq(bills.userId, userId), isNull(bills.userId)));
+
+    for (const b of userBills) {
+      await db
+        .update(bills)
+        .set({
+          isPaid: false,
+          remainingAmount: b.amount,
+        })
+        .where(eq(bills.id, b.id));
+    }
 
     return { success: true, message: 'Status tagihan berhasil di-reset untuk bulan baru.' };
   });
