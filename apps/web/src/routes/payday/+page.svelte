@@ -80,15 +80,13 @@
       </div>
     </div>
 
-    {#if data}
-      <button
-        on:click={() => { newPaydayDate = data.paydayDate; showSettingsModal = true; }}
-        class="flex items-center gap-2 px-3 py-2 bg-[var(--color-paper-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink)] text-xs font-mono font-bold rounded-md transition-colors cursor-pointer shrink-0 self-start sm:self-auto shadow-xs"
-      >
-        <Settings class="w-3.5 h-3.5 text-[var(--color-accent)]" />
-        <span>{t.payday_change_date} ({data.paydayDate})</span>
-      </button>
-    {/if}
+    <button
+      on:click={() => { newPaydayDate = data?.paydayDate || 5; showSettingsModal = true; }}
+      class="flex items-center gap-2 px-3 py-2 bg-[var(--color-paper-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink)] text-xs font-mono font-bold rounded-md transition-colors cursor-pointer shrink-0 self-start sm:self-auto shadow-xs"
+    >
+      <Settings class="w-3.5 h-3.5 text-[var(--color-accent)]" />
+      <span>{t.payday_change_date} ({data?.paydayDate || 5})</span>
+    </button>
   </div>
 
   {#if isLoading}
@@ -196,7 +194,23 @@
             class="w-full bg-[var(--color-paper)] border border-[var(--color-border)] rounded px-3 py-2 text-[var(--color-ink)] text-sm font-bold focus:outline-none focus:border-[var(--color-accent)]"
             required
           />
-          <p class="text-[11px] text-[var(--color-ink-muted)] mt-1.5 leading-relaxed font-sans">{t.payday_date_hint}</p>
+          <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+            <span class="text-[11px] text-[var(--color-ink-muted)]">Pilih cepat:</span>
+            {#each [1, 5, 25, 28, 30] as presetDay}
+              <button
+                type="button"
+                on:click={() => (newPaydayDate = presetDay)}
+                class={`px-2 py-1 text-[11px] font-mono rounded border transition-colors cursor-pointer ${
+                  newPaydayDate === presetDay
+                    ? 'bg-[var(--color-accent)] text-slate-950 font-bold border-[var(--color-accent)]'
+                    : 'bg-[var(--color-paper-3)] text-[var(--color-ink)] border-[var(--color-border)] hover:border-slate-400'
+                }`}
+              >
+                Tgl {presetDay}
+              </button>
+            {/each}
+          </div>
+          <p class="text-[11px] text-[var(--color-ink-muted)] mt-2 leading-relaxed font-sans">{t.payday_date_hint}</p>
         </div>
 
         <div class="flex justify-end gap-2 pt-2 border-t border-[var(--color-border)]">

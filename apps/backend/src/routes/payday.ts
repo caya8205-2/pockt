@@ -53,14 +53,30 @@ export function getPaydayCycleWindow(now: Date = new Date(), paydayDate: number 
   };
 }
 
+async function getOwnerPaydayDate(userId: string): Promise<number> {
+  if (userId && userId !== 'default') {
+    const userRow = await db.select({ paydayDate: users.paydayDate }).from(users).where(eq(users.id, userId)).limit(1);
+    if (userRow.length > 0 && userRow[0].paydayDate !== null && userRow[0].paydayDate !== undefined) {
+      return userRow[0].paydayDate;
+    }
+  }
+
+  const firstUser = await db.select({ paydayDate: users.paydayDate }).from(users).limit(1);
+  if (firstUser.length > 0 && firstUser[0].paydayDate !== null && firstUser[0].paydayDate !== undefined) {
+    return firstUser[0].paydayDate;
+  }
+
+  return 5;
+}
+
 export async function paydayRoutes(fastify: FastifyInstance) {
   fastify.get('/api/payday', async (request) => {
     const userId = getUserId(request);
 
     // Fetch user's preferred payday date (default: 5)
-    const userRow = await db.select({ paydayDate: users.paydayDate }).from(users).where(eq(users.id, userId)).limit(1);
     const queryDay = (request.query as any)?.paydayDate;
-    const paydayDate = queryDay ? Number(queryDay) : (userRow[0]?.paydayDate ?? 5);
+    const dbDay = await getOwnerPaydayDate(userId);
+    const paydayDate = queryDay ? Number(queryDay) : dbDay;
 
     const now = new Date();
     const { cycleStart, cycleEnd } = getPaydayCycleWindow(now, paydayDate);
@@ -146,7 +162,13 @@ export async function paydayRoutes(fastify: FastifyInstance) {
       return reply.status(400).send({ error: 'paydayDate harus berupa angka antara 1 dan 31' });
     }
 
-    await db.update(users).set({ paydayDate }).where(eq(users.id, userId));
+    const allUsers = await db.select({ id: users.id }).from(users);
+    if (allUsers.length > 0) {
+      for (const u of allUsers) {
+        await db.update(users).set({ paydayDate }).where(eq(users.id, u.id));
+      }
+    }
+
     return { success: true, paydayDate };
   });
 }

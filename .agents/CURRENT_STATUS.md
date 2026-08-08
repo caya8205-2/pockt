@@ -1,6 +1,6 @@
 # CURRENT STATUS & HANDOFF CONTEXT
 
-Last Updated: 2026-08-08 (Release v0.2.0 - Payday Debt Isolation & UI Responsive Improvements)
+Last Updated: 2026-08-08 (Release v0.2.1 - Custom Payday Cycle Window & Salary Date Setting)
 
 ---
 
@@ -31,14 +31,12 @@ Last Updated: 2026-08-08 (Release v0.2.0 - Payday Debt Isolation & UI Responsive
 
 ---
 
-## 2. Release v0.2.0 Highlights
+## 2. Release v0.2.1 Highlights
 
-- **Removed Wallet Icon Badge on Payday Planning**: Removed redundant wallet icon badge next to "Total Monthly Salary / Incomes" header on the `/payday` overview page.
-- **Hidden Timeline Feed Icon Badge on Mobile**: Hid the left square icon badge on `/dashboard` timeline feed cards for mobile viewports (`hidden sm:block`) to give title and transaction amounts maximum horizontal width.
-- **Fixed Debts List Mobile Overflow**: Updated debt item card layout on `/debts` to responsive stacking (`flex-col sm:flex-row`), preventing text, due dates, and remaining/total amounts from overflowing or clipping on narrow mobile screens.
-- **Payday Planning Debt Isolation**:
-  - Divided Payday debt obligations into 2 separate categories: `Angsuran / Hutang Dibayar Bulan Ini` (`debtPaidThisMonth`) and `Sisa Hutang Jatuh Tempo Bulan Ini` (`debtDueThisMonth`).
-  - Excluded future-month debts (e.g. November 2026, December 2026, January 2027) from current month Payday net income calculation (`freeToSpend`).
+- **Dynamic Payday Cycle Window**: Payday Planning (`/payday`) calculates financial totals based on user's monthly salary date (default: 5th of every month, e.g. 5 Aug – 4 Sep).
+- **Eliminated Fake Free-to-Spend Illusion**: Debts/Paylater due on the 1st of next month are automatically included in the current salary cycle because they fall before the next salary arrives on the 5th.
+- **Configurable Payday Date Setting**: Added `paydayDate` (1–31) user setting in SQLite DB (`users` table) with API `PUT /api/user/settings` and interactive UI modal on `/payday`.
+- **Payday Cycle Badge**: Displays active cycle date range in the header of `/payday` overview page.
 
 ---
 
@@ -48,3 +46,4 @@ Before making any commits or releasing:
 1. Run Integration Tests: `pnpm --filter @pockt/backend test` (Must pass 17/17).
 2. Production Deployment: `wsl docker compose up -d --build` (Use Docker build cache).
 3. Push to Remote: `git push origin main`.
+4. Create Release & Tag: `gh release create v0.2.x`.
