@@ -9,7 +9,8 @@
     "clean": "turbo clean",
     "test": "pnpm --filter @pockt/backend test",
     "test:web": "pnpm --filter @pockt/web test:e2e",
-    "test:all": "pnpm --filter @pockt/backend test && pnpm --filter @pockt/web test:e2e"
+    "test:all": "pnpm --filter @pockt/backend test && pnpm --filter @pockt/web test:e2e",
+    "user": "pnpm --filter @pockt/backend user"
   },
   "devDependencies": {
     "turbo": "^2.4.0"
