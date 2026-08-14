@@ -198,15 +198,15 @@
       <SortDropdown bind:value={selectedSort} mode="bills" allowCustom={true} />
       <button
         on:click={resetMonthlyBills}
-        class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-mono font-semibold text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] border border-[var(--color-border)] rounded-md transition-colors cursor-pointer"
+        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-mono font-bold text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] hover:bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md transition-colors cursor-pointer shadow-xs leading-none text-center"
       >
         <RotateCcw class="w-4 h-4" />
-        <span>{t.bills_reset_month}</span>
+        <span class="leading-none">{t.bills_reset_month}</span>
       </button>
 
       <button
         on:click={openCreateModal}
-        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors shadow-xs cursor-pointer leading-none self-center text-center"
+        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors shadow-xs cursor-pointer leading-none text-center"
       >
         <Plus class="w-4 h-4 stroke-[3]" />
         <span class="leading-none">{t.add_bill}</span>

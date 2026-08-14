@@ -43,24 +43,32 @@
     }
     return list;
   })();
+
+  $: currentOption = options.find((o) => o.id === value) || options[0];
 </script>
 
-<div class="relative inline-flex items-center font-mono text-xs">
-  <div class="flex items-center gap-1.5 px-2.5 py-1.5 bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md shadow-2xs hover:border-[var(--color-ink-muted)] transition-colors">
-    <ArrowUpDown class="w-3.5 h-3.5 text-[var(--color-ink-muted)] shrink-0" />
-    <span class="text-[11px] text-[var(--color-ink-muted)] font-bold uppercase tracking-wider shrink-0 hidden sm:inline">
+<div class="relative inline-flex items-center font-mono text-xs cursor-pointer select-none">
+  <!-- Visual button with identical standard button height, padding, borders, and typography -->
+  <div class="inline-flex items-center gap-2 px-3.5 py-2.5 bg-[var(--color-paper-3)] hover:bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink)] rounded-md shadow-xs transition-colors cursor-pointer w-full leading-none pointer-events-none">
+    <ArrowUpDown class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0" />
+    <span class="text-xs text-[var(--color-ink-muted)] font-bold uppercase tracking-wider shrink-0 hidden sm:inline">
       {t.sort_label}
     </span>
-    <select
-      bind:value
-      class="bg-transparent text-[var(--color-ink)] font-bold text-xs focus:outline-none cursor-pointer pr-1 appearance-none"
-      aria-label={t.sort_label}
-    >
-      {#each options as opt}
-        <option value={opt.id} class="bg-[var(--color-paper-2)] text-[var(--color-ink)] font-mono">
-          {opt.label}
-        </option>
-      {/each}
-    </select>
+    <span class="font-bold text-xs text-[var(--color-ink)] truncate">
+      {currentOption ? currentOption.label : ''}
+    </span>
   </div>
+
+  <!-- Full-coverage select spanning 100% width and height so clicking ANYWHERE triggers it -->
+  <select
+    bind:value
+    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-xs"
+    aria-label={t.sort_label}
+  >
+    {#each options as opt}
+      <option value={opt.id} class="bg-[var(--color-paper-2)] text-[var(--color-ink)] font-mono">
+        {opt.label}
+      </option>
+    {/each}
+  </select>
 </div>

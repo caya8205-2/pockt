@@ -278,7 +278,9 @@
       <div class="text-xs text-[var(--color-ink-muted)] font-mono">
         <span>{filteredExpenses.length} {$currentLang === 'id' ? 'transaksi ditemukan' : 'transactions found'}</span>
       </div>
-      <SortDropdown bind:value={selectedSort} mode="standard" allowCustom={true} />
+      <div class="sm:hidden">
+        <SortDropdown bind:value={selectedSort} mode="standard" allowCustom={true} />
+      </div>
     </div>
   </div>
 
@@ -305,38 +307,44 @@
       {/each}
     </div>
 
-    <!-- Category Filter Chips -->
-    {#if categories.length > 0}
-      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none font-mono text-xs">
-        <span class="text-[11px] text-[var(--color-ink-muted)] font-bold uppercase tracking-wider shrink-0 pr-1">
-          {$currentLang === 'id' ? 'Kategori:' : 'Category:'}
-        </span>
+    <!-- Category Filter Chips & Desktop Sort Dropdown -->
+    <div class="flex items-center justify-between gap-3">
+      {#if categories.length > 0}
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none font-mono text-xs flex-1 min-w-0">
+          <span class="text-[11px] text-[var(--color-ink-muted)] font-bold uppercase tracking-wider shrink-0 pr-1">
+            {$currentLang === 'id' ? 'Kategori:' : 'Category:'}
+          </span>
 
-        <button
-          on:click={() => (selectedFilterCategory = 'ALL')}
-          class={`px-3 py-1.5 rounded-md border transition-colors cursor-pointer whitespace-nowrap ${
-            selectedFilterCategory === 'ALL'
-              ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border-[var(--color-border)] font-bold'
-              : 'bg-[var(--color-paper-2)] text-[var(--color-ink-muted)] border-[var(--color-border)] hover:text-[var(--color-ink)]'
-          }`}
-        >
-          {t.expenses_all}
-        </button>
-
-        {#each categories as cat}
           <button
-            on:click={() => (selectedFilterCategory = cat.name)}
+            on:click={() => (selectedFilterCategory = 'ALL')}
             class={`px-3 py-1.5 rounded-md border transition-colors cursor-pointer whitespace-nowrap ${
-              selectedFilterCategory === cat.name
+              selectedFilterCategory === 'ALL'
                 ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border-[var(--color-border)] font-bold'
                 : 'bg-[var(--color-paper-2)] text-[var(--color-ink-muted)] border-[var(--color-border)] hover:text-[var(--color-ink)]'
             }`}
           >
-            {catLabel(cat.name)}
+            {t.expenses_all}
           </button>
-        {/each}
+
+          {#each categories as cat}
+            <button
+              on:click={() => (selectedFilterCategory = cat.name)}
+              class={`px-3 py-1.5 rounded-md border transition-colors cursor-pointer whitespace-nowrap ${
+                selectedFilterCategory === cat.name
+                  ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border-[var(--color-border)] font-bold'
+                  : 'bg-[var(--color-paper-2)] text-[var(--color-ink-muted)] border-[var(--color-border)] hover:text-[var(--color-ink)]'
+              }`}
+            >
+              {catLabel(cat.name)}
+            </button>
+          {/each}
+        </div>
+      {/if}
+
+      <div class="hidden sm:block shrink-0">
+        <SortDropdown bind:value={selectedSort} mode="standard" allowCustom={true} />
       </div>
-    {/if}
+    </div>
   </div>
 
   <!-- Expenses List -->
