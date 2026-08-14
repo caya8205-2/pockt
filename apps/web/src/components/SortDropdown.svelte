@@ -49,10 +49,10 @@
 </script>
 
 <div class="relative inline-flex items-center font-mono text-xs cursor-pointer select-none">
-  <!-- Visual button card adapting to size: normal (h-10 / py-2.5) or sm (py-1.5) -->
+  <!-- Visual button card with exact pixel height matching sibling buttons -->
   <div
-    class={`inline-flex items-center gap-1.5 sm:gap-2 bg-[var(--color-paper-3)] hover:bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink)] rounded-md shadow-xs transition-colors cursor-pointer w-full leading-none pointer-events-none ${
-      size === 'sm' ? 'px-3 py-1.5' : 'px-3.5 py-2.5'
+    class={`inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-[var(--color-paper-3)] hover:bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink)] rounded-md shadow-xs transition-colors cursor-pointer w-full leading-none pointer-events-none ${
+      size === 'sm' ? 'h-[30px] px-3' : 'h-[38px] px-3.5'
     }`}
   >
     <ArrowUpDown class={`${size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4'} text-[var(--color-ink-muted)] shrink-0`} />

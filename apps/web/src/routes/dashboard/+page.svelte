@@ -176,7 +176,7 @@
         <SortDropdown bind:value={selectedSort} mode="standard" size="sm" allowCustom={false} />
         <button
           on:click={loadData}
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] hover:bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md transition-colors cursor-pointer shadow-xs leading-none"
+          class="h-[30px] inline-flex items-center justify-center gap-1.5 px-3 text-xs font-mono font-bold text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] hover:bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md transition-colors cursor-pointer shadow-xs leading-none"
         >
           <RefreshCw class="w-3.5 h-3.5" />
           <span>{t.common_refresh}</span>

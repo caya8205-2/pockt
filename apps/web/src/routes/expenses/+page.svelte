@@ -287,7 +287,7 @@
   <!-- Filters Row: Period Filter & Category Filter Chips -->
   <div class="space-y-2.5">
     <!-- Period Filter Chips -->
-    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none font-mono text-xs">
+    <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-none font-mono text-xs">
       <span class="text-[11px] text-[var(--color-ink-muted)] font-bold uppercase tracking-wider shrink-0 flex items-center gap-1 pr-1">
         <Calendar class="w-3.5 h-3.5" />
         <span>{$currentLang === 'id' ? 'Periode:' : 'Period:'}</span>
@@ -296,7 +296,7 @@
       {#each (['ALL', 'TODAY', 'WEEK', 'MONTH', 'YEAR'] as PeriodFilter[]) as p}
         <button
           on:click={() => (selectedPeriod = p)}
-          class={`px-3 py-1.5 rounded-md border transition-colors cursor-pointer whitespace-nowrap ${
+          class={`h-[30px] inline-flex items-center justify-center px-3 rounded-md border transition-colors cursor-pointer whitespace-nowrap leading-none ${
             selectedPeriod === p
               ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border-[var(--color-border)] font-bold'
               : 'bg-[var(--color-paper-2)] text-[var(--color-ink-muted)] border-[var(--color-border)] hover:text-[var(--color-ink)]'
@@ -310,14 +310,14 @@
     <!-- Category Filter Chips & Desktop Sort Dropdown -->
     <div class="flex items-center justify-between gap-3">
       {#if categories.length > 0}
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none font-mono text-xs flex-1 min-w-0">
+        <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-none font-mono text-xs flex-1 min-w-0">
           <span class="text-[11px] text-[var(--color-ink-muted)] font-bold uppercase tracking-wider shrink-0 pr-1">
             {$currentLang === 'id' ? 'Kategori:' : 'Category:'}
           </span>
 
           <button
             on:click={() => (selectedFilterCategory = 'ALL')}
-            class={`px-3 py-1.5 rounded-md border transition-colors cursor-pointer whitespace-nowrap ${
+            class={`h-[30px] inline-flex items-center justify-center px-3 rounded-md border transition-colors cursor-pointer whitespace-nowrap leading-none ${
               selectedFilterCategory === 'ALL'
                 ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border-[var(--color-border)] font-bold'
                 : 'bg-[var(--color-paper-2)] text-[var(--color-ink-muted)] border-[var(--color-border)] hover:text-[var(--color-ink)]'
@@ -329,7 +329,7 @@
           {#each categories as cat}
             <button
               on:click={() => (selectedFilterCategory = cat.name)}
-              class={`px-3 py-1.5 rounded-md border transition-colors cursor-pointer whitespace-nowrap ${
+              class={`h-[30px] inline-flex items-center justify-center px-3 rounded-md border transition-colors cursor-pointer whitespace-nowrap leading-none ${
                 selectedFilterCategory === cat.name
                   ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border-[var(--color-border)] font-bold'
                   : 'bg-[var(--color-paper-2)] text-[var(--color-ink-muted)] border-[var(--color-border)] hover:text-[var(--color-ink)]'
