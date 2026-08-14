@@ -58,7 +58,7 @@ Use two documentation layers with different purposes:
   - `cloudflared`: Cloudflare Tunnel routing public requests to local Docker/services.
   - `bot-ditos`: Telegram bot companion project.
 - **Hermes Gateways (Windows Native Background Processes):**
-  - Managed via Windows Startup (`Hermes_Gateway.vbs`, `Hermes_Gateway_pockt-agent.vbs`, or `startup-terminal.bat`).
+  - Managed via Windows Startup (`startup-terminal.bat` running `hermes gateway start` & `hermes -p pockt-agent gateway start`).
   - Default profile gateway: `hermes gateway start`
   - Pockt Agent profile gateway: `hermes -p pockt-agent gateway start` (connects to `@pockt/mcp-server` & Telegram).
 - **Deployment Aliases:**
