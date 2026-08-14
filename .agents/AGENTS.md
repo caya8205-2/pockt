@@ -47,3 +47,22 @@ Use two documentation layers with different purposes:
 4. **Dependency and sidecar transparency**
    - Document binary and sidecar changes technically in `CHANGELOG.md`.
    - In the modal highlights, describe dependencies only to the extent that they affect users, including app size, speed, internet requirements, or platform limitations.
+
+## 5. Self-Hosting & Background Infrastructure (WSL 2)
+
+- **Host Environment:** Windows PC with WSL 2 Ubuntu (user: `caya`), self-hosted at `https://pockt.caya.web.id`.
+- **WSL Auto-Startup:** WSL is kept alive on Windows login via keepalive. WSL `systemd` runs `pm2-caya.service` on boot.
+- **PM2 Background Services in WSL:**
+  - `9router`: Local LLM router on port `20128` (`pm2 start "9router -n" --name 9router`).
+  - `hermes-dashboard`: Hermes web dashboard (`pm2 start "hermes dashboard --no-open --skip-build" --name hermes-dashboard`).
+  - `cloudflared`: Cloudflare Tunnel routing public requests to local Docker/services.
+  - `bot-ditos`: Telegram bot companion project.
+- **Hermes Gateways:**
+  - Wrapper available at `~/.local/bin/hermes`.
+  - Default profile gateway: `hermes gateway start`
+  - Pockt Agent profile gateway: `hermes -p pockt-agent gateway start` (connects to `@pockt/mcp-server` & Telegram).
+- **Deployment Aliases:**
+  - `pockt-deploy`: `docker compose up -d --build` (in WSL)
+  - `pockt-status`: `docker compose ps`
+  - `pockt-logs`: `docker compose logs -f --tail=50`
+
