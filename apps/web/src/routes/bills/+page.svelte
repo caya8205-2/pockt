@@ -4,9 +4,11 @@
   import { formatRupiah, formatDate, formatDateNumeric } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
   import { sortWithCustomOrder, saveCustomOrder } from '$lib/order';
+  import { sortItems, type SortOption } from '$lib/sort';
   import { CalendarCheck, Plus, Trash2, Edit3, CheckCircle2, RotateCcw, DollarSign, History, GripVertical } from 'lucide-svelte';
   import Modal from '$components/Modal.svelte';
   import AmountInput from '$components/AmountInput.svelte';
+  import SortDropdown from '$components/SortDropdown.svelte';
 
   $: t = translations[$currentLang];
   const STORAGE_KEY = 'pockt_order_bills';
@@ -25,6 +27,7 @@
   let bills: Bill[] = [];
   let isLoading = true;
   let draggedIndex: number | null = null;
+  let selectedSort: SortOption = 'due_date_asc';
 
   // Form modal (Create / Edit)
   let showModal = false;
@@ -67,7 +70,7 @@
     isLoading = true;
     try {
       const fetched = await fetchApi<Bill[]>('/bills');
-      bills = sortWithCustomOrder(fetched, STORAGE_KEY);
+      bills = fetched;
     } catch (err) {
       console.error(err);
     } finally {
@@ -85,12 +88,13 @@
   function handleDragOver(e: DragEvent, index: number) {
     e.preventDefault();
     if (draggedIndex === null || draggedIndex === index) return;
-    const updated = [...bills];
+    const updated = [...sortedBills];
     const [moved] = updated.splice(draggedIndex, 1);
     updated.splice(index, 0, moved);
-    bills = updated;
     draggedIndex = index;
-    saveCustomOrder(bills, STORAGE_KEY);
+    selectedSort = 'custom';
+    saveCustomOrder(updated, STORAGE_KEY);
+    bills = updated;
   }
 
   function handleDragEnd() {
@@ -171,6 +175,8 @@
     loadBills();
   }
 
+  $: sortedBills = sortItems(bills, selectedSort, STORAGE_KEY);
+
   onMount(() => {
     loadBills();
   });
@@ -188,7 +194,8 @@
       </div>
     </div>
 
-    <div class="flex items-center gap-2 w-full sm:w-auto shrink-0">
+    <div class="flex items-center gap-2 w-full sm:w-auto shrink-0 flex-wrap sm:flex-nowrap">
+      <SortDropdown bind:value={selectedSort} mode="bills" allowCustom={true} />
       <button
         on:click={resetMonthlyBills}
         class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-mono font-semibold text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] border border-[var(--color-border)] rounded-md transition-colors cursor-pointer"
@@ -209,13 +216,13 @@
 
   {#if isLoading}
     <div class="p-10 text-center font-mono text-xs text-[var(--color-ink-muted)]">{t.bills_loading}</div>
-  {:else if bills.length === 0}
+  {:else if sortedBills.length === 0}
     <div class="p-10 text-center border border-dashed border-[var(--color-border)] rounded-md space-y-1">
       <p class="text-[var(--color-ink)] font-semibold text-sm">{t.bills_empty}</p>
     </div>
   {:else}
     <div class="grid gap-2.5" role="list">
-      {#each bills as item, index (item.id)}
+      {#each sortedBills as item, index (item.id)}
         {@const remaining = item.remainingAmount ?? item.amount}
         {@const isPartiallyPaid = !item.isPaid && remaining < item.amount}
         <!-- svelte-ignore a11y_no_static_element_interactions -->

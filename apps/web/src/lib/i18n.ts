@@ -70,6 +70,18 @@ export const translations = {
     category_placeholder: 'Nama kategori baru...',
     add_btn: 'Tambah',
 
+    // Sorting & Filtering
+    sort_label: 'Urutan:',
+    sort_date_desc: 'Tanggal: Terbaru',
+    sort_date_asc: 'Tanggal: Terlama',
+    sort_name_asc: 'Nama: A → Z',
+    sort_name_desc: 'Nama: Z → A',
+    sort_amount_desc: 'Nominal: Tertinggi',
+    sort_amount_asc: 'Nominal: Terendah',
+    sort_due_date_asc: 'Jatuh Tempo: Awal Bulan',
+    sort_due_date_desc: 'Jatuh Tempo: Akhir Bulan',
+    sort_custom: 'Urutan Manual (Drag)',
+
     // Dashboard
     dash_hero: 'Uang Bebas Dipakai',
     dash_hero_desc: 'Sisa uang yang aman dibelanjakan hari ini setelah memperhitungkan saldo saat ini, tagihan berjalan, dan sisa pokok hutang.',
@@ -263,6 +275,18 @@ export const translations = {
     add_category_btn: 'Add Category',
     category_placeholder: 'New category name...',
     add_btn: 'Add',
+
+    // Sorting & Filtering
+    sort_label: 'Sort by:',
+    sort_date_desc: 'Date: Newest',
+    sort_date_asc: 'Date: Oldest',
+    sort_name_asc: 'Name: A → Z',
+    sort_name_desc: 'Name: Z → A',
+    sort_amount_desc: 'Amount: Highest',
+    sort_amount_asc: 'Amount: Lowest',
+    sort_due_date_asc: 'Due Date: Earliest',
+    sort_due_date_desc: 'Due Date: Latest',
+    sort_custom: 'Manual Order (Drag)',
 
     // Dashboard
     dash_hero: 'Free to Spend (Net Disposable Income)',

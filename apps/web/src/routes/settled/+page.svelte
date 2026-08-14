@@ -3,8 +3,10 @@
   import { fetchApi } from '$lib/api';
   import { formatRupiah, formatDate, formatDateNumeric } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
+  import { sortItems, type SortOption } from '$lib/sort';
   import { BadgeCheck, CheckCircle2, Trash2, RotateCcw, History, Receipt, HandCoins, CalendarCheck } from 'lucide-svelte';
   import Modal from '$components/Modal.svelte';
+  import SortDropdown from '$components/SortDropdown.svelte';
 
   $: t = translations[$currentLang];
 
@@ -50,6 +52,7 @@
 
   let data: SettledData | null = null;
   let isLoading = true;
+  let selectedSort: SortOption = 'date_desc';
 
   // History modal
   let showHistoryModal = false;
@@ -89,6 +92,9 @@
     loadData();
   }
 
+  $: sortedDebts = data ? sortItems(data.debts, selectedSort) : [];
+  $: sortedBills = data ? sortItems(data.billPayments, selectedSort) : [];
+
   onMount(() => {
     loadData();
   });
@@ -106,13 +112,16 @@
       </div>
     </div>
 
-    <button
-      on:click={loadData}
-      class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-paper-3)] hover:bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink)] font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 self-center leading-none text-center w-full sm:w-auto"
-    >
-      <RotateCcw class="w-4 h-4" />
-      <span>{t.common_refresh}</span>
-    </button>
+    <div class="flex items-center gap-2 w-full sm:w-auto">
+      <SortDropdown bind:value={selectedSort} mode="standard" allowCustom={false} />
+      <button
+        on:click={loadData}
+        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-paper-3)] hover:bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink)] font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 self-center leading-none text-center"
+      >
+        <RotateCcw class="w-4 h-4" />
+        <span>{t.common_refresh}</span>
+      </button>
+    </div>
   </div>
 
   {#if isLoading && !data}
@@ -154,13 +163,13 @@
         <h2 class="text-base font-bold text-[var(--color-ink)] font-mono">{t.settled_debts_section}</h2>
       </div>
 
-      {#if data.debts.length === 0}
+      {#if sortedDebts.length === 0}
         <div class="p-8 text-center border border-dashed border-[var(--color-border)] rounded-md space-y-1">
           <p class="text-[var(--color-ink-muted)] text-xs font-mono">{t.settled_debts_empty}</p>
         </div>
       {:else}
         <div class="grid gap-2.5" role="list">
-          {#each data.debts as item (item.id)}
+          {#each sortedDebts as item (item.id)}
             <div
               role="listitem"
               class="border rounded-md p-4 space-y-3 bg-[var(--color-paper-2)]/40 border-[var(--color-border)]"
@@ -235,13 +244,13 @@
         <h2 class="text-base font-bold text-[var(--color-ink)] font-mono">{t.settled_bills_section}</h2>
       </div>
 
-      {#if data.billPayments.length === 0}
+      {#if sortedBills.length === 0}
         <div class="p-8 text-center border border-dashed border-[var(--color-border)] rounded-md space-y-1">
           <p class="text-[var(--color-ink-muted)] text-xs font-mono">{t.settled_bills_empty}</p>
         </div>
       {:else}
         <div class="space-y-2">
-          {#each data.billPayments as bp}
+          {#each sortedBills as bp}
             <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-3 flex items-center justify-between gap-4">
               <div class="flex items-center gap-3 min-w-0">
                 <div class="hidden sm:block p-2 bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded shrink-0">

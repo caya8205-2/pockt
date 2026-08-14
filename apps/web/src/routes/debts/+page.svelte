@@ -4,9 +4,11 @@
   import { formatRupiah, formatDate, formatDateNumeric } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
   import { sortWithCustomOrder, saveCustomOrder } from '$lib/order';
+  import { sortItems, type SortOption } from '$lib/sort';
   import { HandCoins, Plus, Trash2, Edit3, DollarSign, History, GripVertical, BadgeCheck } from 'lucide-svelte';
   import Modal from '$components/Modal.svelte';
   import AmountInput from '$components/AmountInput.svelte';
+  import SortDropdown from '$components/SortDropdown.svelte';
 
   $: t = translations[$currentLang];
   const STORAGE_KEY = 'pockt_order_debts';
@@ -31,6 +33,7 @@
   let debts: Debt[] = [];
   let isLoading = true;
   let draggedIndex: number | null = null;
+  let selectedSort: SortOption = 'date_desc';
 
   // Form modal
   let showModal = false;
@@ -56,7 +59,7 @@
     isLoading = true;
     try {
       const fetched = await fetchApi<Debt[]>('/debts');
-      debts = sortWithCustomOrder(fetched, STORAGE_KEY);
+      debts = fetched;
     } catch (err) {
       console.error(err);
     } finally {
@@ -74,12 +77,13 @@
   function handleDragOver(e: DragEvent, index: number) {
     e.preventDefault();
     if (draggedIndex === null || draggedIndex === index) return;
-    const updated = [...debts];
+    const updated = [...sortedDebts];
     const [moved] = updated.splice(draggedIndex, 1);
     updated.splice(index, 0, moved);
-    debts = updated;
     draggedIndex = index;
-    saveCustomOrder(debts, STORAGE_KEY);
+    selectedSort = 'custom';
+    saveCustomOrder(updated, STORAGE_KEY);
+    debts = updated;
   }
 
   function handleDragEnd() {
@@ -159,6 +163,8 @@
     loadDebts();
   }
 
+  $: sortedDebts = sortItems(debts, selectedSort, STORAGE_KEY);
+
   onMount(() => {
     loadDebts();
   });
@@ -176,7 +182,9 @@
       </div>
     </div>
 
-    <div class="flex items-center gap-2 w-full sm:w-auto shrink-0">
+    <div class="flex items-center gap-2 w-full sm:w-auto shrink-0 flex-wrap sm:flex-nowrap">
+      <SortDropdown bind:value={selectedSort} mode="standard" allowCustom={true} />
+
       <a
         href="/settled"
         class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2.5 bg-[var(--color-paper-3)] hover:bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink)] font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs self-center leading-none text-center"
@@ -187,7 +195,7 @@
 
       <button
         on:click={openCreateModal}
-        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 self-center leading-none text-center w-full sm:w-auto"
+        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 self-center leading-none text-center"
       >
         <Plus class="w-4 h-4 stroke-[3] shrink-0" />
         <span class="leading-none">{t.add_debt}</span>
@@ -197,13 +205,13 @@
 
   {#if isLoading}
     <div class="p-10 text-center font-mono text-xs text-[var(--color-ink-muted)]">{t.debts_loading}</div>
-  {:else if debts.length === 0}
+  {:else if sortedDebts.length === 0}
     <div class="p-10 text-center border border-dashed border-[var(--color-border)] rounded-md space-y-1">
       <p class="text-[var(--color-ink)] font-semibold text-sm">{t.no_debts}</p>
     </div>
   {:else}
     <div class="grid gap-2.5" role="list">
-      {#each debts as item, index (item.id)}
+      {#each sortedDebts as item, index (item.id)}
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
           role="listitem"

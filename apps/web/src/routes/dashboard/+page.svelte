@@ -3,7 +3,9 @@
   import { fetchApi } from '$lib/api';
   import { formatRupiah, formatDate } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
+  import { sortItems, type SortOption } from '$lib/sort';
   import { Wallet, Receipt, CalendarCheck, HandCoins, ArrowUpRight, ArrowDownLeft, Clock, RefreshCw } from 'lucide-svelte';
+  import SortDropdown from '$components/SortDropdown.svelte';
 
   $: t = translations[$currentLang];
 
@@ -32,6 +34,7 @@
   let dashboard: DashboardData | null = null;
   let timeline: TimelineItem[] = [];
   let isLoading = true;
+  let selectedSort: SortOption = 'date_desc';
 
   async function loadData() {
     isLoading = true;
@@ -48,6 +51,8 @@
       isLoading = false;
     }
   }
+
+  $: sortedTimeline = sortItems(timeline, selectedSort);
 
   onMount(() => {
     loadData();
@@ -161,31 +166,34 @@
 
   <!-- Timeline Feed Section -->
   <section class="space-y-3">
-    <div class="flex items-center justify-between border-b border-[var(--color-border)] pb-2.5">
+    <div class="flex items-center justify-between border-b border-[var(--color-border)] pb-2.5 flex-wrap gap-2">
       <div class="flex items-center gap-2">
         <Clock class="w-4 h-4 text-[var(--color-accent)]" />
         <h2 class="text-base font-bold text-[var(--color-ink)] font-mono">{t.timeline_feed}</h2>
       </div>
 
-      <button
-        on:click={loadData}
-        class="flex items-center gap-1.5 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-accent)] transition-colors cursor-pointer"
-      >
-        <RefreshCw class="w-3.5 h-3.5" />
-        <span>{t.common_refresh}</span>
-      </button>
+      <div class="flex items-center gap-2">
+        <SortDropdown bind:value={selectedSort} mode="standard" allowCustom={false} />
+        <button
+          on:click={loadData}
+          class="flex items-center gap-1.5 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-accent)] transition-colors cursor-pointer px-2 py-1.5 rounded-md hover:bg-[var(--color-paper-2)] border border-transparent hover:border-[var(--color-border)]"
+        >
+          <RefreshCw class="w-3.5 h-3.5" />
+          <span>{t.common_refresh}</span>
+        </button>
+      </div>
     </div>
 
     {#if isLoading}
       <div class="p-8 text-center text-[var(--color-ink-muted)] text-xs font-mono">{t.dash_loading_timeline}</div>
-    {:else if timeline.length === 0}
+    {:else if sortedTimeline.length === 0}
       <div class="p-10 text-center border border-dashed border-[var(--color-border)] rounded-md space-y-1">
         <p class="text-[var(--color-ink)] font-semibold text-sm">{t.dash_no_transactions}</p>
         <p class="text-xs text-[var(--color-ink-muted)]">{t.dash_no_transactions_hint}</p>
       </div>
     {:else}
       <div class="space-y-2">
-        {#each timeline as item}
+        {#each sortedTimeline as item}
           <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] hover:border-slate-400 rounded-md p-3 flex items-center justify-between gap-4 transition-colors">
             <div class="flex items-center gap-3 min-w-0">
               {#if item.type === 'income'}

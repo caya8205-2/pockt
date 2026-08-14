@@ -4,9 +4,11 @@
   import { formatRupiah, formatDate, formatDateNumeric } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
   import { sortWithCustomOrder, saveCustomOrder } from '$lib/order';
+  import { sortItems, type SortOption } from '$lib/sort';
   import { Wallet, Plus, ArrowDownLeft, Trash2, Edit3, GripVertical } from 'lucide-svelte';
   import Modal from '$components/Modal.svelte';
   import AmountInput from '$components/AmountInput.svelte';
+  import SortDropdown from '$components/SortDropdown.svelte';
 
   $: t = translations[$currentLang];
   const STORAGE_KEY = 'pockt_order_incomes';
@@ -22,6 +24,7 @@
   let incomes: Income[] = [];
   let isLoading = true;
   let draggedIndex: number | null = null;
+  let selectedSort: SortOption = 'date_desc';
 
   // Form modal
   let showModal = false;
@@ -35,7 +38,7 @@
     isLoading = true;
     try {
       const fetched = await fetchApi<Income[]>('/incomes');
-      incomes = sortWithCustomOrder(fetched, STORAGE_KEY);
+      incomes = fetched;
     } catch (err) {
       console.error(err);
     } finally {
@@ -53,12 +56,13 @@
   function handleDragOver(e: DragEvent, index: number) {
     e.preventDefault();
     if (draggedIndex === null || draggedIndex === index) return;
-    const updated = [...incomes];
+    const updated = [...sortedIncomes];
     const [moved] = updated.splice(draggedIndex, 1);
     updated.splice(index, 0, moved);
-    incomes = updated;
     draggedIndex = index;
-    saveCustomOrder(incomes, STORAGE_KEY);
+    selectedSort = 'custom';
+    saveCustomOrder(updated, STORAGE_KEY);
+    incomes = updated;
   }
 
   function handleDragEnd() {
@@ -108,6 +112,9 @@
     loadIncomes();
   }
 
+  $: sortedIncomes = sortItems(incomes, selectedSort, STORAGE_KEY);
+  $: totalIncomeAmount = sortedIncomes.reduce((sum, item) => sum + item.amount, 0);
+
   onMount(() => {
     loadIncomes();
   });
@@ -125,24 +132,27 @@
       </div>
     </div>
 
-    <button
-      on:click={openCreateModal}
-      class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 self-center leading-none text-center w-full sm:w-auto"
-    >
-      <Plus class="w-4 h-4 stroke-[3] shrink-0" />
-      <span class="leading-none">{t.add_income}</span>
-    </button>
+    <div class="flex items-center gap-2.5 w-full sm:w-auto">
+      <SortDropdown bind:value={selectedSort} mode="standard" allowCustom={true} />
+      <button
+        on:click={openCreateModal}
+        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 self-center leading-none text-center flex-1 sm:flex-initial"
+      >
+        <Plus class="w-4 h-4 stroke-[3] shrink-0" />
+        <span class="leading-none">{t.add_income}</span>
+      </button>
+    </div>
   </div>
 
   {#if isLoading}
     <div class="p-10 text-center font-mono text-xs text-[var(--color-ink-muted)]">{t.incomes_loading}</div>
-  {:else if incomes.length === 0}
+  {:else if sortedIncomes.length === 0}
     <div class="p-10 text-center border border-dashed border-[var(--color-border)] rounded-md space-y-1">
       <p class="text-[var(--color-ink)] font-semibold text-sm">{t.no_incomes}</p>
     </div>
   {:else}
     <div class="grid gap-2.5" role="list">
-      {#each incomes as item, index (item.id)}
+      {#each sortedIncomes as item, index (item.id)}
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
           role="listitem"

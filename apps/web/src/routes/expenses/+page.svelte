@@ -4,9 +4,11 @@
   import { formatRupiah, formatDate, formatDateNumeric } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
   import { sortWithCustomOrder, saveCustomOrder } from '$lib/order';
+  import { sortItems, type SortOption } from '$lib/sort';
   import { Receipt, Plus, ArrowUpRight, Trash2, Edit3, Tag, GripVertical, Calendar } from 'lucide-svelte';
   import Modal from '$components/Modal.svelte';
   import AmountInput from '$components/AmountInput.svelte';
+  import SortDropdown from '$components/SortDropdown.svelte';
 
   $: t = translations[$currentLang];
   const STORAGE_KEY = 'pockt_order_expenses';
@@ -36,6 +38,7 @@
   // Filter states
   let selectedFilterCategory = 'ALL';
   let selectedPeriod: PeriodFilter = 'MONTH';
+  let selectedSort: SortOption = 'date_desc';
 
   // Form modal
   let showModal = false;
@@ -76,7 +79,7 @@
         fetchApi<Expense[]>('/expenses'),
         fetchApi<Category[]>('/categories'),
       ]);
-      expenses = sortWithCustomOrder(expRes, STORAGE_KEY);
+      expenses = expRes;
       categories = catRes;
     } catch (err) {
       console.error(err);
@@ -95,12 +98,13 @@
   function handleDragOver(e: DragEvent, index: number) {
     e.preventDefault();
     if (draggedIndex === null || draggedIndex === index) return;
-    const updated = [...expenses];
+    const updated = [...filteredExpenses];
     const [moved] = updated.splice(draggedIndex, 1);
     updated.splice(index, 0, moved);
-    expenses = updated;
     draggedIndex = index;
-    saveCustomOrder(expenses, STORAGE_KEY);
+    selectedSort = 'custom';
+    saveCustomOrder(updated, STORAGE_KEY);
+    expenses = updated;
   }
 
   function handleDragEnd() {
@@ -215,7 +219,9 @@
     ? expenses
     : expenses.filter((e) => e.category === selectedFilterCategory);
 
-  $: filteredExpenses = filterByPeriod(categoryFiltered, selectedPeriod);
+  $: periodFiltered = filterByPeriod(categoryFiltered, selectedPeriod);
+
+  $: filteredExpenses = sortItems(periodFiltered, selectedSort, STORAGE_KEY);
 
   $: totalFilteredAmount = filteredExpenses.reduce((sum, item) => sum + item.amount, 0);
 
@@ -268,8 +274,11 @@
       </div>
     </div>
 
-    <div class="text-xs text-[var(--color-ink-muted)] font-mono">
-      <span>{filteredExpenses.length} {$currentLang === 'id' ? 'transaksi ditemukan' : 'transactions found'}</span>
+    <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+      <div class="text-xs text-[var(--color-ink-muted)] font-mono">
+        <span>{filteredExpenses.length} {$currentLang === 'id' ? 'transaksi ditemukan' : 'transactions found'}</span>
+      </div>
+      <SortDropdown bind:value={selectedSort} mode="standard" allowCustom={true} />
     </div>
   </div>
 
