@@ -173,10 +173,10 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <SortDropdown bind:value={selectedSort} mode="standard" allowCustom={false} />
+        <SortDropdown bind:value={selectedSort} mode="standard" size="sm" allowCustom={false} />
         <button
           on:click={loadData}
-          class="flex items-center gap-1.5 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-accent)] transition-colors cursor-pointer px-2 py-1.5 rounded-md hover:bg-[var(--color-paper-2)] border border-transparent hover:border-[var(--color-border)]"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] hover:bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md transition-colors cursor-pointer shadow-xs leading-none"
         >
           <RefreshCw class="w-3.5 h-3.5" />
           <span>{t.common_refresh}</span>

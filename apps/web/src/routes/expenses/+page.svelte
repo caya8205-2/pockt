@@ -279,7 +279,7 @@
         <span>{filteredExpenses.length} {$currentLang === 'id' ? 'transaksi ditemukan' : 'transactions found'}</span>
       </div>
       <div class="sm:hidden">
-        <SortDropdown bind:value={selectedSort} mode="standard" allowCustom={true} />
+        <SortDropdown bind:value={selectedSort} mode="standard" size="sm" allowCustom={true} />
       </div>
     </div>
   </div>
@@ -342,7 +342,7 @@
       {/if}
 
       <div class="hidden sm:block shrink-0">
-        <SortDropdown bind:value={selectedSort} mode="standard" allowCustom={true} />
+        <SortDropdown bind:value={selectedSort} mode="standard" size="sm" allowCustom={true} />
       </div>
     </div>
   </div>
