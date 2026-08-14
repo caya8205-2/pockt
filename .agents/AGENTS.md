@@ -48,17 +48,17 @@ Use two documentation layers with different purposes:
    - Document binary and sidecar changes technically in `CHANGELOG.md`.
    - In the modal highlights, describe dependencies only to the extent that they affect users, including app size, speed, internet requirements, or platform limitations.
 
-## 5. Self-Hosting & Background Infrastructure (WSL 2)
+## 5. Self-Hosting & Background Infrastructure (WSL 2 + Windows)
 
 - **Host Environment:** Windows PC with WSL 2 Ubuntu (user: `caya`), self-hosted at `https://pockt.caya.web.id`.
-- **WSL Auto-Startup:** WSL is kept alive on Windows login via keepalive. WSL `systemd` runs `pm2-caya.service` on boot.
+- **WSL Auto-Startup:** WSL is kept alive on Windows login via `keep-wsl.vbs` in Startup. WSL `systemd` runs `pm2-caya.service` on boot.
 - **PM2 Background Services in WSL:**
-  - `9router`: Local LLM router on port `20128` (`pm2 start "9router -n" --name 9router`).
-  - `hermes-dashboard`: Hermes web dashboard (`pm2 start "hermes dashboard --no-open --skip-build" --name hermes-dashboard`).
+  - `9router`: Local LLM router on port `20128` (runs via `script -qc 9router`, symlinked to `C:\Users\Caya\AppData\Roaming\9router`).
+  - `hermes-dashboard`: Hermes web dashboard (`hermes dashboard --no-open --skip-build` on port `9119`).
   - `cloudflared`: Cloudflare Tunnel routing public requests to local Docker/services.
   - `bot-ditos`: Telegram bot companion project.
-- **Hermes Gateways:**
-  - Wrapper available at `~/.local/bin/hermes`.
+- **Hermes Gateways (Windows Native Background Processes):**
+  - Managed via Windows Startup (`Hermes_Gateway.vbs`, `Hermes_Gateway_pockt-agent.vbs`, or `startup-terminal.bat`).
   - Default profile gateway: `hermes gateway start`
   - Pockt Agent profile gateway: `hermes -p pockt-agent gateway start` (connects to `@pockt/mcp-server` & Telegram).
 - **Deployment Aliases:**
