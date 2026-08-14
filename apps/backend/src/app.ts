@@ -4,7 +4,7 @@ import cookie from '@fastify/cookie';
 import { initDb, db } from './db/index.js';
 import { users, sessions } from './db/schema.js';
 import { eq } from 'drizzle-orm';
-import { authRoutes } from './routes/auth.js';
+import { authRoutes, SESSION_MAX_AGE_SECONDS } from './routes/auth.js';
 import { dashboardRoutes } from './routes/dashboard.js';
 import { incomeRoutes } from './routes/incomes.js';
 import { expenseRoutes } from './routes/expenses.js';
@@ -12,6 +12,7 @@ import { billRoutes } from './routes/bills.js';
 import { debtRoutes } from './routes/debts.js';
 import { timelineRoutes } from './routes/timeline.js';
 import { paydayRoutes } from './routes/payday.js';
+import { settledRoutes } from './routes/settled.js';
 import { backupRoutes } from './routes/backup.js';
 
 const KNOWN_WEAK_SECRETS = ['pockt-secret-key-321', 'pockt-prod-secret-change-this-987'];
@@ -27,12 +28,32 @@ export async function buildApp() {
 
   const app = Fastify({ logger: false });
 
+  // Handle empty or raw JSON body gracefully without throwing FST_ERR_CTP_EMPTY_JSON_BODY
+  app.addContentTypeParser('application/json', { parseAs: 'string' }, (_req, body: string, done) => {
+    try {
+      const json = body && body.trim().length > 0 ? JSON.parse(body) : {};
+      done(null, json);
+    } catch (err: any) {
+      done(err, undefined);
+    }
+  });
+
+  // Custom Error Handler to format errors cleanly
+  app.setErrorHandler((error: any, request, reply) => {
+    const statusCode = error?.statusCode || 500;
+    const message = error?.message || 'Terjadi kesalahan pada server';
+    return reply.status(statusCode).send({
+      error: message,
+      statusCode,
+    });
+  });
+
   // Initialize SQLite tables
   initDb();
 
   // Register plugins
   await app.register(cors, {
-    origin: false,
+    origin: true,
     credentials: true,
   });
 
@@ -71,6 +92,24 @@ export async function buildApp() {
       return reply.status(401).send({ authenticated: false, needsSetup: false, error: 'Authentication required' });
     }
 
+    // Sliding window: renew session if past half-life
+    const now = Date.now();
+    const sessionExpiresAt = new Date(session[0].expiresAt).getTime();
+    const halfLife = (SESSION_MAX_AGE_SECONDS * 1000) / 2;
+    if (sessionExpiresAt - now < halfLife) {
+      const newExpiry = new Date(now + SESSION_MAX_AGE_SECONDS * 1000).toISOString();
+      await db.update(sessions)
+        .set({ expiresAt: newExpiry })
+        .where(eq(sessions.id, token));
+      reply.setCookie('pockt_session', token, {
+        path: '/',
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.COOKIE_SECURE === 'true',
+        maxAge: SESSION_MAX_AGE_SECONDS,
+      });
+    }
+
     (request as any).userId = user[0].id;
   });
 
@@ -83,6 +122,7 @@ export async function buildApp() {
   await app.register(debtRoutes);
   await app.register(timelineRoutes);
   await app.register(paydayRoutes);
+  await app.register(settledRoutes);
   await app.register(backupRoutes);
 
   app.get('/api/health', async () => {

@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { db } from '../db/index.js';
-import { incomes, expenses, bills, debts, debtPayments, users } from '../db/schema.js';
+import { incomes, expenses, bills, billPayments, debts, debtPayments, users } from '../db/schema.js';
 import { desc, eq, or, isNull } from 'drizzle-orm';
 
 function getUserId(request: any): string {
@@ -100,6 +100,15 @@ export async function paydayRoutes(fastify: FastifyInstance) {
     const unpaidBills = allBills.filter((b) => !b.isPaid);
     const billsTotal = unpaidBills.reduce((acc, curr) => acc + (curr.remainingAmount ?? curr.amount), 0);
 
+    // Bill payments made THIS payday cycle
+    const allBillPayments = await db
+      .select()
+      .from(billPayments)
+      .where(or(eq(billPayments.userId, userId), isNull(billPayments.userId)));
+
+    const cycleBillPayments = allBillPayments.filter((bp) => bp.date >= cycleStart && bp.date <= cycleEnd);
+    const billPaidThisCycle = cycleBillPayments.reduce((acc, curr) => acc + curr.amount, 0);
+
     // Debt repayments made THIS payday cycle
     const allDebtPayments = await db
       .select()
@@ -132,7 +141,7 @@ export async function paydayRoutes(fastify: FastifyInstance) {
     const cycleExpenses = allExpenses.filter((e) => e.date >= cycleStart && e.date <= cycleEnd);
     const spentTotal = cycleExpenses.reduce((acc, curr) => acc + curr.amount, 0);
 
-    const freeToSpend = totalSalaryReceived - billsTotal - debtPaidThisMonth - debtDueThisMonth - spentTotal;
+    const freeToSpend = totalSalaryReceived - billsTotal - billPaidThisCycle - debtPaidThisMonth - debtDueThisMonth - spentTotal;
 
     return {
       paydayDate,
@@ -140,6 +149,8 @@ export async function paydayRoutes(fastify: FastifyInstance) {
       cycleEnd,
       salaryReceived: totalSalaryReceived,
       billsTotal,
+      billPaidThisMonth: billPaidThisCycle,
+      billPaidCount: cycleBillPayments.length,
       debtPaidThisMonth,
       debtDueThisMonth,
       debtPaidCount: cycleDebtPayments.length,

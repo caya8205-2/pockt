@@ -10,7 +10,9 @@
     "test": "pnpm --filter @pockt/backend test",
     "test:web": "pnpm --filter @pockt/web test:e2e",
     "test:all": "pnpm --filter @pockt/backend test && pnpm --filter @pockt/web test:e2e",
-    "user": "pnpm --filter @pockt/backend user"
+    "user": "pnpm --filter @pockt/backend user",
+    "tauri:android": "pnpm --filter @pockt/web tauri android dev",
+    "tauri:android:build": "pnpm --filter @pockt/web tauri android build"
   },
   "devDependencies": {
     "turbo": "^2.4.0"

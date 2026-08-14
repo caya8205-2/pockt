@@ -28,7 +28,7 @@ export async function debtRoutes(fastify: FastifyInstance) {
     const list = await db
       .select()
       .from(debts)
-      .where(or(eq(debts.userId, userId), isNull(debts.userId)))
+      .where(and(or(eq(debts.userId, userId), isNull(debts.userId)), eq(debts.isPaid, false)))
       .orderBy(desc(debts.createdAt));
     return list;
   });
@@ -139,6 +139,33 @@ export async function debtRoutes(fastify: FastifyInstance) {
       .where(and(eq(debtPayments.debtId, id), or(eq(debtPayments.userId, userId), isNull(debtPayments.userId))))
       .orderBy(desc(debtPayments.date));
     return payments;
+  });
+
+  fastify.post('/api/debts/:id/restore', async (request, reply) => {
+    const userId = getUserId(request);
+    const { id } = request.params as { id: string };
+
+    const existing = await db
+      .select()
+      .from(debts)
+      .where(and(eq(debts.id, id), or(eq(debts.userId, userId), isNull(debts.userId))))
+      .limit(1);
+
+    if (existing.length === 0) {
+      return reply.status(404).send({ error: 'Debt record not found' });
+    }
+
+    const debt = existing[0];
+
+    await db
+      .update(debts)
+      .set({
+        isPaid: false,
+        remainingAmount: debt.totalAmount,
+      })
+      .where(eq(debts.id, id));
+
+    return { success: true, isPaid: false, remainingAmount: debt.totalAmount };
   });
 
   fastify.delete('/api/debts/:id', async (request, reply) => {

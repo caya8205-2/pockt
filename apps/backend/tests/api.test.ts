@@ -359,6 +359,112 @@ describe('Pockt Full Backend API Suite', () => {
     expect(deleteRes.statusCode).toBe(200);
   });
 
+  it('Settled module - paid debts move out of /debts into /settled & restore works', async () => {
+    // 1. Create debt
+    const createRes = await app.inject({
+      method: 'POST',
+      url: '/api/debts',
+      cookies,
+      payload: {
+        person: 'Lunas Test Dummy',
+        totalAmount: 500000,
+        dueDate: '2026-12-31',
+      },
+    });
+    expect(createRes.statusCode).toBe(201);
+    const debt = JSON.parse(createRes.body);
+
+    // 2. Pay it off in full
+    const payRes = await app.inject({
+      method: 'POST',
+      url: `/api/debts/${debt.id}/pay`,
+      cookies,
+      payload: { amount: 500000, date: '2026-08-08', notes: 'Pelunasan' },
+    });
+    expect(payRes.statusCode).toBe(200);
+    expect(JSON.parse(payRes.body).isPaid).toBe(true);
+
+    // 3. It should no longer appear in /api/debts
+    const getRes = await app.inject({ method: 'GET', url: '/api/debts', cookies });
+    const activeDebts = JSON.parse(getRes.body);
+    expect(activeDebts.find((d: any) => d.id === debt.id)).toBeUndefined();
+
+    // 4. It should appear in /api/settled with totals
+    const settledRes = await app.inject({ method: 'GET', url: '/api/settled', cookies });
+    expect(settledRes.statusCode).toBe(200);
+    const settled = JSON.parse(settledRes.body);
+    const settledDebt = settled.debts.find((d: any) => d.id === debt.id);
+    expect(settledDebt).toBeDefined();
+    expect(settledDebt.totalPaid).toBe(500000);
+    expect(settledDebt.settledAt).toBe('2026-08-08');
+    expect(settled.totals.settledDebtCount).toBeGreaterThanOrEqual(1);
+    expect(Array.isArray(settled.billPayments)).toBe(true);
+
+    // 5. Restore: it should come back to /api/debts
+    const restoreRes = await app.inject({
+      method: 'POST',
+      url: `/api/debts/${debt.id}/restore`,
+      cookies,
+    });
+    expect(restoreRes.statusCode).toBe(200);
+    const getRes2 = await app.inject({ method: 'GET', url: '/api/debts', cookies });
+    const activeDebts2 = JSON.parse(getRes2.body);
+    const restored = activeDebts2.find((d: any) => d.id === debt.id);
+    expect(restored).toBeDefined();
+    expect(restored.isPaid).toBe(false);
+    expect(restored.remainingAmount).toBe(500000);
+
+    // 6. Delete it to keep the suite clean
+    const deleteRes = await app.inject({ method: 'DELETE', url: `/api/debts/${debt.id}`, cookies });
+    expect(deleteRes.statusCode).toBe(200);
+  });
+
+  it('Payday - bill payments this cycle are subtracted from freeToSpend', async () => {
+    // Snapshot current freeToSpend before creating any bill
+    const beforeRes = await app.inject({ method: 'GET', url: '/api/payday', cookies });
+    const before = JSON.parse(beforeRes.body);
+    expect(typeof before.billPaidThisMonth).toBe('number');
+
+    // 1. Create bill
+    const today = new Date().toISOString().split('T')[0];
+    const createRes = await app.inject({
+      method: 'POST',
+      url: '/api/bills',
+      cookies,
+      payload: { name: 'Payday Test Bill', amount: 250000, dueDate: 20 },
+    });
+    expect(createRes.statusCode).toBe(201);
+    const bill = JSON.parse(createRes.body);
+
+    // Unpaid bill -> remaining added to billsTotal, billPaidThisMonth unchanged
+    const midRes = await app.inject({ method: 'GET', url: '/api/payday', cookies });
+    const mid = JSON.parse(midRes.body);
+    expect(mid.billsTotal).toBe(before.billsTotal + 250000);
+    expect(mid.billPaidThisMonth).toBe(before.billPaidThisMonth);
+    expect(mid.freeToSpend).toBe(before.freeToSpend - 250000);
+
+    // 2. Pay it in full this cycle
+    const payRes = await app.inject({
+      method: 'POST',
+      url: `/api/bills/${bill.id}/pay`,
+      cookies,
+      payload: { amount: 250000, date: today },
+    });
+    expect(payRes.statusCode).toBe(200);
+
+    // Paid bill -> billsTotal back to snapshot, billPaidThisMonth increased by 250000,
+    // freeToSpend unchanged (payment shifts from "remaining" to "paid this cycle")
+    const afterRes = await app.inject({ method: 'GET', url: '/api/payday', cookies });
+    const after = JSON.parse(afterRes.body);
+    expect(after.billsTotal).toBe(before.billsTotal);
+    expect(after.billPaidThisMonth).toBe(before.billPaidThisMonth + 250000);
+    expect(after.freeToSpend).toBe(mid.freeToSpend);
+
+    // 3. Cleanup
+    const deleteRes = await app.inject({ method: 'DELETE', url: `/api/bills/${bill.id}`, cookies });
+    expect(deleteRes.statusCode).toBe(200);
+  });
+
   it('GET /api/export/csv - exports database tables to CSV format', async () => {
     const res = await app.inject({ method: 'GET', url: '/api/export/csv', cookies });
     expect(res.statusCode).toBe(200);

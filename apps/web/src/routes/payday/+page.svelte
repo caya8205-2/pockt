@@ -14,6 +14,8 @@
     cycleEnd: string;
     salaryReceived: number;
     billsTotal: number;
+    billPaidThisMonth: number;
+    billPaidCount: number;
     debtPaidThisMonth: number;
     debtDueThisMonth: number;
     debtPaidCount: number;
@@ -136,6 +138,19 @@
             </div>
             <div class="text-sm sm:text-base font-bold text-[var(--color-ink)] shrink-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-[var(--color-border)] text-right">
               - {formatRupiah(data.billsTotal)}
+            </div>
+          </div>
+
+          <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+            <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+              <CalendarCheck class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5 sm:mt-0" />
+              <div class="min-w-0 flex-1">
+                <div class="text-sm font-bold text-[var(--color-ink)]">{t.payday_bills_paid_this_month}</div>
+                <div class="text-xs text-[var(--color-ink-muted)]">{data.billPaidCount} {t.payday_bill_payments_count}</div>
+              </div>
+            </div>
+            <div class="text-sm sm:text-base font-bold text-[var(--color-ink)] shrink-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-[var(--color-border)] text-right">
+              - {formatRupiah(data.billPaidThisMonth)}
             </div>
           </div>
 

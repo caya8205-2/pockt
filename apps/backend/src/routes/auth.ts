@@ -8,7 +8,7 @@ import { eq } from 'drizzle-orm';
 import { cryptoNative } from '../utils/id.js';
 import { authKey, isRateLimited, recordAttempt, clearAttempts, retryAfterSec } from '../utils/rate-limit.js';
 
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
 
 const loginSchema = z.object({
   username: z.string().min(1),
@@ -32,7 +32,7 @@ async function issueSession(reply: any, userId: string): Promise<string> {
     path: '/',
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.COOKIE_SECURE === 'true',
     maxAge: SESSION_MAX_AGE_SECONDS,
   });
 
@@ -88,7 +88,11 @@ export async function authRoutes(fastify: FastifyInstance) {
       return reply.status(403).send({ error: 'Setup sudah selesai' });
     }
 
-    const { username, password } = loginSchema.parse(request.body);
+    const bodyResult = loginSchema.safeParse(request.body);
+    if (!bodyResult.success) {
+      return reply.status(400).send({ error: 'Username dan password wajib diisi' });
+    }
+    const { username, password } = bodyResult.data;
 
     const duplicate = await db.select().from(users).where(eq(users.username, username)).limit(1);
     if (duplicate.length > 0) {
@@ -124,7 +128,11 @@ export async function authRoutes(fastify: FastifyInstance) {
     }
     recordAttempt(key);
 
-    const { username, password } = loginSchema.parse(request.body);
+    const bodyResult = loginSchema.safeParse(request.body);
+    if (!bodyResult.success) {
+      return reply.status(400).send({ error: 'Username dan password wajib diisi' });
+    }
+    const { username, password } = bodyResult.data;
     const userList = await db.select().from(users).where(eq(users.username, username)).limit(1);
 
     if (userList.length === 0) {

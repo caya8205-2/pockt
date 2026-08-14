@@ -45,6 +45,7 @@ Last Updated: 2026-08-08 (Release v0.2.1 - Custom Payday Cycle Window & Salary D
 - **Configurable Environment Variables & Proxy Targets**: Updated `vite.config.ts` and `+server.ts` to respect `VITE_BACKEND_URL` / `API_INTERNAL_URL`. Created `.env.example` templates across root, backend, and web apps to clearly isolate dev (`pockt.dev.db`) and prod (`pockt.prod.db`) environments.
 - **Payday Full-Width Consistency & Dashboard Skeleton Loader**: Removed `max-w-4xl mx-auto` from `/payday` so its cards stretch full width consistently with all other tabs. Added an initial loading skeleton to `/dashboard` Hero & Stat Cards, preventing section "Timeline Alur Keuangan" from jumping to the top of the page during data load.
 - **Animated Auth Transitions & Theme-Matching Loading Screens (`authTransition.ts`)**: Built a smooth fullscreen transition system for Login, Logout, and Registration. Features an animated Pockt logo gliding down from the top, pulsing softly in the center with status messages, and sliding downward off-screen to gracefully reveal target pages.
+- **Tauri v2 Android Mobile Target Setup**: Integrated `@tauri-apps/cli` and `@tauri-apps/api` v2 into `apps/web`. Installed Rust Android targets (`aarch64-linux-android`, `x86_64-linux-android`, etc.) and initialized Android Studio project structure in `apps/web/src-tauri/gen/android` with `com.pockt.app` identifier. Added root helper scripts `pnpm tauri:android` and `pnpm tauri:android:build`.
 
 ---
 

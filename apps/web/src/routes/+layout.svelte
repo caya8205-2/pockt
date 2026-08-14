@@ -11,6 +11,7 @@
     Receipt,
     CalendarCheck,
     HandCoins,
+    BadgeCheck,
     Plus,
     Download,
     ChevronLeft,
@@ -115,6 +116,7 @@
     { href: '/expenses', label: t.nav_expenses, icon: Receipt },
     { href: '/bills', label: t.nav_bills, icon: CalendarCheck },
     { href: '/debts', label: t.nav_debts, icon: HandCoins },
+    { href: '/settled', label: t.nav_settled, icon: BadgeCheck },
   ];
 
   function toggleSidebar() {

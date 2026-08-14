@@ -4,7 +4,7 @@
   import { formatRupiah, formatDate, formatDateNumeric } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
   import { sortWithCustomOrder, saveCustomOrder } from '$lib/order';
-  import { HandCoins, Plus, Trash2, Edit3, DollarSign, History, GripVertical } from 'lucide-svelte';
+  import { HandCoins, Plus, Trash2, Edit3, DollarSign, History, GripVertical, BadgeCheck } from 'lucide-svelte';
   import Modal from '$components/Modal.svelte';
   import AmountInput from '$components/AmountInput.svelte';
 
@@ -176,13 +176,23 @@
       </div>
     </div>
 
-    <button
-      on:click={openCreateModal}
-      class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 self-center leading-none text-center w-full sm:w-auto"
-    >
-      <Plus class="w-4 h-4 stroke-[3] shrink-0" />
-      <span class="leading-none">{t.add_debt}</span>
-    </button>
+    <div class="flex items-center gap-2 w-full sm:w-auto shrink-0">
+      <a
+        href="/settled"
+        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2.5 bg-[var(--color-paper-3)] hover:bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink)] font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs self-center leading-none text-center"
+      >
+        <BadgeCheck class="w-4 h-4 shrink-0" />
+        <span class="leading-none">{t.nav_settled}</span>
+      </a>
+
+      <button
+        on:click={openCreateModal}
+        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 self-center leading-none text-center w-full sm:w-auto"
+      >
+        <Plus class="w-4 h-4 stroke-[3] shrink-0" />
+        <span class="leading-none">{t.add_debt}</span>
+      </button>
+    </div>
   </div>
 
   {#if isLoading}

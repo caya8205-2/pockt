@@ -1,0 +1,52 @@
+# Dependencies (match at any depth)
+**/node_modules/
+node_modules/
+
+# Build artifacts (match at any depth)
+**/dist/
+**/build/
+**/.svelte-kit/
+**/.turbo/
+**/src-tauri/target/
+**/src-tauri/gen/
+**/test-results/
+**/playwright-report/
+
+# Tests & tooling sources not needed in production image
+**/tests/
+**/tests-ui/
+*.spec.ts
+*.test.ts
+
+# Databases (basename match applies at any depth)
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+**/data/
+
+# Logs
+*.log
+
+# Env & secrets
+.env
+.env.*
+!*.env.example
+
+# Git, IDE & misc
+.git/
+.github/
+.gitignore
+.agents/
+.idea/
+.vscode/
+public/
+config.yml
+config.yml.example
+CHANGELOG.md
+PRD.md
+README.md
+LICENSE
+Caddyfile
+docker-compose.yml
+Dockerfile*

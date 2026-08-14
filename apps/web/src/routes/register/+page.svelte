@@ -43,12 +43,20 @@
   async function handleSubmit() {
     errorMessage = '';
 
-    if (!username.trim() || !password.trim()) {
+    const usernameEl = document.getElementById('username-input') as HTMLInputElement | null;
+    const passwordEl = document.getElementById('password-input') as HTMLInputElement | null;
+    const confirmEl = document.getElementById('confirm-password-input') as HTMLInputElement | null;
+
+    const valUsername = (usernameEl?.value || username).trim();
+    const valPassword = (passwordEl?.value || password).trim();
+    const valConfirm = (confirmEl?.value || confirmPassword).trim();
+
+    if (!valUsername || !valPassword) {
       errorMessage = $currentLang === 'id' ? 'Username dan password wajib diisi' : 'Username and password are required';
       return;
     }
 
-    if (password !== confirmPassword) {
+    if (valPassword !== valConfirm) {
       errorMessage = $currentLang === 'id' ? 'Konfirmasi password tidak cocok' : 'Password confirmation does not match';
       return;
     }
@@ -59,7 +67,7 @@
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username: valUsername, password: valPassword }),
       });
 
       const data = await res.json();
@@ -88,7 +96,7 @@
 
 <div class="min-h-[85vh] flex flex-col items-center justify-center p-4 relative">
   <!-- Top Language Selector Button -->
-  <div class="absolute top-4 right-4 sm:top-6 sm:right-6">
+  <div class="absolute top-7 right-4 sm:top-6 sm:right-6">
     <button
       on:click={toggleLang}
       class="px-3 py-1.5 bg-[var(--color-paper-2)] border border-[var(--color-border)] hover:border-[var(--color-ink-muted)] text-[var(--color-ink)] font-mono text-xs rounded-md transition-colors flex items-center gap-2 cursor-pointer shadow-xs"
