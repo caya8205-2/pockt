@@ -18,7 +18,7 @@ export default defineConfig({
       : undefined,
     proxy: {
       '/api': {
-        target: process.env.VITE_BACKEND_URL || process.env.API_INTERNAL_URL || 'http://localhost:3002',
+        target: process.env.VITE_BACKEND_URL || process.env.API_INTERNAL_URL || 'http://localhost:3001',
         changeOrigin: true,
       },
     },

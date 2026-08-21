@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 
-const API_BASE = process.env.API_INTERNAL_URL || process.env.VITE_BACKEND_URL || 'http://localhost:3002';
+const API_BASE = process.env.API_INTERNAL_URL || process.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 const proxy: RequestHandler = async ({ request, params, url }) => {
   const target = new URL(`/api/${params.path || ''}`, API_BASE);

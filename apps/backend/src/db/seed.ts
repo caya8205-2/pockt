@@ -1,129 +1,348 @@
 import { initDb, db } from './index.js';
-import { incomes, expenses, bills, debts, categories } from './schema.js';
+import { users, incomes, expenses, bills, billPayments, debts, debtPayments, categories, sessions } from './schema.js';
 import { cryptoNative } from '../utils/id.js';
+import bcrypt from 'bcryptjs';
 
 async function seed() {
-  console.log('🌱 Seeding sample data for Pockt...');
+  console.log('🧹 Cleaning dev database...');
   initDb();
 
-  // Categories
+  // 1. Clean dev database
+  await db.delete(sessions);
+  await db.delete(debtPayments);
+  await db.delete(billPayments);
+  await db.delete(debts);
+  await db.delete(bills);
+  await db.delete(expenses);
+  await db.delete(incomes);
+  await db.delete(categories);
+  await db.delete(users);
+
+  console.log('🌱 Seeding comprehensive case study data for Pockt...');
+
+  // 2. Create Default Owner User
+  const userId = cryptoNative();
+  const passwordHash = await bcrypt.hash('demo12345', 10);
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = (day: number) => `${y}-${m}-${String(Math.min(Math.max(day, 1), 28)).padStart(2, '0')}`;
+
+  await db.insert(users).values({
+    id: userId,
+    username: 'demo',
+    passwordHash,
+    paydayDate: 25,
+    createdAt: now.toISOString(),
+  });
+
+  // 3. Categories
   const cats = [
-    { id: '1', name: 'Makanan & Minuman', color: '#f59e0b', createdAt: new Date().toISOString() },
-    { id: '2', name: 'Transportasi', color: '#3b82f6', createdAt: new Date().toISOString() },
-    { id: '3', name: 'Belanja', color: '#ec4899', createdAt: new Date().toISOString() },
-    { id: '4', name: 'Hiburan', color: '#8b5cf6', createdAt: new Date().toISOString() },
-    { id: '5', name: 'Kesehatan', color: '#10b981', createdAt: new Date().toISOString() },
-    { id: '6', name: 'Lainnya', color: '#64748b', createdAt: new Date().toISOString() },
+    { id: cryptoNative(), userId, name: 'Makanan & Minuman', color: '#f59e0b', createdAt: now.toISOString() },
+    { id: cryptoNative(), userId, name: 'Transportasi', color: '#3b82f6', createdAt: now.toISOString() },
+    { id: cryptoNative(), userId, name: 'Belanja & Kebutuhan', color: '#ec4899', createdAt: now.toISOString() },
+    { id: cryptoNative(), userId, name: 'Hiburan & Langganan', color: '#8b5cf6', createdAt: now.toISOString() },
+    { id: cryptoNative(), userId, name: 'Kesehatan & Kebugaran', color: '#10b981', createdAt: now.toISOString() },
+    { id: cryptoNative(), userId, name: 'Pendidikan & Tools', color: '#06b6d4', createdAt: now.toISOString() },
+    { id: cryptoNative(), userId, name: 'Lainnya', color: '#64748b', createdAt: now.toISOString() },
   ];
 
   for (const c of cats) {
-    try {
-      await db.insert(categories).values(c);
-    } catch (e) {}
+    await db.insert(categories).values(c);
   }
 
-  const today = new Date().toISOString().split('T')[0];
-
-  // Incomes
+  // 4. Incomes
   await db.insert(incomes).values([
     {
       id: cryptoNative(),
-      title: 'Gaji Bulanan',
-      amount: 8500000,
-      date: today,
-      notes: 'Transfer Gaji Utama',
-      createdAt: new Date().toISOString(),
+      userId,
+      title: 'Gaji Bulanan Utama (Tech Lead / Dev)',
+      amount: 14500000,
+      date: d(1),
+      notes: 'Transfer payroll bulanan',
+      createdAt: now.toISOString(),
     },
     {
       id: cryptoNative(),
-      title: 'Project Freelance Web Design',
-      amount: 2500000,
-      date: today,
-      notes: 'DP Project Client A',
-      createdAt: new Date().toISOString(),
+      userId,
+      title: 'Freelance Project (Fullstack Web App)',
+      amount: 5200000,
+      date: d(8),
+      notes: 'Pelunasan milestone 2 deliverable',
+      createdAt: now.toISOString(),
+    },
+    {
+      id: cryptoNative(),
+      userId,
+      title: 'Dividen & Imbal Hasil Reksadana',
+      amount: 750000,
+      date: d(15),
+      notes: 'Yield bulanan portofolio investasi',
+      createdAt: now.toISOString(),
+    },
+    {
+      id: cryptoNative(),
+      userId,
+      title: 'Konsultasi Arsitektur Software',
+      amount: 2000000,
+      date: d(18),
+      notes: '1-on-1 advisory & system review',
+      createdAt: now.toISOString(),
     },
   ]);
 
-  // Expenses
+  // 5. Daily Expenses
   await db.insert(expenses).values([
     {
       id: cryptoNative(),
-      title: 'Makan Siang Nasi Padang',
+      userId,
+      title: 'Artisan Coffee & Croissant',
+      amount: 58000,
+      category: 'Makanan & Minuman',
+      date: d(now.getDate()),
+      notes: 'Morning deep work session',
+      createdAt: now.toISOString(),
+    },
+    {
+      id: cryptoNative(),
+      userId,
+      title: 'Makan Siang Nasi Padang Komplit',
       amount: 35000,
       category: 'Makanan & Minuman',
-      date: today,
-      notes: 'Dengan es teh manis',
-      createdAt: new Date().toISOString(),
+      date: d(now.getDate()),
+      notes: 'Rendang + perkedel + es teh manis',
+      createdAt: now.toISOString(),
     },
     {
       id: cryptoNative(),
-      title: 'Bensin & Tol',
+      userId,
+      title: 'Bensin Pertamax Turbo Full Tank',
       amount: 150000,
       category: 'Transportasi',
-      date: today,
-      notes: 'Isi Pertamax',
-      createdAt: new Date().toISOString(),
+      date: d(Math.max(1, now.getDate() - 1)),
+      notes: 'Pengisian rutin SPBU',
+      createdAt: now.toISOString(),
     },
     {
       id: cryptoNative(),
-      title: 'Belanja Bulanan Supermarket',
-      amount: 450000,
-      category: 'Belanja',
-      date: today,
-      notes: 'Kebutuhan dapur & mandi',
-      createdAt: new Date().toISOString(),
+      userId,
+      title: 'Belanja Mingguan Supermarket',
+      amount: 485000,
+      category: 'Belanja & Kebutuhan',
+      date: d(Math.max(1, now.getDate() - 2)),
+      notes: 'Bahan masakan, susu oat, buah & cemilan sehat',
+      createdAt: now.toISOString(),
+    },
+    {
+      id: cryptoNative(),
+      userId,
+      title: 'Dinner Japanese Ramen & Gyoza',
+      amount: 135000,
+      category: 'Makanan & Minuman',
+      date: d(Math.max(1, now.getDate() - 3)),
+      notes: 'Makan malam akhir pekan',
+      createdAt: now.toISOString(),
+    },
+    {
+      id: cryptoNative(),
+      userId,
+      title: 'Top Up Saldo E-Toll & KRL Commuter',
+      amount: 100000,
+      category: 'Transportasi',
+      date: d(Math.max(1, now.getDate() - 4)),
+      notes: 'Saldo transportasi mingguan',
+      createdAt: now.toISOString(),
+    },
+    {
+      id: cryptoNative(),
+      userId,
+      title: 'Steam Summer Sale Game Pass',
+      amount: 165000,
+      category: 'Hiburan & Langganan',
+      date: d(Math.max(1, now.getDate() - 5)),
+      notes: 'Indie game weekend release',
+      createdAt: now.toISOString(),
+    },
+    {
+      id: cryptoNative(),
+      userId,
+      title: 'Gym Monthly Pass & Suplemen Whey',
+      amount: 380000,
+      category: 'Kesehatan & Kebugaran',
+      date: d(Math.max(1, now.getDate() - 6)),
+      notes: 'Membership gym & isolat protein',
+      createdAt: now.toISOString(),
+    },
+    {
+      id: cryptoNative(),
+      userId,
+      title: 'Domain & Cloud VPS Staging Renewal',
+      amount: 195000,
+      category: 'Pendidikan & Tools',
+      date: d(Math.max(1, now.getDate() - 8)),
+      notes: 'Server deployment personal projects',
+      createdAt: now.toISOString(),
+    },
+    {
+      id: cryptoNative(),
+      userId,
+      title: 'Laundry Express Kiloan',
+      amount: 45000,
+      category: 'Belanja & Kebutuhan',
+      date: d(Math.max(1, now.getDate() - 10)),
+      notes: 'Cuci & setrika rapi 5kg',
+      createdAt: now.toISOString(),
     },
   ]);
 
-  // Bills
+  // 6. Bills & Payments
+  const billStudioId = cryptoNative();
+  const billBiznetId = cryptoNative();
+  const billListrikId = cryptoNative();
+  const billSpotifyId = cryptoNative();
+  const billAsuransiId = cryptoNative();
+
   await db.insert(bills).values([
     {
-      id: cryptoNative(),
-      name: 'Sewa Kontrakan / Apartemen',
-      amount: 2000000,
-      dueDate: 10,
-      isPaid: false,
-      notes: 'Bayar via transfer bank',
-      lastPaidAt: null,
-      createdAt: new Date().toISOString(),
+      id: billStudioId,
+      userId,
+      name: 'Sewa Studio Apartemen / Kost Eksklusif',
+      amount: 2750000,
+      remainingAmount: 0,
+      dueDate: 5,
+      isPaid: true,
+      notes: 'Transfer via BCA Virtual Account',
+      lastPaidAt: d(5),
+      createdAt: now.toISOString(),
     },
     {
-      id: cryptoNative(),
-      name: 'Internet Indihome / Biznet',
-      amount: 380000,
+      id: billBiznetId,
+      userId,
+      name: 'Internet Fiber Biznet 100 Mbps',
+      amount: 416250,
+      remainingAmount: 416250,
       dueDate: 15,
       isPaid: false,
-      notes: 'Paket 50Mbps',
+      notes: 'Tagihan internet rumah / studio bulanan',
       lastPaidAt: null,
-      createdAt: new Date().toISOString(),
+      createdAt: now.toISOString(),
     },
     {
-      id: cryptoNative(),
-      name: 'Spotify Family Subscription',
-      amount: 86000,
+      id: billListrikId,
+      userId,
+      name: 'Listrik PLN Pascabayar',
+      amount: 520000,
+      remainingAmount: 520000,
       dueDate: 20,
+      isPaid: false,
+      notes: 'ID Pelanggan: 5210-9823-4120',
+      lastPaidAt: null,
+      createdAt: now.toISOString(),
+    },
+    {
+      id: billSpotifyId,
+      userId,
+      name: 'Spotify Family & Apple One Subscription',
+      amount: 165000,
+      remainingAmount: 0,
+      dueDate: 28,
       isPaid: true,
-      notes: 'Auto debit',
-      lastPaidAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
+      notes: 'Auto debit kartu kredit',
+      lastPaidAt: d(28),
+      createdAt: now.toISOString(),
+    },
+    {
+      id: billAsuransiId,
+      userId,
+      name: 'Premi Asuransi Kesehatan Pribadi',
+      amount: 650000,
+      remainingAmount: 650000,
+      dueDate: 10,
+      isPaid: false,
+      notes: 'Polis rawat inap & proteksi kesehatan',
+      lastPaidAt: null,
+      createdAt: now.toISOString(),
     },
   ]);
 
-  // Debts
+  // Recorded payments for paid bills
+  await db.insert(billPayments).values([
+    {
+      id: cryptoNative(),
+      userId,
+      billId: billStudioId,
+      amount: 2750000,
+      date: d(5),
+      notes: 'Pelunasan sewa studio',
+      createdAt: now.toISOString(),
+    },
+    {
+      id: cryptoNative(),
+      userId,
+      billId: billSpotifyId,
+      amount: 165000,
+      date: d(28),
+      notes: 'Auto-debit langganan',
+      createdAt: now.toISOString(),
+    },
+  ]);
+
+  // 7. Debts & Payments
+  const debtSonyId = cryptoNative();
+  const debtDellId = cryptoNative();
+
   await db.insert(debts).values([
     {
-      id: cryptoNative(),
-      person: 'Budi (Pinjaman Kamera)',
-      totalAmount: 1500000,
+      id: debtSonyId,
+      userId,
+      person: 'Budi (Pinjaman Lensa Kamera Sony G-Master)',
+      totalAmount: 2500000,
       remainingAmount: 1000000,
-      dueDate: `${new Date().getFullYear()}-12-30`,
+      dueDate: `${y}-12-30`,
       isPaid: false,
-      notes: 'Pinjam untuk event liputan',
-      createdAt: new Date().toISOString(),
+      notes: 'Pinjaman untuk event fotografi project',
+      createdAt: now.toISOString(),
+    },
+    {
+      id: debtDellId,
+      userId,
+      person: 'Cicilan Workstation Monitor Dell UltraSharp 4K',
+      totalAmount: 6000000,
+      remainingAmount: 2000000,
+      dueDate: `${y}-${m}-25`,
+      isPaid: false,
+      notes: 'Cicilan 3x perlengkapan setup kerja',
+      createdAt: now.toISOString(),
     },
   ]);
 
-  console.log('✅ Seeding completed successfully!');
+  // Recorded payments for installments
+  await db.insert(debtPayments).values([
+    {
+      id: cryptoNative(),
+      userId,
+      debtId: debtSonyId,
+      amount: 1500000,
+      date: d(2),
+      notes: 'Cicilan pertama lensa kamera',
+      createdAt: now.toISOString(),
+    },
+    {
+      id: cryptoNative(),
+      userId,
+      debtId: debtDellId,
+      amount: 4000000,
+      date: d(12),
+      notes: 'Cicilan 1 & 2 monitor 4K',
+      createdAt: now.toISOString(),
+    },
+  ]);
+
+  console.log('✅ Dev database cleaned and seeded successfully!');
+  console.log(`\n🔑 Demo Credentials:`);
+  console.log(`   Username: demo`);
+  console.log(`   Password: demo12345\n`);
 }
 
 seed().catch(console.error);
+
