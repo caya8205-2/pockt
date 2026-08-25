@@ -43,7 +43,7 @@
   let debts: Debt[] = [];
   let isLoading = true;
   let draggedIndex: number | null = null;
-  let selectedSort: SortOption = 'date_desc';
+  let selectedSort: SortOption = 'due_date_asc';
 
   // Form modal
   let showModal = false;
@@ -230,7 +230,7 @@
     </div>
 
     <div class="flex items-center gap-2 w-full sm:w-auto shrink-0 flex-wrap sm:flex-nowrap">
-      <SortDropdown bind:value={selectedSort} mode="standard" allowCustom={true} />
+      <SortDropdown bind:value={selectedSort} mode="debts" allowCustom={true} />
 
       <a
         href="/settled"

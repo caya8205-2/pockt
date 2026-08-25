@@ -78,8 +78,8 @@ export const translations = {
     sort_name_desc: 'Nama: Z → A',
     sort_amount_desc: 'Nominal: Tertinggi',
     sort_amount_asc: 'Nominal: Terendah',
-    sort_due_date_asc: 'Jatuh Tempo: Awal Bulan',
-    sort_due_date_desc: 'Jatuh Tempo: Akhir Bulan',
+    sort_due_date_asc: 'Jatuh Tempo: Terdekat',
+    sort_due_date_desc: 'Jatuh Tempo: Terjauh',
     sort_custom: 'Urutan Manual (Drag)',
 
     // Dashboard

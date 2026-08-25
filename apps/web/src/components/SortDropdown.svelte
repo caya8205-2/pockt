@@ -16,10 +16,12 @@
   }
 
   $: options = ((): OptionItem[] => {
-    if (mode === 'bills') {
+    if (mode === 'bills' || mode === 'debts') {
       const list: OptionItem[] = [
         { id: 'due_date_asc', label: t.sort_due_date_asc },
         { id: 'due_date_desc', label: t.sort_due_date_desc },
+        { id: 'date_desc', label: t.sort_date_desc },
+        { id: 'date_asc', label: t.sort_date_asc },
         { id: 'name_asc', label: t.sort_name_asc },
         { id: 'name_desc', label: t.sort_name_desc },
         { id: 'amount_desc', label: t.sort_amount_desc },

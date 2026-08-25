@@ -138,12 +138,24 @@ export function sortItems<T extends SortableItem>(
       }
 
       case 'due_date_asc': {
+        const hasA = a.dueDate !== null && a.dueDate !== undefined && a.dueDate !== '';
+        const hasB = b.dueDate !== null && b.dueDate !== undefined && b.dueDate !== '';
+        if (hasA && !hasB) return -1;
+        if (!hasA && hasB) return 1;
+        if (!hasA && !hasB) return getNameVal(a).localeCompare(getNameVal(b));
+
         const diff = getDueDateVal(a) - getDueDateVal(b);
         if (diff !== 0) return diff;
         return getNameVal(a).localeCompare(getNameVal(b));
       }
 
       case 'due_date_desc': {
+        const hasA = a.dueDate !== null && a.dueDate !== undefined && a.dueDate !== '';
+        const hasB = b.dueDate !== null && b.dueDate !== undefined && b.dueDate !== '';
+        if (hasA && !hasB) return -1;
+        if (!hasA && hasB) return 1;
+        if (!hasA && !hasB) return getNameVal(a).localeCompare(getNameVal(b));
+
         const diff = getDueDateVal(b) - getDueDateVal(a);
         if (diff !== 0) return diff;
         return getNameVal(a).localeCompare(getNameVal(b));

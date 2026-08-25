@@ -13,6 +13,7 @@ All notable changes to Pockt are documented in this file. Grouped by release, wi
 - **Granular Attached Expenses API (`GET /api/debts/:id/expenses`)**: Added endpoint to fetch granular expense items attached to any Paylater debt record, eliminating manual aggregation in debt notes.
 - **MCP Server Paylater Enhancements**: Updated `create_expense`, `update_expense`, and `list_expenses` tools to support `paymentMethod` and `debtId` parameters. Updated `list_debts`, `create_debt`, and `update_debt` to support `type`. Added `get_debt_expenses` MCP tool.
 - **Web UI & Modals**: Added Payment Method selectors in `QuickAddModal.svelte` and `expenses/+page.svelte`, Paylater badges on expense lists and timeline feeds, Debt Type selector with reactive auto-detection, and an interactive "Rincian Belanja Paylater" modal on `debts/+page.svelte`.
+- **Due Date Sorting for Debts & Bills**: Added dedicated "Jatuh Tempo: Terdekat" (`due_date_asc`) and "Jatuh Tempo: Terjauh" (`due_date_desc`) sorting options to both `/debts` and `/bills`, allowing users to prioritize impending obligations while keeping "Tanggal: Terbaru/Terlama" for creation date sorting. Default sort on `/debts` and `/bills` now prioritizes nearest due dates.
 
 ### Proactive Due Date Reminders (Telegram via Hermes Cron)
 
