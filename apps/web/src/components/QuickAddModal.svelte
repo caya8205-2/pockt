@@ -15,6 +15,7 @@
   let title = '';
   let amount: number | null = null;
   let category = 'Makanan & Minuman';
+  let paymentMethod = 'CASH';
   let date = new Date().toISOString().split('T')[0];
   let notes = '';
   let isLoading = false;
@@ -43,7 +44,14 @@
       if (type === 'expense') {
         await fetchApi('/expenses', {
           method: 'POST',
-          body: JSON.stringify({ title, amount: Number(amount), category, date, notes }),
+          body: JSON.stringify({
+            title,
+            amount: Number(amount),
+            category,
+            paymentMethod,
+            date,
+            notes: notes || null,
+          }),
         });
       } else {
         await fetchApi('/incomes', {
@@ -55,6 +63,7 @@
       // Reset form
       title = '';
       amount = null;
+      paymentMethod = 'CASH';
       notes = '';
       isOpen = false;
       onSuccess();
@@ -128,17 +137,35 @@
     />
 
     {#if type === 'expense'}
-      <div>
-        <label for="select-category" class="modal-label">{t.category_label}</label>
-        <select
-          id="select-category"
-          bind:value={category}
-          class="modal-input"
-        >
-          {#each defaultCategories as cat}
-            <option value={cat}>{catLabel(cat)}</option>
-          {/each}
-        </select>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label for="select-category" class="modal-label">{t.category_label}</label>
+          <select
+            id="select-category"
+            bind:value={category}
+            class="modal-input"
+          >
+            {#each defaultCategories as cat}
+              <option value={cat}>{catLabel(cat)}</option>
+            {/each}
+          </select>
+        </div>
+
+        <div>
+          <label for="select-method" class="modal-label">{t.payment_method_label}</label>
+          <select
+            id="select-method"
+            bind:value={paymentMethod}
+            class="modal-input"
+          >
+            <option value="CASH">{t.method_cash}</option>
+            <option value="DEBIT">{t.method_debit}</option>
+            <option value="TRANSFER">{t.method_transfer}</option>
+            <option value="GOPAY_LATER">{t.method_gopay_later}</option>
+            <option value="SPAYLATER">{t.method_spaylater}</option>
+            <option value="OTHER_PAYLATER">{t.method_other_paylater}</option>
+          </select>
+        </div>
       </div>
     {/if}
 

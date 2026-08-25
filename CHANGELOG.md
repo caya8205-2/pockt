@@ -2,6 +2,23 @@
 
 All notable changes to Pockt are documented in this file. Grouped by release, with the primary release changes at the top.
 
+## [0.3.0] — 2026-08-25
+
+### Paylater Expense Tracking & Debt Auto-Sync
+
+- **Payment Methods & Paylater Schema (`expenses`)**: Added `paymentMethod` (`CASH`, `DEBIT`, `TRANSFER`, `GOPAY_LATER`, `SPAYLATER`, `OTHER_PAYLATER`), `debtId` (foreign key linking to `debts.id`), and `isPaylater` boolean flag in `schema.ts` and `initDb()` safe migrations.
+- **Cash Flow Isolation**: Expenses paid via Paylater (`GOPAY_LATER`, `SPAYLATER`, `OTHER_PAYLATER`) do NOT deduct current cash balance (`currentBalance`) on transaction date. They are recorded cleanly in `monthlyExpenses` and category analytics, while actual cash deduction occurs when the debt obligation is paid off via `/api/debts/:id/pay`.
+- **Debt Auto-Accumulation & Sync**: Linking an expense to a Debt record automatically accumulates `amount` into the debt's `totalAmount` and `remainingAmount` upon creation, calculates differences upon expense editing, and decreases debt amounts when the expense is deleted.
+- **Granular Attached Expenses API (`GET /api/debts/:id/expenses`)**: Added endpoint to fetch granular expense items attached to any Paylater debt record, eliminating manual aggregation in debt notes.
+- **MCP Server Paylater Enhancements**: Updated `create_expense`, `update_expense`, and `list_expenses` tools to support `paymentMethod` and `debtId` parameters. Added `get_debt_expenses` MCP tool.
+- **Web UI & Modals**: Added Payment Method selectors in `QuickAddModal.svelte` and `expenses/+page.svelte`, Paylater badges on expense lists and timeline feeds, and an interactive "Rincian Belanja Paylater" modal on `debts/+page.svelte`.
+
+### Proactive Due Date Reminders (Telegram via Hermes Cron)
+
+- **Upcoming Due Dates API (`GET /api/reminders/upcoming`)**: Added endpoint calculating upcoming unpaid bills and debts within N days (default 3 days: H-3 to H-1, today, and overdue items) with relative countdown formatting (`Hari ini!`, `Besok`, `2 hari lagi`).
+- **MCP Reminder Tool (`get_upcoming_reminders`)**: Added deterministic MCP tool for AI agents to query impending obligations.
+- **Hermes Cron Watchdog (`0 8 * * *`)**: Configured native Hermes agent scheduled cron job `pockt-due-date-reminder` executing daily at 08:00 WIB to send proactive reminders to Telegram only when obligations are due within 3 days (silent watchdog when none are due).
+
 ## [0.2.1] — 2026-08-08
 
 ### Custom Payday Cycle Window & Setting

@@ -45,6 +45,9 @@ export function initDb() {
       title TEXT NOT NULL,
       amount REAL NOT NULL,
       category TEXT NOT NULL DEFAULT 'Umum',
+      payment_method TEXT NOT NULL DEFAULT 'CASH',
+      debt_id TEXT REFERENCES debts(id) ON DELETE SET NULL,
+      is_paylater INTEGER NOT NULL DEFAULT 0,
       date TEXT NOT NULL,
       notes TEXT,
       created_at TEXT NOT NULL
@@ -123,6 +126,24 @@ export function initDb() {
     sqlite.exec(`ALTER TABLE bills ADD COLUMN remaining_amount REAL;`);
   } catch (e) {
     // Column remaining_amount already exists, ignore
+  }
+
+  try {
+    sqlite.exec(`ALTER TABLE expenses ADD COLUMN payment_method TEXT NOT NULL DEFAULT 'CASH';`);
+  } catch (e) {
+    // Column payment_method already exists, ignore
+  }
+
+  try {
+    sqlite.exec(`ALTER TABLE expenses ADD COLUMN debt_id TEXT REFERENCES debts(id) ON DELETE SET NULL;`);
+  } catch (e) {
+    // Column debt_id already exists, ignore
+  }
+
+  try {
+    sqlite.exec(`ALTER TABLE expenses ADD COLUMN is_paylater INTEGER NOT NULL DEFAULT 0;`);
+  } catch (e) {
+    // Column is_paylater already exists, ignore
   }
 
   // Clean up any legacy expense rows generated from bill payments so expenses table is strictly daily expenses

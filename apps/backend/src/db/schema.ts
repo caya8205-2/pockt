@@ -32,6 +32,9 @@ export const expenses = sqliteTable('expenses', {
   title: text('title').notNull(),
   amount: real('amount').notNull(),
   category: text('category').notNull().default('Umum'),
+  paymentMethod: text('payment_method').notNull().default('CASH'),
+  debtId: text('debt_id'),
+  isPaylater: integer('is_paylater', { mode: 'boolean' }).notNull().default(false),
   date: text('date').notNull(), // YYYY-MM-DD
   notes: text('notes'),
   createdAt: text('created_at').notNull(),

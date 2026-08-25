@@ -9,6 +9,7 @@ import { registerBillTools } from "./tools/bills.js";
 import { registerDebtTools } from "./tools/debts.js";
 import { registerSettingsTools } from "./tools/settings.js";
 import { registerBackupTools } from "./tools/backup.js";
+import { registerReminderTools } from "./tools/reminders.js";
 
 const apiUrl = process.env.POCKT_API_URL || "http://localhost:3001";
 const username = process.env.POCKT_USERNAME || "";
@@ -34,6 +35,7 @@ registerBillTools(server, client);
 registerDebtTools(server, client);
 registerSettingsTools(server, client);
 registerBackupTools(server, client);
+registerReminderTools(server, client);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);

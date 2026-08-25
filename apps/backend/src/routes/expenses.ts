@@ -1,9 +1,17 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db } from '../db/index.js';
-import { expenses, categories } from '../db/schema.js';
+import { expenses, categories, debts } from '../db/schema.js';
 import { eq, desc, and, or, isNull } from 'drizzle-orm';
 import { cryptoNative } from '../utils/id.js';
+
+const PAYLATER_METHODS = ['GOPAY_LATER', 'SPAYLATER', 'OTHER_PAYLATER'];
+
+function isPaylaterMethod(method?: string | null, explicitIsPaylater?: boolean | null): boolean {
+  if (explicitIsPaylater === true) return true;
+  if (!method) return false;
+  return PAYLATER_METHODS.includes(method.toUpperCase());
+}
 
 const expenseSchema = z.object({
   title: z.string().min(1),
@@ -11,6 +19,9 @@ const expenseSchema = z.object({
   category: z.string().min(1),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   notes: z.string().optional().nullable(),
+  paymentMethod: z.string().optional().nullable(),
+  debtId: z.string().optional().nullable(),
+  isPaylater: z.boolean().optional().nullable(),
 });
 
 const categorySchema = z.object({
@@ -26,11 +37,21 @@ export async function expenseRoutes(fastify: FastifyInstance) {
   // Expenses CRUD
   fastify.get('/api/expenses', async (request) => {
     const userId = getUserId(request);
-    const list = await db
+    const query = request.query as { debtId?: string; paymentMethod?: string } | undefined;
+
+    let list = await db
       .select()
       .from(expenses)
       .where(or(eq(expenses.userId, userId), isNull(expenses.userId)))
       .orderBy(desc(expenses.date), desc(expenses.createdAt));
+
+    if (query?.debtId) {
+      list = list.filter((e) => e.debtId === query.debtId);
+    }
+    if (query?.paymentMethod) {
+      list = list.filter((e) => (e.paymentMethod || '').toUpperCase() === query.paymentMethod!.toUpperCase());
+    }
+
     return list;
   });
 
@@ -38,17 +59,50 @@ export async function expenseRoutes(fastify: FastifyInstance) {
     const userId = getUserId(request);
     const body = expenseSchema.parse(request.body);
     const id = cryptoNative();
+
+    const paymentMethod = body.paymentMethod || 'CASH';
+    const isPaylater = isPaylaterMethod(paymentMethod, body.isPaylater);
+    const debtId = body.debtId || null;
+
     const newItem = {
       id,
       userId,
       title: body.title,
       amount: body.amount,
       category: body.category,
+      paymentMethod,
+      debtId,
+      isPaylater,
       date: body.date,
       notes: body.notes || null,
       createdAt: new Date().toISOString(),
     };
+
     await db.insert(expenses).values(newItem);
+
+    // If linked to a debt, auto-accumulate debt amount
+    if (debtId) {
+      const debtRow = await db
+        .select()
+        .from(debts)
+        .where(and(eq(debts.id, debtId), or(eq(debts.userId, userId), isNull(debts.userId))))
+        .limit(1);
+
+      if (debtRow.length > 0) {
+        const debt = debtRow[0];
+        const newTotal = debt.totalAmount + body.amount;
+        const newRemaining = debt.remainingAmount + body.amount;
+        await db
+          .update(debts)
+          .set({
+            totalAmount: newTotal,
+            remainingAmount: newRemaining,
+            isPaid: false,
+          })
+          .where(eq(debts.id, debtId));
+      }
+    }
+
     return reply.status(201).send(newItem);
   });
 
@@ -67,12 +121,112 @@ export async function expenseRoutes(fastify: FastifyInstance) {
       return reply.status(404).send({ error: 'Expense not found' });
     }
 
+    const oldExpense = existing[0];
+    const newPaymentMethod = body.paymentMethod ?? oldExpense.paymentMethod ?? 'CASH';
+    const newIsPaylater = isPaylaterMethod(newPaymentMethod, body.isPaylater ?? oldExpense.isPaylater);
+    const newDebtId = body.debtId !== undefined ? (body.debtId || null) : oldExpense.debtId;
+    const newAmount = body.amount;
+    const oldAmount = oldExpense.amount;
+
+    // Handle debt adjustments on update
+    if (oldExpense.debtId) {
+      if (oldExpense.debtId === newDebtId) {
+        // Same debt: adjust by diff
+        const diff = newAmount - oldAmount;
+        if (diff !== 0) {
+          const debtRow = await db
+            .select()
+            .from(debts)
+            .where(and(eq(debts.id, oldExpense.debtId), or(eq(debts.userId, userId), isNull(debts.userId))))
+            .limit(1);
+
+          if (debtRow.length > 0) {
+            const newTotal = Math.max(0, debtRow[0].totalAmount + diff);
+            const newRemaining = Math.max(0, debtRow[0].remainingAmount + diff);
+            await db
+              .update(debts)
+              .set({
+                totalAmount: newTotal,
+                remainingAmount: newRemaining,
+                isPaid: newRemaining === 0,
+              })
+              .where(eq(debts.id, oldExpense.debtId));
+          }
+        }
+      } else {
+        // Debt ID changed or removed: subtract old amount from old debt
+        const oldDebtRow = await db
+          .select()
+          .from(debts)
+          .where(and(eq(debts.id, oldExpense.debtId), or(eq(debts.userId, userId), isNull(debts.userId))))
+          .limit(1);
+
+        if (oldDebtRow.length > 0) {
+          const newTotal = Math.max(0, oldDebtRow[0].totalAmount - oldAmount);
+          const newRemaining = Math.max(0, oldDebtRow[0].remainingAmount - oldAmount);
+          await db
+            .update(debts)
+            .set({
+              totalAmount: newTotal,
+              remainingAmount: newRemaining,
+              isPaid: newRemaining === 0,
+            })
+            .where(eq(debts.id, oldExpense.debtId));
+        }
+
+        // Add new amount to new debt if set
+        if (newDebtId) {
+          const newDebtRow = await db
+            .select()
+            .from(debts)
+            .where(and(eq(debts.id, newDebtId), or(eq(debts.userId, userId), isNull(debts.userId))))
+            .limit(1);
+
+          if (newDebtRow.length > 0) {
+            const newTotal = newDebtRow[0].totalAmount + newAmount;
+            const newRemaining = newDebtRow[0].remainingAmount + newAmount;
+            await db
+              .update(debts)
+              .set({
+                totalAmount: newTotal,
+                remainingAmount: newRemaining,
+                isPaid: false,
+              })
+              .where(eq(debts.id, newDebtId));
+          }
+        }
+      }
+    } else if (newDebtId) {
+      // Previously no debt, now linked to a debt
+      const newDebtRow = await db
+        .select()
+        .from(debts)
+        .where(and(eq(debts.id, newDebtId), or(eq(debts.userId, userId), isNull(debts.userId))))
+        .limit(1);
+
+      if (newDebtRow.length > 0) {
+        const newTotal = newDebtRow[0].totalAmount + newAmount;
+        const newRemaining = newDebtRow[0].remainingAmount + newAmount;
+        await db
+          .update(debts)
+          .set({
+            totalAmount: newTotal,
+            remainingAmount: newRemaining,
+            isPaid: false,
+          })
+          .where(eq(debts.id, newDebtId));
+      }
+    }
+
     await db
       .update(expenses)
       .set({
         title: body.title,
         amount: body.amount,
         category: body.category,
+        paymentMethod: newPaymentMethod,
+        debtId: newDebtId,
+        isPaylater: newIsPaylater,
         date: body.date,
         notes: body.notes || null,
       })
@@ -84,9 +238,45 @@ export async function expenseRoutes(fastify: FastifyInstance) {
   fastify.delete('/api/expenses/:id', async (request, reply) => {
     const userId = getUserId(request);
     const { id } = request.params as { id: string };
+
+    const existing = await db
+      .select()
+      .from(expenses)
+      .where(and(eq(expenses.id, id), or(eq(expenses.userId, userId), isNull(expenses.userId))))
+      .limit(1);
+
+    if (existing.length === 0) {
+      return reply.status(404).send({ error: 'Expense not found' });
+    }
+
+    const item = existing[0];
+
+    // If linked to a debt, reduce debt amount
+    if (item.debtId) {
+      const debtRow = await db
+        .select()
+        .from(debts)
+        .where(and(eq(debts.id, item.debtId), or(eq(debts.userId, userId), isNull(debts.userId))))
+        .limit(1);
+
+      if (debtRow.length > 0) {
+        const newTotal = Math.max(0, debtRow[0].totalAmount - item.amount);
+        const newRemaining = Math.max(0, debtRow[0].remainingAmount - item.amount);
+        await db
+          .update(debts)
+          .set({
+            totalAmount: newTotal,
+            remainingAmount: newRemaining,
+            isPaid: newRemaining === 0,
+          })
+          .where(eq(debts.id, item.debtId));
+      }
+    }
+
     await db
       .delete(expenses)
       .where(and(eq(expenses.id, id), or(eq(expenses.userId, userId), isNull(expenses.userId))));
+
     return { success: true };
   });
 

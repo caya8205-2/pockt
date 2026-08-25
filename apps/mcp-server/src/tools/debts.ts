@@ -108,4 +108,18 @@ export function registerDebtTools(server: McpServer, client: PocktClient) {
       };
     }
   );
+
+  server.tool(
+    "get_debt_expenses",
+    "Get all granular Paylater expense items attached/linked to a specific Debt.",
+    {
+      id: z.string().describe("Debt record ID"),
+    },
+    async ({ id }) => {
+      const data = await client.get(`/api/debts/${id}/expenses`);
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
 }

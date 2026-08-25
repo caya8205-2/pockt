@@ -27,8 +27,20 @@
     amount: number;
     date: string;
     category?: string;
+    paymentMethod?: string | null;
+    debtId?: string | null;
+    isPaylater?: boolean | null;
     notes?: string | null;
     status?: string;
+  }
+
+  function formatPaylaterLabel(method?: string | null): string {
+    if (method === 'GOPAY_LATER') return 'GoPay Later';
+    if (method === 'SPAYLATER') return 'SPayLater';
+    if (method === 'OTHER_PAYLATER') return 'Paylater';
+    if (method === 'DEBIT') return 'Debit';
+    if (method === 'TRANSFER') return 'Transfer';
+    return method || '';
   }
 
   let dashboard: DashboardData | null = null;
@@ -215,11 +227,20 @@
               {/if}
 
               <div class="min-w-0">
-                <div class="flex items-center gap-2 min-w-0">
+                <div class="flex items-center gap-2 min-w-0 flex-wrap">
                   <span class="font-bold text-[var(--color-ink)] text-sm truncate">{item.title}</span>
                   {#if item.category}
                     <span class="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded shrink-0 whitespace-nowrap">
                       {item.category}
+                    </span>
+                  {/if}
+                  {#if item.paymentMethod && item.paymentMethod !== 'CASH'}
+                    <span class={`px-1.5 py-0.5 text-[10px] font-mono font-semibold rounded shrink-0 whitespace-nowrap ${
+                      item.isPaylater || ['GOPAY_LATER', 'SPAYLATER', 'OTHER_PAYLATER'].includes(item.paymentMethod)
+                        ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                        : 'bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]'
+                    }`}>
+                      {formatPaylaterLabel(item.paymentMethod)}
                     </span>
                   {/if}
                 </div>

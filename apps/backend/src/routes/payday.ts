@@ -139,7 +139,11 @@ export async function paydayRoutes(fastify: FastifyInstance) {
       .where(or(eq(expenses.userId, userId), isNull(expenses.userId)));
 
     const cycleExpenses = allExpenses.filter((e) => e.date >= cycleStart && e.date <= cycleEnd);
-    const spentTotal = cycleExpenses.reduce((acc, curr) => acc + curr.amount, 0);
+    // Only cash expenses reduce the cash pool directly; Paylater obligations are accounted under debtDueThisMonth/debtPaidThisMonth
+    const cycleCashExpenses = cycleExpenses.filter(
+      (e) => !e.isPaylater && e.paymentMethod !== 'GOPAY_LATER' && e.paymentMethod !== 'SPAYLATER' && e.paymentMethod !== 'OTHER_PAYLATER'
+    );
+    const spentTotal = cycleCashExpenses.reduce((acc, curr) => acc + curr.amount, 0);
 
     const freeToSpend = totalSalaryReceived - billsTotal - billPaidThisCycle - debtPaidThisMonth - debtDueThisMonth - spentTotal;
 

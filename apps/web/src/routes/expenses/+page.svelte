@@ -18,6 +18,9 @@
     title: string;
     amount: number;
     category: string;
+    paymentMethod?: string;
+    debtId?: string | null;
+    isPaylater?: boolean;
     date: string;
     notes: string | null;
   }
@@ -28,10 +31,17 @@
     color: string;
   }
 
+  interface DebtItem {
+    id: string;
+    person: string;
+    remainingAmount: number;
+  }
+
   type PeriodFilter = 'ALL' | 'TODAY' | 'WEEK' | 'MONTH' | 'YEAR';
 
   let expenses: Expense[] = [];
   let categories: Category[] = [];
+  let availableDebts: DebtItem[] = [];
   let isLoading = true;
   let draggedIndex: number | null = null;
 
@@ -46,8 +56,12 @@
   let title = '';
   let amount: number | null = null;
   let category = 'Umum';
+  let paymentMethod = 'CASH';
+  let debtId = '';
   let date = new Date().toISOString().split('T')[0];
   let notes = '';
+
+  $: isCurrentPaylater = ['GOPAY_LATER', 'SPAYLATER', 'OTHER_PAYLATER'].includes(paymentMethod);
 
   // New category inline
   let showNewCatInput = false;
@@ -72,15 +86,26 @@
     return name;
   }
 
+  function formatPaylaterLabel(method?: string): string {
+    if (method === 'GOPAY_LATER') return 'GoPay Later';
+    if (method === 'SPAYLATER') return 'SPayLater';
+    if (method === 'OTHER_PAYLATER') return 'Paylater';
+    if (method === 'DEBIT') return 'Debit';
+    if (method === 'TRANSFER') return 'Transfer';
+    return method || 'Cash';
+  }
+
   async function loadData() {
     isLoading = true;
     try {
-      const [expRes, catRes] = await Promise.all([
+      const [expRes, catRes, debtsRes] = await Promise.all([
         fetchApi<Expense[]>('/expenses'),
         fetchApi<Category[]>('/categories'),
+        fetchApi<DebtItem[]>('/debts').catch(() => []),
       ]);
       expenses = expRes;
       categories = catRes;
+      availableDebts = debtsRes || [];
     } catch (err) {
       console.error(err);
     } finally {
@@ -116,6 +141,8 @@
     title = '';
     amount = null;
     category = categories[0]?.name || 'Umum';
+    paymentMethod = 'CASH';
+    debtId = '';
     date = new Date().toISOString().split('T')[0];
     notes = '';
     showNewCatInput = false;
@@ -128,6 +155,8 @@
     title = item.title;
     amount = item.amount;
     category = item.category;
+    paymentMethod = item.paymentMethod || 'CASH';
+    debtId = item.debtId || '';
     date = item.date;
     notes = item.notes || '';
     showNewCatInput = false;
@@ -154,15 +183,25 @@
   async function handleSubmit() {
     if (!title || !amount || amount <= 0) return;
 
+    const payload = {
+      title,
+      amount: Number(amount),
+      category,
+      paymentMethod,
+      debtId: debtId ? debtId : null,
+      date,
+      notes: notes || null,
+    };
+
     if (editingId) {
       await fetchApi(`/expenses/${editingId}`, {
         method: 'PUT',
-        body: JSON.stringify({ title, amount: Number(amount), category, date, notes }),
+        body: JSON.stringify(payload),
       });
     } else {
       await fetchApi('/expenses', {
         method: 'POST',
-        body: JSON.stringify({ title, amount: Number(amount), category, date, notes }),
+        body: JSON.stringify(payload),
       });
     }
 
@@ -386,6 +425,15 @@
                 <span class="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded shrink-0">
                   {catLabel(item.category)}
                 </span>
+                {#if item.paymentMethod && item.paymentMethod !== 'CASH'}
+                  <span class={`px-1.5 py-0.5 text-[10px] font-mono font-semibold rounded shrink-0 ${
+                    item.isPaylater || ['GOPAY_LATER', 'SPAYLATER', 'OTHER_PAYLATER'].includes(item.paymentMethod)
+                      ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                      : 'bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]'
+                  }`}>
+                    {formatPaylaterLabel(item.paymentMethod)}
+                  </span>
+                {/if}
               </div>
               <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-0.5">
                 {formatDateNumeric(item.date)} ({formatDate(item.date)}) {#if item.notes}• <span class="italic text-[var(--color-ink-muted)] font-sans">{item.notes}</span>{/if}
@@ -482,6 +530,48 @@
         </select>
       {/if}
     </div>
+
+    <!-- Payment Method Selector -->
+    <div>
+      <label for="sel-exp-method" class="modal-label">{t.payment_method_label}</label>
+      <select
+        id="sel-exp-method"
+        bind:value={paymentMethod}
+        class="modal-input"
+      >
+        <option value="CASH">{t.method_cash}</option>
+        <option value="DEBIT">{t.method_debit}</option>
+        <option value="TRANSFER">{t.method_transfer}</option>
+        <option value="GOPAY_LATER">{t.method_gopay_later}</option>
+        <option value="SPAYLATER">{t.method_spaylater}</option>
+        <option value="OTHER_PAYLATER">{t.method_other_paylater}</option>
+      </select>
+    </div>
+
+    <!-- Paylater Info & Debt Linking -->
+    {#if isCurrentPaylater}
+      <div class="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-md space-y-2 text-xs font-mono">
+        <p class="text-amber-800 dark:text-amber-300 leading-relaxed">
+          💡 {t.paylater_info_hint}
+        </p>
+        {#if availableDebts.length > 0}
+          <div>
+            <label for="sel-exp-debt" class="modal-label text-amber-900 dark:text-amber-200">{t.linked_debt_label}</label>
+            <select
+              id="sel-exp-debt"
+              bind:value={debtId}
+              class="modal-input bg-white dark:bg-[var(--color-paper)]"
+            >
+              <option value="">-- {t.linked_debt_none} --</option>
+              {#each availableDebts as d}
+                <option value={d.id}>{d.person} (Sisa: {formatRupiah(d.remainingAmount)})</option>
+              {/each}
+            </select>
+          </div>
+        {/if}
+      </div>
+    {/if}
+
     <div>
       <label for="inp-exp-date" class="modal-label">
         {t.date_label} <span class="text-[10px] text-[var(--color-ink-muted)] font-normal">(Format: DD/MM/YYYY)</span>

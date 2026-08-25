@@ -633,4 +633,156 @@ describe('Pockt Full Backend API Suite', () => {
     }
   });
 
+  it('Paylater Expenses & Debt Auto-Sync - Create, Sync, Update, Dashboard Balance, and Delete', async () => {
+    // 1. Create a base Paylater Debt record
+    const createDebtRes = await app.inject({
+      method: 'POST',
+      url: '/api/debts',
+      cookies,
+      payload: {
+        person: 'SPayLater Tagihan',
+        totalAmount: 200000,
+        dueDate: '2026-08-30',
+        notes: 'Paylater container',
+      },
+    });
+    expect(createDebtRes.statusCode).toBe(201);
+    const debtObj = JSON.parse(createDebtRes.body);
+    const debtId = debtObj.id;
+
+    // Check dashboard initial currentBalance
+    const dashBefore = JSON.parse((await app.inject({ method: 'GET', url: '/api/dashboard', cookies })).body);
+    const initialBalance = dashBefore.currentBalance;
+
+    // 2. Create Paylater Expense linked to this Debt
+    const createExpRes = await app.inject({
+      method: 'POST',
+      url: '/api/expenses',
+      cookies,
+      payload: {
+        title: 'Beli Kopi & Snack Paylater',
+        amount: 45000,
+        category: 'Makanan & Minuman',
+        paymentMethod: 'SPAYLATER',
+        debtId: debtId,
+        date: '2026-08-25',
+        notes: 'Belanja via SPayLater',
+      },
+    });
+    expect(createExpRes.statusCode).toBe(201);
+    const expObj = JSON.parse(createExpRes.body);
+    expect(expObj.isPaylater).toBe(true);
+    expect(expObj.paymentMethod).toBe('SPAYLATER');
+    expect(expObj.debtId).toBe(debtId);
+
+    // 3. Verify Debt totalAmount & remainingAmount auto-accumulated (+45,000 => 245,000)
+    const debtsListRes = await app.inject({ method: 'GET', url: '/api/debts', cookies });
+    const updatedDebt = JSON.parse(debtsListRes.body).find((d: any) => d.id === debtId);
+    expect(updatedDebt).toBeDefined();
+    expect(updatedDebt.totalAmount).toBe(245000);
+    expect(updatedDebt.remainingAmount).toBe(245000);
+
+    // 4. Verify GET /api/debts/:id/expenses returns the linked expense
+    const attachedExpRes = await app.inject({ method: 'GET', url: `/api/debts/${debtId}/expenses`, cookies });
+    expect(attachedExpRes.statusCode).toBe(200);
+    const attachedList = JSON.parse(attachedExpRes.body);
+    expect(attachedList.length).toBeGreaterThanOrEqual(1);
+    expect(attachedList.some((e: any) => e.id === expObj.id)).toBe(true);
+
+    // 5. Verify Dashboard: currentBalance must NOT be reduced by Paylater expense!
+    const dashAfter = JSON.parse((await app.inject({ method: 'GET', url: '/api/dashboard', cookies })).body);
+    expect(dashAfter.currentBalance).toBe(initialBalance);
+
+    // 6. Update expense amount (+15,000 => 60,000)
+    const updateExpRes = await app.inject({
+      method: 'PUT',
+      url: `/api/expenses/${expObj.id}`,
+      cookies,
+      payload: {
+        title: 'Beli Kopi & Snack Paylater (Updated)',
+        amount: 60000,
+        category: 'Makanan & Minuman',
+        paymentMethod: 'SPAYLATER',
+        debtId: debtId,
+        date: '2026-08-25',
+      },
+    });
+    expect(updateExpRes.statusCode).toBe(200);
+
+    // Verify Debt auto-adjusted to 260,000
+    const debtsListRes2 = await app.inject({ method: 'GET', url: '/api/debts', cookies });
+    const updatedDebt2 = JSON.parse(debtsListRes2.body).find((d: any) => d.id === debtId);
+    expect(updatedDebt2.totalAmount).toBe(260000);
+    expect(updatedDebt2.remainingAmount).toBe(260000);
+
+    // 7. Delete expense
+    const deleteExpRes = await app.inject({
+      method: 'DELETE',
+      url: `/api/expenses/${expObj.id}`,
+      cookies,
+    });
+    expect(deleteExpRes.statusCode).toBe(200);
+
+    // Verify Debt decreased back to 200,000
+    const debtsListRes3 = await app.inject({ method: 'GET', url: '/api/debts', cookies });
+    const updatedDebt3 = JSON.parse(debtsListRes3.body).find((d: any) => d.id === debtId);
+    expect(updatedDebt3.totalAmount).toBe(200000);
+    expect(updatedDebt3.remainingAmount).toBe(200000);
+
+    // Cleanup debt
+    await app.inject({ method: 'DELETE', url: `/api/debts/${debtId}`, cookies });
+  });
+
+  it('GET /api/reminders/upcoming - accurately identifies due bills and debts', async () => {
+    const today = new Date();
+    const todayDay = today.getDate();
+    const formatISO = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+    // Create a Bill due today or tomorrow
+    const billRes = await app.inject({
+      method: 'POST',
+      url: '/api/bills',
+      cookies,
+      payload: {
+        name: 'Tagihan Reminder Test',
+        amount: 150000,
+        dueDate: todayDay,
+      },
+    });
+    expect(billRes.statusCode).toBe(201);
+    const billId = JSON.parse(billRes.body).id;
+
+    // Create a Debt due tomorrow (H-1)
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const debtRes = await app.inject({
+      method: 'POST',
+      url: '/api/debts',
+      cookies,
+      payload: {
+        person: 'Hutang Reminder Test',
+        totalAmount: 300000,
+        dueDate: formatISO(tomorrow),
+      },
+    });
+    expect(debtRes.statusCode).toBe(201);
+    const debtId = JSON.parse(debtRes.body).id;
+
+    // Call upcoming reminders
+    const remindersRes = await app.inject({
+      method: 'GET',
+      url: '/api/reminders/upcoming?days=3',
+      cookies,
+    });
+    expect(remindersRes.statusCode).toBe(200);
+    const remindersData = JSON.parse(remindersRes.body);
+    expect(remindersData.totalCount).toBeGreaterThanOrEqual(2);
+    expect(remindersData.upcomingBills.some((b: any) => b.id === billId)).toBe(true);
+    expect(remindersData.upcomingDebts.some((d: any) => d.id === debtId)).toBe(true);
+
+    // Cleanup
+    await app.inject({ method: 'DELETE', url: `/api/bills/${billId}`, cookies });
+    await app.inject({ method: 'DELETE', url: `/api/debts/${debtId}`, cookies });
+  });
+
 });

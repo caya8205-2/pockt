@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db } from '../db/index.js';
-import { debts, debtPayments } from '../db/schema.js';
+import { debts, debtPayments, expenses } from '../db/schema.js';
 import { eq, desc, and, or, isNull } from 'drizzle-orm';
 import { cryptoNative } from '../utils/id.js';
 
@@ -139,6 +139,17 @@ export async function debtRoutes(fastify: FastifyInstance) {
       .where(and(eq(debtPayments.debtId, id), or(eq(debtPayments.userId, userId), isNull(debtPayments.userId))))
       .orderBy(desc(debtPayments.date));
     return payments;
+  });
+
+  fastify.get('/api/debts/:id/expenses', async (request, reply) => {
+    const userId = getUserId(request);
+    const { id } = request.params as { id: string };
+    const list = await db
+      .select()
+      .from(expenses)
+      .where(and(eq(expenses.debtId, id), or(eq(expenses.userId, userId), isNull(expenses.userId))))
+      .orderBy(desc(expenses.date), desc(expenses.createdAt));
+    return list;
   });
 
   fastify.post('/api/debts/:id/restore', async (request, reply) => {

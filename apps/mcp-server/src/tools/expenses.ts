@@ -5,10 +5,17 @@ import { PocktClient } from "../client.js";
 export function registerExpenseTools(server: McpServer, client: PocktClient) {
   server.tool(
     "list_expenses",
-    "List all expense records, sorted by date descending.",
-    {},
-    async () => {
-      const data = await client.get("/api/expenses");
+    "List all expense records, sorted by date descending. Can optionally filter by debtId or paymentMethod.",
+    {
+      debtId: z.string().optional().describe("Optional: filter expenses linked to a specific Debt ID"),
+      paymentMethod: z.string().optional().describe("Optional: filter by payment method (e.g. 'GOPAY_LATER', 'SPAYLATER', 'CASH')"),
+    },
+    async (args) => {
+      const params = new URLSearchParams();
+      if (args?.debtId) params.append("debtId", args.debtId);
+      if (args?.paymentMethod) params.append("paymentMethod", args.paymentMethod);
+      const queryStr = params.toString() ? `?${params.toString()}` : "";
+      const data = await client.get(`/api/expenses${queryStr}`);
       return {
         content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
       };
@@ -17,12 +24,15 @@ export function registerExpenseTools(server: McpServer, client: PocktClient) {
 
   server.tool(
     "create_expense",
-    "Record a new expense (daily spending). Use list_categories first to see available categories.",
+    "Record a new expense (daily spending). Supports Paylater payment methods (GOPAY_LATER, SPAYLATER, OTHER_PAYLATER) which track items without reducing current cash balance, and can auto-accumulate into a linked Debt.",
     {
       title: z.string().describe("Title/description of the expense"),
       amount: z.number().positive().describe("Amount in IDR"),
       category: z.string().describe("Category name (e.g., 'Makanan & Minuman', 'Transportasi')"),
       date: z.string().describe("Date in YYYY-MM-DD format"),
+      paymentMethod: z.string().optional().describe("Payment method: CASH (default), DEBIT, TRANSFER, GOPAY_LATER, SPAYLATER, OTHER_PAYLATER"),
+      debtId: z.string().optional().describe("Optional Debt ID to auto-accumulate and sync this paylater expense into"),
+      isPaylater: z.boolean().optional().describe("Optional boolean to mark explicitly as paylater"),
       notes: z.string().optional().describe("Optional notes"),
     },
     async (args) => {
@@ -38,10 +48,13 @@ export function registerExpenseTools(server: McpServer, client: PocktClient) {
     "Update an existing expense record by ID.",
     {
       id: z.string().describe("Expense record ID"),
-      title: z.string().describe("Updated title"),
-      amount: z.number().positive().describe("Updated amount in IDR"),
-      category: z.string().describe("Updated category name"),
-      date: z.string().describe("Updated date in YYYY-MM-DD format"),
+      title: z.string().optional().describe("Updated title"),
+      amount: z.number().positive().optional().describe("Updated amount in IDR"),
+      category: z.string().optional().describe("Updated category name"),
+      date: z.string().optional().describe("Updated date in YYYY-MM-DD format"),
+      paymentMethod: z.string().optional().describe("Updated payment method (CASH, DEBIT, GOPAY_LATER, SPAYLATER, etc.)"),
+      debtId: z.string().optional().nullable().describe("Updated linked Debt ID or null to unlink"),
+      isPaylater: z.boolean().optional().describe("Updated isPaylater boolean"),
       notes: z.string().optional().nullable().describe("Updated notes"),
     },
     async ({ id, ...body }) => {

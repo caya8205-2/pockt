@@ -30,7 +30,13 @@ export async function dashboardRoutes(fastify: FastifyInstance) {
       .from(expenses)
       .where(or(eq(expenses.userId, userId), isNull(expenses.userId)));
 
-    const totalExpensesAllTime = allExpenses.reduce((acc, curr) => acc + curr.amount, 0);
+    // Cash-draining expenses only (Paylater does NOT reduce cash balance immediately)
+    const cashExpenses = allExpenses.filter(
+      (e) => !e.isPaylater && e.paymentMethod !== 'GOPAY_LATER' && e.paymentMethod !== 'SPAYLATER' && e.paymentMethod !== 'OTHER_PAYLATER'
+    );
+    const totalCashExpensesAllTime = cashExpenses.reduce((acc, curr) => acc + curr.amount, 0);
+
+    // Monthly expenses (All expenses including paylater count towards monthly budget analytics)
     const monthlyExpenses = allExpenses
       .filter((e) => e.date.startsWith(currentMonth))
       .reduce((acc, curr) => acc + curr.amount, 0);
@@ -51,8 +57,8 @@ export async function dashboardRoutes(fastify: FastifyInstance) {
 
     const totalBillPaidAllTime = allBillPayments.reduce((acc, curr) => acc + curr.amount, 0);
 
-    // Current Balance = Total Income - Total Expenses - Total Debt Payments - Total Bill Payments
-    const currentBalance = totalIncomeAllTime - totalExpensesAllTime - totalDebtPaidAllTime - totalBillPaidAllTime;
+    // Current Balance = Total Income - Total Cash Expenses - Total Debt Payments - Total Bill Payments
+    const currentBalance = totalIncomeAllTime - totalCashExpensesAllTime - totalDebtPaidAllTime - totalBillPaidAllTime;
 
     // Outstanding Bills (unpaid bills remaining amount) for this user
     const allBills = await db

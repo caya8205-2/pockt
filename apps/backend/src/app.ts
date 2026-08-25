@@ -14,6 +14,7 @@ import { timelineRoutes } from './routes/timeline.js';
 import { paydayRoutes } from './routes/payday.js';
 import { settledRoutes } from './routes/settled.js';
 import { backupRoutes } from './routes/backup.js';
+import { reminderRoutes } from './routes/reminders.js';
 
 const KNOWN_WEAK_SECRETS = ['pockt-secret-key-321', 'pockt-prod-secret-change-this-987'];
 
@@ -124,6 +125,7 @@ export async function buildApp() {
   await app.register(paydayRoutes);
   await app.register(settledRoutes);
   await app.register(backupRoutes);
+  await app.register(reminderRoutes);
 
   app.get('/api/health', async () => {
     return { status: 'ok', name: 'Pockt API', time: new Date().toISOString() };

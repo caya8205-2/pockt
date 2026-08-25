@@ -5,7 +5,7 @@
   import { currentLang, translations } from '$lib/i18n';
   import { sortWithCustomOrder, saveCustomOrder } from '$lib/order';
   import { sortItems, type SortOption } from '$lib/sort';
-  import { HandCoins, Plus, Trash2, Edit3, DollarSign, History, GripVertical, BadgeCheck } from 'lucide-svelte';
+  import { HandCoins, Plus, Trash2, Edit3, DollarSign, History, GripVertical, BadgeCheck, Receipt } from 'lucide-svelte';
   import Modal from '$components/Modal.svelte';
   import AmountInput from '$components/AmountInput.svelte';
   import SortDropdown from '$components/SortDropdown.svelte';
@@ -26,6 +26,15 @@
   interface Payment {
     id: string;
     amount: number;
+    date: string;
+    notes: string | null;
+  }
+
+  interface AttachedExpense {
+    id: string;
+    title: string;
+    amount: number;
+    category: string;
     date: string;
     notes: string | null;
   }
@@ -54,6 +63,12 @@
   let showHistoryModal = false;
   let historyPayments: Payment[] = [];
   let historyPerson = '';
+
+  // Attached Expenses modal
+  let showExpensesModal = false;
+  let attachedExpenses: AttachedExpense[] = [];
+  let attachedDebtPerson = '';
+  let isLoadingAttachedExpenses = false;
 
   async function loadDebts() {
     isLoading = true;
@@ -123,6 +138,20 @@
       showHistoryModal = true;
     } catch (err) {
       console.error(err);
+    }
+  }
+
+  async function openAttachedExpensesModal(item: Debt) {
+    attachedDebtPerson = item.person;
+    isLoadingAttachedExpenses = true;
+    showExpensesModal = true;
+    try {
+      attachedExpenses = await fetchApi<AttachedExpense[]>(`/debts/${item.id}/expenses`);
+    } catch (err) {
+      console.error(err);
+      attachedExpenses = [];
+    } finally {
+      isLoadingAttachedExpenses = false;
     }
   }
 
@@ -280,6 +309,15 @@
                 <History class="w-3.5 h-3.5" />
                 <span>{t.history}</span>
               </button>
+
+              <button
+                on:click={() => openAttachedExpensesModal(item)}
+                class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] rounded-md transition-colors cursor-pointer"
+                title={t.debt_attached_expenses}
+              >
+                <Receipt class="w-3.5 h-3.5" />
+                <span>{t.debt_attached_expenses}</span>
+              </button>
             </div>
 
             <div class="flex items-center gap-1">
@@ -410,6 +448,36 @@
           </div>
         </div>
       {/each}
+    </div>
+  {/if}
+</Modal>
+
+<!-- Attached Expenses Modal -->
+<Modal isOpen={showExpensesModal} title={`${t.debt_attached_expenses}: ${attachedDebtPerson}`} onClose={() => (showExpensesModal = false)}>
+  {#if isLoadingAttachedExpenses}
+    <p class="text-xs font-mono text-[var(--color-ink-muted)] py-6 text-center">Memuat rincian transaksi belanja...</p>
+  {:else if attachedExpenses.length === 0}
+    <p class="text-xs font-mono text-[var(--color-ink-muted)] py-6 text-center">{t.debt_attached_empty}</p>
+  {:else}
+    <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
+      {#each attachedExpenses as exp}
+        <div class="bg-[var(--color-paper)] p-3 rounded-md flex items-center justify-between text-xs border border-[var(--color-border)] font-mono">
+          <div class="min-w-0 flex-1">
+            <div class="font-bold text-[var(--color-ink)] truncate">{exp.title}</div>
+            <div class="text-[11px] text-[var(--color-ink-muted)] mt-0.5">
+              {formatDateNumeric(exp.date)} ({formatDate(exp.date)}) • {exp.category}
+              {#if exp.notes}<span class="italic font-sans"> — {exp.notes}</span>{/if}
+            </div>
+          </div>
+          <div class="font-bold text-rose-600 dark:text-rose-400 shrink-0 ml-3 whitespace-nowrap">
+            +{formatRupiah(exp.amount)}
+          </div>
+        </div>
+      {/each}
+    </div>
+    <div class="mt-3 pt-3 border-t border-[var(--color-border)] flex items-center justify-between font-mono text-xs">
+      <span class="text-[var(--color-ink-muted)]">Total Belanja Tertaut:</span>
+      <span class="font-bold text-[var(--color-ink)]">{formatRupiah(attachedExpenses.reduce((acc, c) => acc + c.amount, 0))}</span>
     </div>
   {/if}
 </Modal>

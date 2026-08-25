@@ -10,6 +10,9 @@ export interface TimelineItem {
   amount: number;
   date: string;
   category?: string;
+  paymentMethod?: string | null;
+  debtId?: string | null;
+  isPaylater?: boolean | null;
   notes?: string | null;
   status?: string;
 }
@@ -77,6 +80,9 @@ export async function timelineRoutes(fastify: FastifyInstance) {
         amount: exp.amount,
         date: exp.date,
         category: exp.category,
+        paymentMethod: exp.paymentMethod,
+        debtId: exp.debtId,
+        isPaylater: exp.isPaylater,
         notes: exp.notes,
       });
     }
