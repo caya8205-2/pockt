@@ -6,12 +6,13 @@ All notable changes to Pockt are documented in this file. Grouped by release, wi
 
 ### Paylater Expense Tracking & Debt Auto-Sync
 
-- **Payment Methods & Paylater Schema (`expenses`)**: Added `paymentMethod` (`CASH`, `DEBIT`, `TRANSFER`, `GOPAY_LATER`, `SPAYLATER`, `OTHER_PAYLATER`), `debtId` (foreign key linking to `debts.id`), and `isPaylater` boolean flag in `schema.ts` and `initDb()` safe migrations.
+- **Payment Methods & Paylater Schema (`expenses` & `debts`)**: Added `paymentMethod`, `debtId`, and `isPaylater` on `expenses`, and added `type` (`PERSONAL`, `GOPAY_LATER`, `SPAYLATER`, `OTHER_PAYLATER`) on `debts` with automatic backfilling for existing debt records.
+- **Smart Debt Auto-Match & Auto-Creation**: When an expense is recorded with a Paylater method without an explicit `debtId`, backend automatically matches the active debt container by type or name keyword (e.g. *"Gopay Later Oktober"*, *"Shopee Paylater"*). If no active debt exists, it automatically creates a new named Paylater container debt and links the transaction.
 - **Cash Flow Isolation**: Expenses paid via Paylater (`GOPAY_LATER`, `SPAYLATER`, `OTHER_PAYLATER`) do NOT deduct current cash balance (`currentBalance`) on transaction date. They are recorded cleanly in `monthlyExpenses` and category analytics, while actual cash deduction occurs when the debt obligation is paid off via `/api/debts/:id/pay`.
 - **Debt Auto-Accumulation & Sync**: Linking an expense to a Debt record automatically accumulates `amount` into the debt's `totalAmount` and `remainingAmount` upon creation, calculates differences upon expense editing, and decreases debt amounts when the expense is deleted.
 - **Granular Attached Expenses API (`GET /api/debts/:id/expenses`)**: Added endpoint to fetch granular expense items attached to any Paylater debt record, eliminating manual aggregation in debt notes.
-- **MCP Server Paylater Enhancements**: Updated `create_expense`, `update_expense`, and `list_expenses` tools to support `paymentMethod` and `debtId` parameters. Added `get_debt_expenses` MCP tool.
-- **Web UI & Modals**: Added Payment Method selectors in `QuickAddModal.svelte` and `expenses/+page.svelte`, Paylater badges on expense lists and timeline feeds, and an interactive "Rincian Belanja Paylater" modal on `debts/+page.svelte`.
+- **MCP Server Paylater Enhancements**: Updated `create_expense`, `update_expense`, and `list_expenses` tools to support `paymentMethod` and `debtId` parameters. Updated `list_debts`, `create_debt`, and `update_debt` to support `type`. Added `get_debt_expenses` MCP tool.
+- **Web UI & Modals**: Added Payment Method selectors in `QuickAddModal.svelte` and `expenses/+page.svelte`, Paylater badges on expense lists and timeline feeds, Debt Type selector with reactive auto-detection, and an interactive "Rincian Belanja Paylater" modal on `debts/+page.svelte`.
 
 ### Proactive Due Date Reminders (Telegram via Hermes Cron)
 

@@ -5,10 +5,13 @@ import { PocktClient } from "../client.js";
 export function registerDebtTools(server: McpServer, client: PocktClient) {
   server.tool(
     "list_debts",
-    "List all active (unpaid) debts.",
-    {},
-    async () => {
-      const data = await client.get("/api/debts");
+    "List all active (unpaid) debts. Can optionally filter by type.",
+    {
+      type: z.string().optional().describe("Optional: filter by debt type ('PERSONAL', 'GOPAY_LATER', 'SPAYLATER', 'OTHER_PAYLATER')"),
+    },
+    async (args) => {
+      const queryStr = args?.type ? `?type=${encodeURIComponent(args.type)}` : "";
+      const data = await client.get(`/api/debts${queryStr}`);
       return {
         content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
       };
@@ -17,9 +20,10 @@ export function registerDebtTools(server: McpServer, client: PocktClient) {
 
   server.tool(
     "create_debt",
-    "Record a new debt (money owed to someone).",
+    "Record a new debt (money owed to someone, bank loan, or paylater container).",
     {
-      person: z.string().describe("Person you owe money to"),
+      person: z.string().describe("Person or entity you owe money to (e.g., 'Budi', 'Gopay Later Oktober', 'Shopee Paylater Oktober', 'Bank Jago')"),
+      type: z.string().optional().describe("Debt type: 'PERSONAL', 'GOPAY_LATER', 'SPAYLATER', 'OTHER_PAYLATER'. Auto-inferred if omitted."),
       totalAmount: z.number().positive().describe("Total debt amount in IDR"),
       dueDate: z.string().optional().describe("Due date in YYYY-MM-DD format"),
       notes: z.string().optional().describe("Optional notes"),
@@ -37,8 +41,9 @@ export function registerDebtTools(server: McpServer, client: PocktClient) {
     "Update an existing debt record by ID.",
     {
       id: z.string().describe("Debt record ID"),
-      person: z.string().describe("Updated person name"),
-      totalAmount: z.number().positive().describe("Updated total amount in IDR"),
+      person: z.string().optional().describe("Updated person/entity name"),
+      type: z.string().optional().describe("Updated debt type ('PERSONAL', 'GOPAY_LATER', 'SPAYLATER', 'OTHER_PAYLATER')"),
+      totalAmount: z.number().positive().optional().describe("Updated total amount in IDR"),
       dueDate: z.string().optional().nullable().describe("Updated due date in YYYY-MM-DD format"),
       notes: z.string().optional().nullable().describe("Updated notes"),
     },

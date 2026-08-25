@@ -67,6 +67,7 @@ export const debts = sqliteTable('debts', {
   id: text('id').primaryKey(),
   userId: text('user_id'),
   person: text('person').notNull(),
+  type: text('type').notNull().default('PERSONAL'),
   totalAmount: real('total_amount').notNull(),
   remainingAmount: real('remaining_amount').notNull(),
   dueDate: text('due_date'), // YYYY-MM-DD

@@ -5,8 +5,18 @@ import { debts, debtPayments, expenses } from '../db/schema.js';
 import { eq, desc, and, or, isNull } from 'drizzle-orm';
 import { cryptoNative } from '../utils/id.js';
 
+export function inferDebtType(person: string, explicitType?: string | null): string {
+  if (explicitType && explicitType.trim().length > 0) return explicitType.toUpperCase();
+  const lower = person.toLowerCase();
+  if (lower.includes('gopay') || lower.includes('go-pay')) return 'GOPAY_LATER';
+  if (lower.includes('spaylater') || lower.includes('shopee') || lower.includes('shopeepay')) return 'SPAYLATER';
+  if (lower.includes('paylater')) return 'OTHER_PAYLATER';
+  return 'PERSONAL';
+}
+
 const debtSchema = z.object({
   person: z.string().min(1),
+  type: z.string().optional().nullable(),
   totalAmount: z.number().positive(),
   dueDate: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
@@ -25,11 +35,18 @@ function getUserId(request: any): string {
 export async function debtRoutes(fastify: FastifyInstance) {
   fastify.get('/api/debts', async (request) => {
     const userId = getUserId(request);
-    const list = await db
+    const query = request.query as { type?: string } | undefined;
+
+    let list = await db
       .select()
       .from(debts)
       .where(and(or(eq(debts.userId, userId), isNull(debts.userId)), eq(debts.isPaid, false)))
       .orderBy(desc(debts.createdAt));
+
+    if (query?.type) {
+      list = list.filter((d) => (d.type || '').toUpperCase() === query.type!.toUpperCase());
+    }
+
     return list;
   });
 
@@ -37,10 +54,13 @@ export async function debtRoutes(fastify: FastifyInstance) {
     const userId = getUserId(request);
     const body = debtSchema.parse(request.body);
     const id = cryptoNative();
+    const type = inferDebtType(body.person, body.type);
+
     const newItem = {
       id,
       userId,
       person: body.person,
+      type,
       totalAmount: body.totalAmount,
       remainingAmount: body.totalAmount,
       dueDate: body.dueDate || null,
@@ -68,6 +88,7 @@ export async function debtRoutes(fastify: FastifyInstance) {
     }
 
     const current = existing[0];
+    const type = body.type !== undefined ? inferDebtType(body.person, body.type) : (current.type || inferDebtType(body.person));
     const diff = body.totalAmount - current.totalAmount;
     const newRemaining = Math.max(0, current.remainingAmount + diff);
     const isPaid = newRemaining === 0;
@@ -76,6 +97,7 @@ export async function debtRoutes(fastify: FastifyInstance) {
       .update(debts)
       .set({
         person: body.person,
+        type: type,
         totalAmount: body.totalAmount,
         remainingAmount: newRemaining,
         dueDate: body.dueDate || null,

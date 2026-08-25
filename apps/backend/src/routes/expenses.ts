@@ -33,6 +33,87 @@ function getUserId(request: any): string {
   return request.userId || 'default';
 }
 
+const MONTH_NAMES_ID = [
+  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+];
+
+async function findOrCreateMatchingPaylaterDebt(
+  userId: string,
+  paymentMethod: string,
+  expenseDateStr: string,
+  expenseAmount: number,
+  expenseTitle: string
+): Promise<string> {
+  const methodUpper = paymentMethod.toUpperCase();
+  const activeDebts = await db
+    .select()
+    .from(debts)
+    .where(and(or(eq(debts.userId, userId), isNull(debts.userId)), eq(debts.isPaid, false)))
+    .orderBy(desc(debts.createdAt));
+
+  // 1. Try exact type match
+  let matched = activeDebts.find((d) => (d.type || '').toUpperCase() === methodUpper);
+
+  // 2. If not found by type, try keyword match on person name
+  if (!matched) {
+    if (methodUpper === 'GOPAY_LATER') {
+      matched = activeDebts.find((d) => {
+        const p = d.person.toLowerCase();
+        return p.includes('gopay') || p.includes('go-pay');
+      });
+    } else if (methodUpper === 'SPAYLATER') {
+      matched = activeDebts.find((d) => {
+        const p = d.person.toLowerCase();
+        return p.includes('spaylater') || p.includes('shopee') || p.includes('shopeepay');
+      });
+    } else if (methodUpper === 'OTHER_PAYLATER') {
+      matched = activeDebts.find((d) => d.person.toLowerCase().includes('paylater'));
+    }
+  }
+
+  if (matched) {
+    // Accumulate to existing debt
+    const newTotal = matched.totalAmount + expenseAmount;
+    const newRemaining = matched.remainingAmount + expenseAmount;
+    await db
+      .update(debts)
+      .set({
+        totalAmount: newTotal,
+        remainingAmount: newRemaining,
+        isPaid: false,
+      })
+      .where(eq(debts.id, matched.id));
+
+    return matched.id;
+  }
+
+  // 3. If no matching debt found, auto-create one
+  const expDate = new Date(expenseDateStr);
+  const monthName = MONTH_NAMES_ID[isNaN(expDate.getTime()) ? new Date().getMonth() : expDate.getMonth()];
+  let defaultPersonName = 'Paylater';
+  if (methodUpper === 'GOPAY_LATER') defaultPersonName = `Gopay Later ${monthName}`;
+  else if (methodUpper === 'SPAYLATER') defaultPersonName = `Shopee Paylater ${monthName}`;
+  else defaultPersonName = `Paylater ${monthName}`;
+
+  const newDebtId = cryptoNative();
+  const newDebt = {
+    id: newDebtId,
+    userId,
+    person: defaultPersonName,
+    type: methodUpper,
+    totalAmount: expenseAmount,
+    remainingAmount: expenseAmount,
+    dueDate: null,
+    isPaid: false,
+    notes: `Dibuat otomatis dari transaksi ${expenseTitle}`,
+    createdAt: new Date().toISOString(),
+  };
+
+  await db.insert(debts).values(newDebt);
+  return newDebtId;
+}
+
 export async function expenseRoutes(fastify: FastifyInstance) {
   // Expenses CRUD
   fastify.get('/api/expenses', async (request) => {
@@ -62,26 +143,19 @@ export async function expenseRoutes(fastify: FastifyInstance) {
 
     const paymentMethod = body.paymentMethod || 'CASH';
     const isPaylater = isPaylaterMethod(paymentMethod, body.isPaylater);
-    const debtId = body.debtId || null;
+    let debtId = body.debtId || null;
 
-    const newItem = {
-      id,
-      userId,
-      title: body.title,
-      amount: body.amount,
-      category: body.category,
-      paymentMethod,
-      debtId,
-      isPaylater,
-      date: body.date,
-      notes: body.notes || null,
-      createdAt: new Date().toISOString(),
-    };
-
-    await db.insert(expenses).values(newItem);
-
-    // If linked to a debt, auto-accumulate debt amount
-    if (debtId) {
+    // If Paylater and debtId not explicitly provided, auto-match or auto-create debt
+    if (isPaylater && !debtId) {
+      debtId = await findOrCreateMatchingPaylaterDebt(
+        userId,
+        paymentMethod,
+        body.date,
+        body.amount,
+        body.title
+      );
+    } else if (debtId) {
+      // If linked to a debt explicitly, auto-accumulate debt amount
       const debtRow = await db
         .select()
         .from(debts)
@@ -102,6 +176,22 @@ export async function expenseRoutes(fastify: FastifyInstance) {
           .where(eq(debts.id, debtId));
       }
     }
+
+    const newItem = {
+      id,
+      userId,
+      title: body.title,
+      amount: body.amount,
+      category: body.category,
+      paymentMethod,
+      debtId,
+      isPaylater,
+      date: body.date,
+      notes: body.notes || null,
+      createdAt: new Date().toISOString(),
+    };
+
+    await db.insert(expenses).values(newItem);
 
     return reply.status(201).send(newItem);
   });

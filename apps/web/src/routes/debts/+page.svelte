@@ -16,6 +16,7 @@
   interface Debt {
     id: string;
     person: string;
+    type?: string;
     totalAmount: number;
     remainingAmount: number;
     dueDate: string | null;
@@ -48,9 +49,24 @@
   let showModal = false;
   let editingId: string | null = null;
   let person = '';
+  let debtType = 'PERSONAL';
   let totalAmount: number | null = null;
   let dueDate = '';
   let notes = '';
+
+  $: if (!editingId && person) {
+    const lower = person.toLowerCase();
+    if (lower.includes('gopay') || lower.includes('go-pay')) debtType = 'GOPAY_LATER';
+    else if (lower.includes('spaylater') || lower.includes('shopee') || lower.includes('shopeepay')) debtType = 'SPAYLATER';
+    else if (lower.includes('paylater')) debtType = 'OTHER_PAYLATER';
+  }
+
+  function formatDebtTypeLabel(type?: string): string {
+    if (type === 'GOPAY_LATER') return 'GoPay Later';
+    if (type === 'SPAYLATER') return 'SPayLater';
+    if (type === 'OTHER_PAYLATER') return 'Paylater';
+    return 'Pribadi / Umum';
+  }
 
   // Pay modal
   let showPayModal = false;
@@ -108,6 +124,7 @@
   function openCreateModal() {
     editingId = null;
     person = '';
+    debtType = 'PERSONAL';
     totalAmount = null;
     dueDate = '';
     notes = '';
@@ -117,6 +134,7 @@
   function openEditModal(item: Debt) {
     editingId = item.id;
     person = item.person;
+    debtType = item.type || 'PERSONAL';
     totalAmount = item.totalAmount;
     dueDate = item.dueDate || '';
     notes = item.notes || '';
@@ -161,12 +179,12 @@
     if (editingId) {
       await fetchApi(`/debts/${editingId}`, {
         method: 'PUT',
-        body: JSON.stringify({ person, totalAmount: Number(totalAmount), dueDate, notes }),
+        body: JSON.stringify({ person, type: debtType, totalAmount: Number(totalAmount), dueDate, notes }),
       });
     } else {
       await fetchApi('/debts', {
         method: 'POST',
-        body: JSON.stringify({ person, totalAmount: Number(totalAmount), dueDate, notes }),
+        body: JSON.stringify({ person, type: debtType, totalAmount: Number(totalAmount), dueDate, notes }),
       });
     }
 
@@ -262,8 +280,15 @@
               </div>
 
               <div class="min-w-0 flex-1">
-                <div class="font-bold text-sm sm:text-base text-[var(--color-ink)] truncate">
-                  {item.person}
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-bold text-sm sm:text-base text-[var(--color-ink)] truncate">
+                    {item.person}
+                  </span>
+                  {#if item.type && item.type !== 'PERSONAL'}
+                    <span class="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 rounded shrink-0">
+                      {formatDebtTypeLabel(item.type)}
+                    </span>
+                  {/if}
                 </div>
                 <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-1 flex items-center gap-2 flex-wrap">
                   {#if item.isPaid || item.remainingAmount === 0}
@@ -356,6 +381,15 @@
         required
         class="modal-input"
       />
+    </div>
+    <div>
+      <label for="sel-dbt-type" class="modal-label">Tipe Hutang / Paylater</label>
+      <select id="sel-dbt-type" bind:value={debtType} class="modal-input">
+        <option value="PERSONAL">Pribadi / Bank / Umum</option>
+        <option value="GOPAY_LATER">GoPay Later (Auto-Sync)</option>
+        <option value="SPAYLATER">SPayLater (Auto-Sync)</option>
+        <option value="OTHER_PAYLATER">Paylater Lainnya (Auto-Sync)</option>
+      </select>
     </div>
     <AmountInput
       id="inp-dbt-amount"

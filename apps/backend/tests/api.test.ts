@@ -785,4 +785,77 @@ describe('Pockt Full Backend API Suite', () => {
     await app.inject({ method: 'DELETE', url: `/api/debts/${debtId}`, cookies });
   });
 
+  it('Smart Paylater Auto-Match (by type & person keyword) and Auto-Create Debt container', async () => {
+    // 1. Create a debt with name "Gopay Later Oktober" (without passing debtId when recording expense)
+    const gopayDebtRes = await app.inject({
+      method: 'POST',
+      url: '/api/debts',
+      cookies,
+      payload: {
+        person: 'Gopay Later Oktober',
+        totalAmount: 100000,
+        notes: 'Testing auto-match by name',
+      },
+    });
+    expect(gopayDebtRes.statusCode).toBe(201);
+    const gopayDebt = JSON.parse(gopayDebtRes.body);
+    expect(gopayDebt.type).toBe('GOPAY_LATER');
+
+    // 2. Record an expense with GOPAY_LATER and NO debtId
+    const expRes1 = await app.inject({
+      method: 'POST',
+      url: '/api/expenses',
+      cookies,
+      payload: {
+        title: 'Nasi Goreng Malam',
+        amount: 28000,
+        category: 'Makanan & Minuman',
+        paymentMethod: 'GOPAY_LATER',
+        date: '2026-08-25',
+      },
+    });
+    expect(expRes1.statusCode).toBe(201);
+    const exp1 = JSON.parse(expRes1.body);
+    // Should have automatically linked to gopayDebt.id!
+    expect(exp1.debtId).toBe(gopayDebt.id);
+
+    // Verify debt accumulated to 128,000
+    const debtsRes = await app.inject({ method: 'GET', url: '/api/debts', cookies });
+    const gopayDebtUpdated = JSON.parse(debtsRes.body).find((d: any) => d.id === gopayDebt.id);
+    expect(gopayDebtUpdated.totalAmount).toBe(128000);
+    expect(gopayDebtUpdated.remainingAmount).toBe(128000);
+
+    // 3. Record an expense with SPAYLATER when NO SPayLater debt exists yet
+    const expRes2 = await app.inject({
+      method: 'POST',
+      url: '/api/expenses',
+      cookies,
+      payload: {
+        title: 'Beli Kabel Type-C',
+        amount: 75000,
+        category: 'Elektronik',
+        paymentMethod: 'SPAYLATER',
+        date: '2026-08-25',
+      },
+    });
+    expect(expRes2.statusCode).toBe(201);
+    const exp2 = JSON.parse(expRes2.body);
+    expect(exp2.debtId).toBeTruthy();
+
+    // Verify new SPayLater debt was automatically created!
+    const debtsRes2 = await app.inject({ method: 'GET', url: '/api/debts', cookies });
+    const autoCreatedSpaylater = JSON.parse(debtsRes2.body).find((d: any) => d.id === exp2.debtId);
+    expect(autoCreatedSpaylater).toBeDefined();
+    expect(autoCreatedSpaylater.type).toBe('SPAYLATER');
+    expect(autoCreatedSpaylater.totalAmount).toBe(75000);
+    expect(autoCreatedSpaylater.person).toContain('Shopee Paylater');
+
+    // Cleanup
+    await app.inject({ method: 'DELETE', url: `/api/expenses/${exp1.id}`, cookies });
+    await app.inject({ method: 'DELETE', url: `/api/expenses/${exp2.id}`, cookies });
+    await app.inject({ method: 'DELETE', url: `/api/debts/${gopayDebt.id}`, cookies });
+    await app.inject({ method: 'DELETE', url: `/api/debts/${autoCreatedSpaylater.id}`, cookies });
+  });
+
 });
+

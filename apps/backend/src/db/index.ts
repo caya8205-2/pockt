@@ -80,6 +80,7 @@ export function initDb() {
       id TEXT PRIMARY KEY,
       user_id TEXT,
       person TEXT NOT NULL,
+      type TEXT NOT NULL DEFAULT 'PERSONAL',
       total_amount REAL NOT NULL,
       remaining_amount REAL NOT NULL,
       due_date TEXT,
@@ -144,6 +145,22 @@ export function initDb() {
     sqlite.exec(`ALTER TABLE expenses ADD COLUMN is_paylater INTEGER NOT NULL DEFAULT 0;`);
   } catch (e) {
     // Column is_paylater already exists, ignore
+  }
+
+  try {
+    sqlite.exec(`ALTER TABLE debts ADD COLUMN type TEXT NOT NULL DEFAULT 'PERSONAL';`);
+  } catch (e) {
+    // Column type already exists, ignore
+  }
+
+  // Auto-backfill existing debts type based on name keywords if still PERSONAL
+  try {
+    sqlite.exec(`
+      UPDATE debts SET type = 'GOPAY_LATER' WHERE type = 'PERSONAL' AND (LOWER(person) LIKE '%gopay%' OR LOWER(person) LIKE '%go-pay%');
+      UPDATE debts SET type = 'SPAYLATER' WHERE type = 'PERSONAL' AND (LOWER(person) LIKE '%spaylater%' OR LOWER(person) LIKE '%shopee%');
+    `);
+  } catch (e) {
+    // Ignore error
   }
 
   // Clean up any legacy expense rows generated from bill payments so expenses table is strictly daily expenses
