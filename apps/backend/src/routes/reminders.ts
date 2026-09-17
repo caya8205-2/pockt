@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { db } from '../db/index.js';
 import { bills, debts } from '../db/schema.js';
 import { eq, or, isNull } from 'drizzle-orm';
+import { autoResetBills, getNextMonthCycle } from '../utils/billCycle.js';
 
 function getUserId(request: any): string {
   return request.userId || 'default';
@@ -19,6 +20,8 @@ export async function reminderRoutes(fastify: FastifyInstance) {
     const userId = getUserId(request);
     const query = request.query as { days?: string } | undefined;
     const daysAhead = query?.days ? Math.max(0, parseInt(query.days, 10) || 3) : 3;
+
+    await autoResetBills(userId);
 
     const now = new Date();
     const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -43,24 +46,15 @@ export async function reminderRoutes(fastify: FastifyInstance) {
     }> = [];
 
     for (const b of unpaidBills) {
-      // Find candidate due dates: current month and next month
+      // For an unpaid bill in the current month cycle, the due date is this month's due date
       const currentMonthDueDate = new Date(now.getFullYear(), now.getMonth(), b.dueDate);
-      const nextMonthDueDate = new Date(now.getFullYear(), now.getMonth() + 1, b.dueDate);
+      const diffDays = Math.round((currentMonthDueDate.getTime() - todayMidnight.getTime()) / (1000 * 60 * 60 * 24));
 
-      let targetDueDate = currentMonthDueDate;
-      let diffDays = Math.round((currentMonthDueDate.getTime() - todayMidnight.getTime()) / (1000 * 60 * 60 * 24));
-
-      // If current month due date has already passed by more than 3 days, check next month
-      if (diffDays < -3) {
-        targetDueDate = nextMonthDueDate;
-        diffDays = Math.round((nextMonthDueDate.getTime() - todayMidnight.getTime()) / (1000 * 60 * 60 * 24));
-      }
-
-      // Include if within range [0..daysAhead] or overdue by up to 3 days
-      if (diffDays <= daysAhead && diffDays >= -3) {
-        const yyyy = targetDueDate.getFullYear();
-        const mm = String(targetDueDate.getMonth() + 1).padStart(2, '0');
-        const dd = String(targetDueDate.getDate()).padStart(2, '0');
+      // Include if within range [0..daysAhead] or overdue (up to 31 days overdue in current cycle)
+      if (diffDays <= daysAhead && diffDays >= -31) {
+        const yyyy = currentMonthDueDate.getFullYear();
+        const mm = String(currentMonthDueDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(currentMonthDueDate.getDate()).padStart(2, '0');
 
         upcomingBills.push({
           id: b.id,
@@ -73,6 +67,35 @@ export async function reminderRoutes(fastify: FastifyInstance) {
           countdownText: formatCountdown(diffDays),
           notes: b.notes,
         });
+      }
+    }
+
+    // Also check paid bills whose next cycle due date is approaching (within daysAhead)
+    const paidBills = allBills.filter((b) => b.isPaid);
+    const nextCycle = getNextMonthCycle(now);
+    for (const b of paidBills) {
+      const paidCycle = b.lastPaidCycle || (b.lastPaidAt ? b.lastPaidAt.slice(0, 7) : null);
+      // Only if not already paid early for next month
+      if (paidCycle !== nextCycle) {
+        const nextMonthDueDate = new Date(now.getFullYear(), now.getMonth() + 1, b.dueDate);
+        const diffDays = Math.round((nextMonthDueDate.getTime() - todayMidnight.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays <= daysAhead && diffDays >= 0) {
+          const yyyy = nextMonthDueDate.getFullYear();
+          const mm = String(nextMonthDueDate.getMonth() + 1).padStart(2, '0');
+          const dd = String(nextMonthDueDate.getDate()).padStart(2, '0');
+
+          upcomingBills.push({
+            id: b.id,
+            name: b.name,
+            amount: b.amount,
+            remainingAmount: b.amount,
+            dueDateDay: b.dueDate,
+            targetDate: `${yyyy}-${mm}-${dd}`,
+            daysRemaining: diffDays,
+            countdownText: formatCountdown(diffDays),
+            notes: b.notes,
+          });
+        }
       }
     }
 

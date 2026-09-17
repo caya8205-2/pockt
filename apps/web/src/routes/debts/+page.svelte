@@ -9,6 +9,7 @@
   import Modal from '$components/Modal.svelte';
   import AmountInput from '$components/AmountInput.svelte';
   import SortDropdown from '$components/SortDropdown.svelte';
+  import ListLimiter from '$components/ListLimiter.svelte';
 
   $: t = translations[$currentLang];
   const STORAGE_KEY = 'pockt_order_debts';
@@ -44,6 +45,7 @@
   let isLoading = true;
   let draggedIndex: number | null = null;
   let selectedSort: SortOption = 'due_date_asc';
+  let limit: number = 15;
 
   // Form modal
   let showModal = false;
@@ -211,6 +213,7 @@
   }
 
   $: sortedDebts = sortItems(debts, selectedSort, STORAGE_KEY);
+  $: displayedDebts = sortedDebts.slice(0, limit);
 
   onMount(() => {
     loadDebts();
@@ -258,7 +261,7 @@
     </div>
   {:else}
     <div class="grid gap-2.5" role="list">
-      {#each sortedDebts as item, index (item.id)}
+      {#each displayedDebts as item, index (item.id)}
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
           role="listitem"
@@ -365,6 +368,15 @@
         </div>
       {/each}
     </div>
+
+    <!-- List Limiter Toolbar -->
+    <ListLimiter
+      totalItems={sortedDebts.length}
+      bind:limit
+      defaultLimit={15}
+      step={15}
+      label={$currentLang === 'id' ? 'catatan hutang' : 'debts'}
+    />
   {/if}
 </div>
 

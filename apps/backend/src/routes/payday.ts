@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { db } from '../db/index.js';
 import { incomes, expenses, bills, billPayments, debts, debtPayments, users } from '../db/schema.js';
 import { desc, eq, or, isNull } from 'drizzle-orm';
+import { autoResetBills } from '../utils/billCycle.js';
 
 function getUserId(request: any): string {
   return request.userId || 'default';
@@ -72,6 +73,7 @@ async function getOwnerPaydayDate(userId: string): Promise<number> {
 export async function paydayRoutes(fastify: FastifyInstance) {
   fastify.get('/api/payday', async (request) => {
     const userId = getUserId(request);
+    await autoResetBills(userId);
 
     // Fetch user's preferred payday date (default: 5)
     const queryDay = (request.query as any)?.paydayDate;

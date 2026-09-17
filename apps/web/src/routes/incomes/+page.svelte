@@ -5,10 +5,11 @@
   import { currentLang, translations } from '$lib/i18n';
   import { sortWithCustomOrder, saveCustomOrder } from '$lib/order';
   import { sortItems, type SortOption } from '$lib/sort';
-  import { Wallet, Plus, ArrowDownLeft, Trash2, Edit3, GripVertical } from 'lucide-svelte';
+  import { Wallet, Plus, ArrowDownLeft, Trash2, Edit3, GripVertical, Calendar } from 'lucide-svelte';
   import Modal from '$components/Modal.svelte';
   import AmountInput from '$components/AmountInput.svelte';
   import SortDropdown from '$components/SortDropdown.svelte';
+  import ListLimiter from '$components/ListLimiter.svelte';
 
   $: t = translations[$currentLang];
   const STORAGE_KEY = 'pockt_order_incomes';
@@ -21,10 +22,16 @@
     notes: string | null;
   }
 
+  type PeriodFilter = 'ALL' | 'TODAY' | 'WEEK' | 'MONTH' | 'YEAR';
+
   let incomes: Income[] = [];
   let isLoading = true;
   let draggedIndex: number | null = null;
+
+  // Filter states
+  let selectedPeriod: PeriodFilter = 'MONTH';
   let selectedSort: SortOption = 'date_desc';
+  let limit: number = 15;
 
   // Form modal
   let showModal = false;
@@ -112,8 +119,57 @@
     loadIncomes();
   }
 
-  $: sortedIncomes = sortItems(incomes, selectedSort, STORAGE_KEY);
-  $: totalIncomeAmount = sortedIncomes.reduce((sum, item) => sum + item.amount, 0);
+  function filterByPeriod(list: Income[], period: PeriodFilter): Income[] {
+    if (period === 'ALL') return list;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const now = new Date();
+
+    if (period === 'TODAY') {
+      return list.filter((e) => e.date === todayStr);
+    }
+
+    if (period === 'WEEK') {
+      const dayOfWeek = now.getDay() || 7; // 1 = Mon, 7 = Sun
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - (dayOfWeek - 1));
+      monday.setHours(0, 0, 0, 0);
+
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+
+      return list.filter((e) => {
+        const itemDate = new Date(e.date);
+        return itemDate >= monday && itemDate <= sunday;
+      });
+    }
+
+    if (period === 'MONTH') {
+      const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      return list.filter((e) => e.date.startsWith(currentMonthStr));
+    }
+
+    if (period === 'YEAR') {
+      const currentYearStr = `${now.getFullYear()}`;
+      return list.filter((e) => e.date.startsWith(currentYearStr));
+    }
+
+    return list;
+  }
+
+  $: periodFiltered = filterByPeriod(incomes, selectedPeriod);
+  $: sortedIncomes = sortItems(periodFiltered, selectedSort, STORAGE_KEY);
+  $: totalFilteredAmount = sortedIncomes.reduce((sum, item) => sum + item.amount, 0);
+  $: displayedIncomes = sortedIncomes.slice(0, limit);
+
+  $: periodLabelMap = {
+    ALL: $currentLang === 'id' ? 'Semua Waktu' : 'All Time',
+    TODAY: $currentLang === 'id' ? 'Hari Ini' : 'Today',
+    WEEK: $currentLang === 'id' ? 'Minggu Ini' : 'This Week',
+    MONTH: $currentLang === 'id' ? 'Bulan Ini' : 'This Month',
+    YEAR: $currentLang === 'id' ? 'Tahun Ini' : 'This Year',
+  };
 
   onMount(() => {
     loadIncomes();
@@ -121,6 +177,7 @@
 </script>
 
 <div class="space-y-5">
+  <!-- Header Title & Create Button -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
     <div class="flex items-start sm:items-center gap-3 min-w-0">
       <div class="p-2.5 bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)] rounded-md shrink-0 mt-0.5 sm:mt-0">
@@ -132,15 +189,63 @@
       </div>
     </div>
 
-    <div class="flex items-center gap-2.5 w-full sm:w-auto">
+    <button
+      on:click={openCreateModal}
+      class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 self-center leading-none text-center w-full sm:w-auto"
+    >
+      <Plus class="w-4 h-4 stroke-[3] shrink-0" />
+      <span class="leading-none">{t.add_income}</span>
+    </button>
+  </div>
+
+  <!-- Total Incomes Summary Card -->
+  <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono shadow-xs">
+    <div class="space-y-1">
+      <div class="text-xs font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider flex items-center gap-2">
+        <span>{$currentLang === 'id' ? 'Total Pemasukan' : 'Total Income'}</span>
+        <span class="px-2 py-0.5 text-[10px] bg-[var(--color-accent-subtle)] text-[var(--color-accent)] rounded-full font-bold">
+          {periodLabelMap[selectedPeriod]}
+        </span>
+      </div>
+      <div class="text-2xl sm:text-3xl font-extrabold text-[var(--color-accent)]">
+        {formatRupiah(totalFilteredAmount)}
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+      <div class="text-xs text-[var(--color-ink-muted)] font-mono">
+        <span>{sortedIncomes.length} {$currentLang === 'id' ? 'transaksi ditemukan' : 'transactions found'}</span>
+      </div>
+      <div class="sm:hidden">
+        <SortDropdown bind:value={selectedSort} mode="standard" size="sm" allowCustom={true} />
+      </div>
+    </div>
+  </div>
+
+  <!-- Period Filter Chips & Desktop Sort Dropdown -->
+  <div class="flex items-center justify-between gap-3 flex-wrap">
+    <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-none font-mono text-xs">
+      <span class="text-[11px] text-[var(--color-ink-muted)] font-bold uppercase tracking-wider shrink-0 flex items-center gap-1 pr-1">
+        <Calendar class="w-3.5 h-3.5" />
+        <span>{$currentLang === 'id' ? 'Periode:' : 'Period:'}</span>
+      </span>
+
+      {#each (['ALL', 'TODAY', 'WEEK', 'MONTH', 'YEAR'] as PeriodFilter[]) as p}
+        <button
+          on:click={() => { selectedPeriod = p; limit = 15; }}
+          class={`h-[30px] inline-flex items-center justify-center px-3 rounded-md border transition-colors cursor-pointer whitespace-nowrap leading-none ${
+            selectedPeriod === p
+              ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border-[var(--color-border)] font-bold'
+              : 'bg-[var(--color-paper-2)] text-[var(--color-ink-muted)] border-[var(--color-border)] hover:text-[var(--color-ink)]'
+          }`}
+        >
+          {periodLabelMap[p]}
+        </button>
+      {/each}
+    </div>
+
+    <div class="hidden sm:block shrink-0">
       <SortDropdown bind:value={selectedSort} mode="standard" allowCustom={true} />
-      <button
-        on:click={openCreateModal}
-        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 self-center leading-none text-center flex-1 sm:flex-initial"
-      >
-        <Plus class="w-4 h-4 stroke-[3] shrink-0" />
-        <span class="leading-none">{t.add_income}</span>
-      </button>
     </div>
   </div>
 
@@ -152,7 +257,7 @@
     </div>
   {:else}
     <div class="grid gap-2.5" role="list">
-      {#each sortedIncomes as item, index (item.id)}
+      {#each displayedIncomes as item, index (item.id)}
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
           role="listitem"
@@ -206,6 +311,15 @@
         </div>
       {/each}
     </div>
+
+    <!-- List Limiter Toolbar -->
+    <ListLimiter
+      totalItems={sortedIncomes.length}
+      bind:limit
+      defaultLimit={15}
+      step={15}
+      label={$currentLang === 'id' ? 'pemasukan' : 'incomes'}
+    />
   {/if}
 </div>
 

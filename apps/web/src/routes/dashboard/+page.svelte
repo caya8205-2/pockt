@@ -6,6 +6,7 @@
   import { sortItems, type SortOption } from '$lib/sort';
   import { Wallet, Receipt, CalendarCheck, HandCoins, ArrowUpRight, ArrowDownLeft, Clock, RefreshCw } from 'lucide-svelte';
   import SortDropdown from '$components/SortDropdown.svelte';
+  import ListLimiter from '$components/ListLimiter.svelte';
 
   $: t = translations[$currentLang];
 
@@ -47,6 +48,7 @@
   let timeline: TimelineItem[] = [];
   let isLoading = true;
   let selectedSort: SortOption = 'date_desc';
+  let limit: number = 10;
 
   async function loadData() {
     isLoading = true;
@@ -65,6 +67,7 @@
   }
 
   $: sortedTimeline = sortItems(timeline, selectedSort);
+  $: displayedTimeline = sortedTimeline.slice(0, limit);
 
   onMount(() => {
     loadData();
@@ -205,7 +208,7 @@
       </div>
     {:else}
       <div class="space-y-2">
-        {#each sortedTimeline as item}
+        {#each displayedTimeline as item}
           <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] hover:border-slate-400 rounded-md p-3 flex items-center justify-between gap-4 transition-colors">
             <div class="flex items-center gap-3 min-w-0">
               {#if item.type === 'income'}
@@ -263,6 +266,14 @@
           </div>
         {/each}
       </div>
+
+      <ListLimiter
+        totalItems={sortedTimeline.length}
+        bind:limit
+        defaultLimit={10}
+        step={10}
+        label={$currentLang === 'id' ? 'transaksi timeline' : 'timeline items'}
+      />
     {/if}
   </section>
 </div>

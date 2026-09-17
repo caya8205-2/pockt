@@ -52,6 +52,14 @@ export async function buildApp() {
   // Initialize SQLite tables
   initDb();
 
+  // Run automatic monthly bill reset on startup
+  try {
+    const { autoResetBills } = await import('./utils/billCycle.js');
+    await autoResetBills();
+  } catch (err) {
+    console.error('Failed to auto-reset bills on startup:', err);
+  }
+
   // Register plugins
   await app.register(cors, {
     origin: true,

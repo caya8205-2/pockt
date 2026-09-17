@@ -50,6 +50,7 @@ export const bills = sqliteTable('bills', {
   isPaid: integer('is_paid', { mode: 'boolean' }).notNull().default(false),
   notes: text('notes'),
   lastPaidAt: text('last_paid_at'),
+  lastPaidCycle: text('last_paid_cycle'),
   createdAt: text('created_at').notNull(),
 });
 

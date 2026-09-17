@@ -4,6 +4,7 @@ import { db } from '../db/index.js';
 import { bills, billPayments } from '../db/schema.js';
 import { eq, asc, desc, and, or, isNull } from 'drizzle-orm';
 import { cryptoNative } from '../utils/id.js';
+import { autoResetBills, getCurrentMonthCycle } from '../utils/billCycle.js';
 
 const billSchema = z.object({
   name: z.string().min(1),
@@ -16,6 +17,7 @@ const payBillSchema = z.object({
   amount: z.number().positive(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   notes: z.string().optional().nullable(),
+  cycle: z.string().regex(/^\d{4}-\d{2}$/).optional(),
 });
 
 function getUserId(request: any): string {
@@ -25,6 +27,7 @@ function getUserId(request: any): string {
 export async function billRoutes(fastify: FastifyInstance) {
   fastify.get('/api/bills', async (request) => {
     const userId = getUserId(request);
+    await autoResetBills(userId);
     const list = await db
       .select()
       .from(bills)
@@ -51,6 +54,7 @@ export async function billRoutes(fastify: FastifyInstance) {
       isPaid: false,
       notes: body.notes || null,
       lastPaidAt: null,
+      lastPaidCycle: null,
       createdAt: new Date().toISOString(),
     };
     await db.insert(bills).values(newItem);
@@ -77,6 +81,7 @@ export async function billRoutes(fastify: FastifyInstance) {
     const diff = body.amount - current.amount;
     const newRemaining = Math.max(0, currentRemaining + diff);
     const isPaid = newRemaining === 0;
+    const currentMonth = getCurrentMonthCycle();
 
     await db
       .update(bills)
@@ -87,6 +92,7 @@ export async function billRoutes(fastify: FastifyInstance) {
         isPaid: isPaid,
         dueDate: body.dueDate,
         notes: body.notes || null,
+        lastPaidCycle: isPaid ? (current.lastPaidCycle || currentMonth) : (newRemaining < body.amount ? current.lastPaidCycle : null),
       })
       .where(eq(bills.id, id));
 
@@ -113,6 +119,9 @@ export async function billRoutes(fastify: FastifyInstance) {
     const newRemaining = Math.max(0, currentRemaining - body.amount);
     const isPaid = newRemaining === 0;
 
+    // Payment date determines cycle unless explicitly specified (e.g. paying early for next month)
+    const paymentCycle = body.cycle || body.date.slice(0, 7);
+
     // Record bill payment in bill_payments table (NOT expenses table!)
     const paymentId = cryptoNative();
     await db.insert(billPayments).values({
@@ -132,10 +141,11 @@ export async function billRoutes(fastify: FastifyInstance) {
         remainingAmount: newRemaining,
         isPaid: isPaid,
         lastPaidAt: body.date,
+        lastPaidCycle: isPaid ? paymentCycle : (bill.lastPaidCycle || paymentCycle),
       })
       .where(eq(bills.id, id));
 
-    return { success: true, remainingAmount: newRemaining, isPaid };
+    return { success: true, remainingAmount: newRemaining, isPaid, lastPaidCycle: paymentCycle };
   });
 
   fastify.get('/api/bills/:id/payments', async (request, reply) => {
@@ -165,14 +175,17 @@ export async function billRoutes(fastify: FastifyInstance) {
     const bill = existing[0];
     const nextIsPaid = !bill.isPaid;
     const nextRemaining = nextIsPaid ? 0 : bill.amount;
-    const lastPaidAt = nextIsPaid ? new Date().toISOString().split('T')[0] : null;
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const currentCycle = getCurrentMonthCycle(now);
 
     await db
       .update(bills)
       .set({
         isPaid: nextIsPaid,
         remainingAmount: nextRemaining,
-        lastPaidAt: lastPaidAt,
+        lastPaidAt: nextIsPaid ? todayStr : bill.lastPaidAt,
+        lastPaidCycle: nextIsPaid ? currentCycle : null,
       })
       .where(eq(bills.id, id));
 
@@ -192,6 +205,7 @@ export async function billRoutes(fastify: FastifyInstance) {
         .set({
           isPaid: false,
           remainingAmount: b.amount,
+          lastPaidCycle: null,
         })
         .where(eq(bills.id, b.id));
     }

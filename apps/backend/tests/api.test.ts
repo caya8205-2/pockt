@@ -286,6 +286,94 @@ describe('Pockt Full Backend API Suite', () => {
     expect(deleteRes.statusCode).toBe(200);
   });
 
+  it('Bills Automatic Monthly Rollover & Early Payment cycle test', async () => {
+    // 1. Create a monthly bill
+    const createRes = await app.inject({
+      method: 'POST',
+      url: '/api/bills',
+      cookies,
+      payload: {
+        name: 'Sewa Kost UAT',
+        amount: 750000,
+        dueDate: 5,
+        notes: 'Tagihan bulanan auto rollover',
+      },
+    });
+    expect(createRes.statusCode).toBe(201);
+    const bill = JSON.parse(createRes.body);
+
+    // 2. Simulate bill was paid in August 2026 (past cycle)
+    const { db } = await import('../src/db/index.js');
+    const { bills } = await import('../src/db/schema.js');
+    const { eq } = await import('drizzle-orm');
+
+    await db
+      .update(bills)
+      .set({
+        isPaid: true,
+        remainingAmount: 0,
+        lastPaidAt: '2026-08-18',
+        lastPaidCycle: '2026-08',
+      })
+      .where(eq(bills.id, bill.id));
+
+    // 3. Query GET /api/bills - should automatically trigger autoResetBills for current month
+    const getRes = await app.inject({ method: 'GET', url: '/api/bills', cookies });
+    expect(getRes.statusCode).toBe(200);
+    const billsList = JSON.parse(getRes.body);
+    const updatedBill = billsList.find((b: any) => b.id === bill.id);
+    expect(updatedBill).toBeDefined();
+    expect(updatedBill.isPaid).toBe(false);
+    expect(updatedBill.remainingAmount).toBe(750000);
+    expect(updatedBill.lastPaidAt).toBe('2026-08-18'); // Preserved history
+
+    // 4. Verify GET /api/dashboard reflects the reset bill
+    const dashRes = await app.inject({ method: 'GET', url: '/api/dashboard', cookies });
+    expect(dashRes.statusCode).toBe(200);
+    const dash = JSON.parse(dashRes.body);
+    expect(dash.outstandingBills).toBeGreaterThanOrEqual(750000);
+
+    // 5. Verify GET /api/reminders/upcoming includes the bill
+    const remindersRes = await app.inject({ method: 'GET', url: '/api/reminders/upcoming?days=3', cookies });
+    expect(remindersRes.statusCode).toBe(200);
+    const reminders = JSON.parse(remindersRes.body);
+    const foundReminder = reminders.upcomingBills.find((b: any) => b.id === bill.id);
+    expect(foundReminder).toBeDefined();
+    expect(foundReminder.remainingAmount).toBe(750000);
+
+    // 6. Early payment for next month cycle
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    const nextCycleStr = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}`;
+
+    const payEarlyRes = await app.inject({
+      method: 'POST',
+      url: `/api/bills/${bill.id}/pay`,
+      cookies,
+      payload: {
+        amount: 750000,
+        date: '2026-08-25',
+        cycle: nextCycleStr,
+        notes: 'Bayar lebih awal untuk bulan depan',
+      },
+    });
+    expect(payEarlyRes.statusCode).toBe(200);
+    const payEarlyData = JSON.parse(payEarlyRes.body);
+    expect(payEarlyData.isPaid).toBe(true);
+    expect(payEarlyData.remainingAmount).toBe(0);
+    expect(payEarlyData.lastPaidCycle).toBe(nextCycleStr);
+
+    // 7. Calling GET /api/bills should NOT reset the bill because cycle is next month
+    const getResAfterEarlyPay = await app.inject({ method: 'GET', url: '/api/bills', cookies });
+    const billsListAfter = JSON.parse(getResAfterEarlyPay.body);
+    const earlyPaidBill = billsListAfter.find((b: any) => b.id === bill.id);
+    expect(earlyPaidBill.isPaid).toBe(true);
+    expect(earlyPaidBill.remainingAmount).toBe(0);
+
+    // Clean up
+    await app.inject({ method: 'DELETE', url: `/api/bills/${bill.id}`, cookies });
+  });
+
   it('Debts CRUD & Installment Payments - POST, GET, pay, payments, DELETE', async () => {
     // 1. Create debt
     const createRes = await app.inject({

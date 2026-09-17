@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { db } from '../db/index.js';
 import { incomes, expenses, bills, billPayments, debts, debtPayments } from '../db/schema.js';
 import { eq, or, isNull } from 'drizzle-orm';
+import { autoResetBills } from '../utils/billCycle.js';
 
 function getUserId(request: any): string {
   return request.userId || 'default';
@@ -10,6 +11,7 @@ function getUserId(request: any): string {
 export async function dashboardRoutes(fastify: FastifyInstance) {
   fastify.get('/api/dashboard', async (request) => {
     const userId = getUserId(request);
+    await autoResetBills(userId);
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 

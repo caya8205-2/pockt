@@ -2,6 +2,19 @@
 
 All notable changes to Pockt are documented in this file. Grouped by release, with the primary release changes at the top.
 
+## [0.3.1] — 2026-09-17
+
+### Automatic Monthly Bill Rollover & Early Payment Support
+
+- **Automatic Monthly Bill Reset**: Added `lastPaidCycle` column on `bills` with automatic SQLite schema migration and backfill. Built `autoResetBills()` utility executed on backend boot and across `/api/bills`, `/api/dashboard`, `/api/payday`, and `/api/reminders/upcoming`. Bills paid or partially paid in older billing cycles automatically reset to unpaid with restored remaining amount at the turn of each month, preserving payment history.
+- **Early Bill Payments**: Supported `cycle` parameter in `POST /api/bills/:id/pay` and `pay_bill` MCP tool. Added "Bayar Lebih Awal" action button on `/bills` when a bill is already paid for the current month, allowing users to settle next month's obligations early after receiving salary without double-resetting.
+- **Overdue Bill Detection in Reminders**: Fixed reminder logic in `/api/reminders/upcoming` to maintain overdue bills from the current month cycle (up to 31 days) instead of erroneously pushing them to next month, preventing surprise overdue bills. Also added advance alerts for paid bills whose next cycle due date falls within the countdown window.
+
+### Incomes Tab Overhaul & Universal List Limiter
+
+- **Incomes Page Parity (`/incomes`)**: Added period filter chips (`Semua Waktu`, `Hari Ini`, `Minggu Ini`, `Bulan Ini`, `Tahun Ini`) defaulting to `Bulan Ini` (`MONTH`) to prevent blending previous month incomes. Added "Total Pemasukan" summary card with dynamic period badge, total Rupiah value, and transaction count.
+- **Universal List Limiter (`ListLimiter.svelte`)**: Built a reusable progressive limiter component and applied it across all list views: `/dashboard` (Timeline feed capped at 10 items), `/expenses` (capped at 15), `/incomes` (capped at 15), `/debts` (capped at 15), `/bills` (capped at 15), and `/settled` (debts and bills capped at 10 each). Added `+N Lagi`, `Tampilkan Semua`, and `Tampilkan Lebih Sedikit` controls to prevent infinite vertical list stretching.
+
 ## [0.3.0] — 2026-08-25
 
 ### Paylater Expense Tracking & Debt Auto-Sync

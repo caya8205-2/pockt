@@ -63,6 +63,7 @@ export function initDb() {
       is_paid INTEGER NOT NULL DEFAULT 0,
       notes TEXT,
       last_paid_at TEXT,
+      last_paid_cycle TEXT,
       created_at TEXT NOT NULL
     );
 
@@ -127,6 +128,18 @@ export function initDb() {
     sqlite.exec(`ALTER TABLE bills ADD COLUMN remaining_amount REAL;`);
   } catch (e) {
     // Column remaining_amount already exists, ignore
+  }
+
+  try {
+    sqlite.exec(`ALTER TABLE bills ADD COLUMN last_paid_cycle TEXT;`);
+  } catch (e) {
+    // Column last_paid_cycle already exists, ignore
+  }
+
+  try {
+    sqlite.exec(`UPDATE bills SET last_paid_cycle = substr(last_paid_at, 1, 7) WHERE last_paid_cycle IS NULL AND last_paid_at IS NOT NULL;`);
+  } catch (e) {
+    // Ignore error
   }
 
   try {

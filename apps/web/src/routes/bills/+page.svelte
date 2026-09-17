@@ -9,6 +9,7 @@
   import Modal from '$components/Modal.svelte';
   import AmountInput from '$components/AmountInput.svelte';
   import SortDropdown from '$components/SortDropdown.svelte';
+  import ListLimiter from '$components/ListLimiter.svelte';
 
   $: t = translations[$currentLang];
   const STORAGE_KEY = 'pockt_order_bills';
@@ -22,12 +23,14 @@
     isPaid: boolean;
     notes: string | null;
     lastPaidAt: string | null;
+    lastPaidCycle?: string | null;
   }
 
   let bills: Bill[] = [];
   let isLoading = true;
   let draggedIndex: number | null = null;
   let selectedSort: SortOption = 'due_date_asc';
+  let limit: number = 15;
 
   // Form modal (Create / Edit)
   let showModal = false;
@@ -43,6 +46,24 @@
   let payAmount: number | null = null;
   let payDate = new Date().toISOString().split('T')[0];
   let payNotes = '';
+  let isEarlyPayment = false;
+  let targetCycle: string | null = null;
+
+  function getCurrentMonthCycleStr(): string {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  function getNextMonthCycleStr(): string {
+    const now = new Date();
+    const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  function isBillOverdue(dueDateDay: number): boolean {
+    const today = new Date().getDate();
+    return today > dueDateDay;
+  }
 
   interface Payment {
     id: string;
@@ -121,9 +142,21 @@
 
   function openPayModal(item: Bill) {
     selectedBill = item;
+    isEarlyPayment = false;
+    targetCycle = null;
     payAmount = item.remainingAmount ?? item.amount;
     payDate = new Date().toISOString().split('T')[0];
     payNotes = '';
+    showPayModal = true;
+  }
+
+  function openPayEarlyModal(item: Bill) {
+    selectedBill = item;
+    isEarlyPayment = true;
+    targetCycle = getNextMonthCycleStr();
+    payAmount = item.amount;
+    payDate = new Date().toISOString().split('T')[0];
+    payNotes = $currentLang === 'id' ? `Bayar lebih awal untuk siklus ${targetCycle}` : `Early payment for cycle ${targetCycle}`;
     showPayModal = true;
   }
 
@@ -149,9 +182,18 @@
   async function handlePaySubmit() {
     if (!selectedBill || !payAmount || payAmount <= 0) return;
 
+    const payload: any = {
+      amount: Number(payAmount),
+      date: payDate,
+      notes: payNotes,
+    };
+    if (targetCycle) {
+      payload.cycle = targetCycle;
+    }
+
     await fetchApi(`/bills/${selectedBill.id}/pay`, {
       method: 'POST',
-      body: JSON.stringify({ amount: Number(payAmount), date: payDate, notes: payNotes }),
+      body: JSON.stringify(payload),
     });
 
     showPayModal = false;
@@ -176,6 +218,7 @@
   }
 
   $: sortedBills = sortItems(bills, selectedSort, STORAGE_KEY);
+  $: displayedBills = sortedBills.slice(0, limit);
 
   onMount(() => {
     loadBills();
@@ -222,7 +265,7 @@
     </div>
   {:else}
     <div class="grid gap-2.5" role="list">
-      {#each sortedBills as item, index (item.id)}
+      {#each displayedBills as item, index (item.id)}
         {@const remaining = item.remainingAmount ?? item.amount}
         {@const isPartiallyPaid = !item.isPaid && remaining < item.amount}
         <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -253,7 +296,13 @@
                 </div>
                 <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-1 flex items-center gap-2 flex-wrap">
                   {#if item.isPaid || remaining === 0}
-                    <span class="text-[var(--color-accent)] font-semibold">{t.common_paid}</span>
+                    <span class="text-[var(--color-accent)] font-semibold">
+                      {#if item.lastPaidCycle && item.lastPaidCycle > getCurrentMonthCycleStr()}
+                        {t.bills_paid_early} ({item.lastPaidCycle})
+                      {:else}
+                        {t.bills_paid_current_month}
+                      {/if}
+                    </span>
                   {:else if remaining < item.amount}
                     <span class="text-amber-500 font-semibold">
                       {$currentLang === 'id' ? `DIBAYAR SEBAGIAN (Terbayar ${formatRupiah(item.amount - remaining)})` : `PARTIALLY PAID (${formatRupiah(item.amount - remaining)} paid)`}
@@ -263,8 +312,14 @@
                   {/if}
                   {#if item.notes} • <span class="italic text-[var(--color-ink-muted)] font-sans">{item.notes}</span>{/if}
                 </div>
-                <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-0.5">
-                  {$currentLang === 'id' ? `Jatuh tempo: Tgl ${item.dueDate} / bulan` : `Due date: Day ${item.dueDate} / month`}
+                <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-0.5 flex items-center gap-2 flex-wrap">
+                  <span>{$currentLang === 'id' ? `Jatuh tempo: Tgl ${item.dueDate} / bulan` : `Due date: Day ${item.dueDate} / month`}</span>
+                  {#if (!item.isPaid && remaining > 0) && isBillOverdue(item.dueDate)}
+                    <span class="text-rose-500 font-bold">• {t.bills_overdue_badge}</span>
+                  {/if}
+                  {#if item.lastPaidAt}
+                    <span class="text-[var(--color-ink-muted)]">• {t.bills_last_paid}: {formatDateNumeric(item.lastPaidAt)}</span>
+                  {/if}
                 </div>
               </div>
             </div>
@@ -286,7 +341,7 @@
 
           <!-- Bottom Action Buttons -->
           <div class="pt-2.5 border-t border-[var(--color-border)] flex items-center justify-between">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
               {#if !item.isPaid && remaining > 0}
                 <button
                   on:click={() => openPayModal(item)}
@@ -294,6 +349,15 @@
                 >
                   <DollarSign class="w-3.5 h-3.5" />
                   <span>{$currentLang === 'id' ? 'Bayar / Cicil Tagihan' : 'Pay / Installment'}</span>
+                </button>
+              {:else if item.isPaid}
+                <button
+                  on:click={() => openPayEarlyModal(item)}
+                  class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-medium text-[var(--color-ink)] hover:text-slate-950 bg-[var(--color-paper-3)] hover:bg-[var(--color-accent)] border border-[var(--color-border)] rounded-md transition-colors cursor-pointer shadow-xs"
+                  title={$currentLang === 'id' ? 'Bayar tagihan untuk siklus bulan depan lebih awal' : 'Pay bill for next month cycle early'}
+                >
+                  <DollarSign class="w-3.5 h-3.5" />
+                  <span>{t.bills_pay_early}</span>
                 </button>
               {/if}
 
@@ -326,6 +390,15 @@
         </div>
       {/each}
     </div>
+
+    <!-- List Limiter Toolbar -->
+    <ListLimiter
+      totalItems={sortedBills.length}
+      bind:limit
+      defaultLimit={15}
+      step={15}
+      label={$currentLang === 'id' ? 'tagihan' : 'bills'}
+    />
   {/if}
 </div>
 
@@ -380,7 +453,7 @@
 </Modal>
 
 <!-- Pay Modal -->
-<Modal isOpen={showPayModal} title={$currentLang === 'id' ? `Bayar Tagihan: ${selectedBill?.name || ''}` : `Pay Bill: ${selectedBill?.name || ''}`} onClose={() => (showPayModal = false)}>
+<Modal isOpen={showPayModal} title={isEarlyPayment ? ($currentLang === 'id' ? `Bayar Lebih Awal: ${selectedBill?.name || ''} (${targetCycle})` : `Pay Early: ${selectedBill?.name || ''} (${targetCycle})`) : ($currentLang === 'id' ? `Bayar Tagihan: ${selectedBill?.name || ''}` : `Pay Bill: ${selectedBill?.name || ''}`)} onClose={() => (showPayModal = false)}>
   <form on:submit|preventDefault={handlePaySubmit} class="space-y-3.5 font-mono">
     <AmountInput
       id="inp-pay-bill-amount"

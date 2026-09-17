@@ -7,6 +7,7 @@
   import { BadgeCheck, CheckCircle2, Trash2, RotateCcw, History, Receipt, HandCoins, CalendarCheck } from 'lucide-svelte';
   import Modal from '$components/Modal.svelte';
   import SortDropdown from '$components/SortDropdown.svelte';
+  import ListLimiter from '$components/ListLimiter.svelte';
 
   $: t = translations[$currentLang];
 
@@ -53,6 +54,8 @@
   let data: SettledData | null = null;
   let isLoading = true;
   let selectedSort: SortOption = 'date_desc';
+  let debtsLimit: number = 10;
+  let billsLimit: number = 10;
 
   // History modal
   let showHistoryModal = false;
@@ -94,6 +97,8 @@
 
   $: sortedDebts = data ? sortItems(data.debts, selectedSort) : [];
   $: sortedBills = data ? sortItems(data.billPayments, selectedSort) : [];
+  $: displayedDebts = sortedDebts.slice(0, debtsLimit);
+  $: displayedBills = sortedBills.slice(0, billsLimit);
 
   onMount(() => {
     loadData();
@@ -169,7 +174,7 @@
         </div>
       {:else}
         <div class="grid gap-2.5" role="list">
-          {#each sortedDebts as item (item.id)}
+          {#each displayedDebts as item (item.id)}
             <div
               role="listitem"
               class="border rounded-md p-4 space-y-3 bg-[var(--color-paper-2)]/40 border-[var(--color-border)]"
@@ -234,6 +239,14 @@
             </div>
           {/each}
         </div>
+
+        <ListLimiter
+          totalItems={sortedDebts.length}
+          bind:limit={debtsLimit}
+          defaultLimit={10}
+          step={10}
+          label={$currentLang === 'id' ? 'hutang lunas' : 'settled debts'}
+        />
       {/if}
     </section>
 
@@ -250,7 +263,7 @@
         </div>
       {:else}
         <div class="space-y-2">
-          {#each sortedBills as bp}
+          {#each displayedBills as bp}
             <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-3 flex items-center justify-between gap-4">
               <div class="flex items-center gap-3 min-w-0">
                 <div class="hidden sm:block p-2 bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded shrink-0">
@@ -269,6 +282,14 @@
             </div>
           {/each}
         </div>
+
+        <ListLimiter
+          totalItems={sortedBills.length}
+          bind:limit={billsLimit}
+          defaultLimit={10}
+          step={10}
+          label={$currentLang === 'id' ? 'pembayaran tagihan' : 'bill payments'}
+        />
       {/if}
     </section>
   {/if}

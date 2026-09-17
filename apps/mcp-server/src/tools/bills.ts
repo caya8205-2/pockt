@@ -72,6 +72,7 @@ export function registerBillTools(server: McpServer, client: PocktClient) {
       amount: z.number().positive().describe("Payment amount in IDR"),
       date: z.string().describe("Payment date in YYYY-MM-DD format"),
       notes: z.string().optional().describe("Optional payment notes"),
+      cycle: z.string().optional().describe("Optional billing cycle in YYYY-MM format (e.g. '2026-10' for paying early)"),
     },
     async ({ id, ...body }) => {
       const data = await client.post(`/api/bills/${id}/pay`, body);

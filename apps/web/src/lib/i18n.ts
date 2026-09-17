@@ -187,6 +187,11 @@ export const translations = {
     bills_toggle_paid: 'Toggle status bayar',
     bills_reset_confirm: 'Reset semua status tagihan menjadi belum dibayar untuk siklus bulan baru?',
     bills_delete_confirm: 'Hapus tagihan ini?',
+    bills_pay_early: 'Bayar Lebih Awal',
+    bills_overdue_badge: 'LEWAT JATUH TEMPO',
+    bills_last_paid: 'Terakhir dibayar',
+    bills_paid_current_month: 'LUNAS (Bulan Ini)',
+    bills_paid_early: 'LUNAS LEBIH AWAL',
 
     // Debts
     debts_title: 'Catatan Hutang & Pinjaman',
@@ -406,6 +411,11 @@ export const translations = {
     bills_toggle_paid: 'Toggle paid status',
     bills_reset_confirm: 'Reset all bill statuses to unpaid for the new month cycle?',
     bills_delete_confirm: 'Delete this bill?',
+    bills_pay_early: 'Pay Early',
+    bills_overdue_badge: 'OVERDUE',
+    bills_last_paid: 'Last paid',
+    bills_paid_current_month: 'PAID (This Month)',
+    bills_paid_early: 'PAID EARLY',
 
     // Debts
     debts_title: 'Debts & Loans Register',

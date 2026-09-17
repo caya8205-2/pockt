@@ -9,6 +9,7 @@
   import Modal from '$components/Modal.svelte';
   import AmountInput from '$components/AmountInput.svelte';
   import SortDropdown from '$components/SortDropdown.svelte';
+  import ListLimiter from '$components/ListLimiter.svelte';
 
   $: t = translations[$currentLang];
   const STORAGE_KEY = 'pockt_order_expenses';
@@ -49,6 +50,7 @@
   let selectedFilterCategory = 'ALL';
   let selectedPeriod: PeriodFilter = 'MONTH';
   let selectedSort: SortOption = 'date_desc';
+  let limit: number = 15;
 
   // Form modal
   let showModal = false;
@@ -264,6 +266,8 @@
 
   $: totalFilteredAmount = filteredExpenses.reduce((sum, item) => sum + item.amount, 0);
 
+  $: displayedExpenses = filteredExpenses.slice(0, limit);
+
   $: periodLabelMap = {
     ALL: $currentLang === 'id' ? 'Semua Waktu' : 'All Time',
     TODAY: $currentLang === 'id' ? 'Hari Ini' : 'Today',
@@ -334,7 +338,7 @@
 
       {#each (['ALL', 'TODAY', 'WEEK', 'MONTH', 'YEAR'] as PeriodFilter[]) as p}
         <button
-          on:click={() => (selectedPeriod = p)}
+          on:click={() => { selectedPeriod = p; limit = 15; }}
           class={`h-[30px] inline-flex items-center justify-center px-3 rounded-md border transition-colors cursor-pointer whitespace-nowrap leading-none ${
             selectedPeriod === p
               ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border-[var(--color-border)] font-bold'
@@ -355,7 +359,7 @@
           </span>
 
           <button
-            on:click={() => (selectedFilterCategory = 'ALL')}
+            on:click={() => { selectedFilterCategory = 'ALL'; limit = 15; }}
             class={`h-[30px] inline-flex items-center justify-center px-3 rounded-md border transition-colors cursor-pointer whitespace-nowrap leading-none ${
               selectedFilterCategory === 'ALL'
                 ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border-[var(--color-border)] font-bold'
@@ -367,7 +371,7 @@
 
           {#each categories as cat}
             <button
-              on:click={() => (selectedFilterCategory = cat.name)}
+              on:click={() => { selectedFilterCategory = cat.name; limit = 15; }}
               class={`h-[30px] inline-flex items-center justify-center px-3 rounded-md border transition-colors cursor-pointer whitespace-nowrap leading-none ${
                 selectedFilterCategory === cat.name
                   ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border-[var(--color-border)] font-bold'
@@ -398,7 +402,7 @@
     </div>
   {:else}
     <div class="grid gap-2.5" role="list">
-      {#each filteredExpenses as item, index (item.id)}
+      {#each displayedExpenses as item, index (item.id)}
         <div
           role="listitem"
           draggable="true"
@@ -465,6 +469,15 @@
         </div>
       {/each}
     </div>
+
+    <!-- List Limiter Toolbar -->
+    <ListLimiter
+      totalItems={filteredExpenses.length}
+      bind:limit
+      defaultLimit={15}
+      step={15}
+      label={$currentLang === 'id' ? 'pengeluaran' : 'expenses'}
+    />
   {/if}
 </div>
 
