@@ -296,7 +296,7 @@
                 </div>
                 <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-1 flex items-center gap-2 flex-wrap">
                   {#if item.isPaid || remaining === 0}
-                    <span class="text-[var(--color-accent)] font-semibold">
+                    <span class="text-emerald-700 dark:text-[var(--color-accent)] font-semibold">
                       {#if item.lastPaidCycle && item.lastPaidCycle > getCurrentMonthCycleStr()}
                         {t.bills_paid_early} ({item.lastPaidCycle})
                       {:else}
@@ -501,7 +501,7 @@
             <div class="font-bold text-[var(--color-ink)]">{formatDateNumeric(hp.date)} ({formatDate(hp.date)})</div>
             {#if hp.notes}<div class="text-[var(--color-ink-muted)] text-[11px] font-sans">{hp.notes}</div>{/if}
           </div>
-          <div class="font-bold text-[var(--color-accent)]">
+          <div class="font-bold text-emerald-700 dark:text-[var(--color-accent)]">
             {formatRupiah(hp.amount)}
           </div>
         </div>

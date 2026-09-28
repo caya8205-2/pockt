@@ -308,7 +308,7 @@
     <div class="space-y-1">
       <div class="text-xs font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider flex items-center gap-2">
         <span>{$currentLang === 'id' ? 'Total Pengeluaran' : 'Total Expenses'}</span>
-        <span class="px-2 py-0.5 text-[10px] bg-[var(--color-accent-subtle)] text-[var(--color-accent)] rounded-full font-bold">
+        <span class="px-2 py-0.5 text-[10px] bg-[var(--color-accent-subtle)] text-emerald-700 dark:text-[var(--color-accent)] rounded-full font-bold">
           {periodLabelMap[selectedPeriod]}
         </span>
       </div>
@@ -341,7 +341,7 @@
           on:click={() => { selectedPeriod = p; limit = 15; }}
           class={`h-[30px] inline-flex items-center justify-center px-3 rounded-md border transition-colors cursor-pointer whitespace-nowrap leading-none ${
             selectedPeriod === p
-              ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border-[var(--color-border)] font-bold'
+              ? 'bg-[var(--color-accent-subtle)] text-[var(--color-ink)] border-[var(--color-border)] font-bold shadow-xs'
               : 'bg-[var(--color-paper-2)] text-[var(--color-ink-muted)] border-[var(--color-border)] hover:text-[var(--color-ink)]'
           }`}
         >
@@ -362,7 +362,7 @@
             on:click={() => { selectedFilterCategory = 'ALL'; limit = 15; }}
             class={`h-[30px] inline-flex items-center justify-center px-3 rounded-md border transition-colors cursor-pointer whitespace-nowrap leading-none ${
               selectedFilterCategory === 'ALL'
-                ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border-[var(--color-border)] font-bold'
+                ? 'bg-[var(--color-accent-subtle)] text-[var(--color-ink)] border-[var(--color-border)] font-bold shadow-xs'
                 : 'bg-[var(--color-paper-2)] text-[var(--color-ink-muted)] border-[var(--color-border)] hover:text-[var(--color-ink)]'
             }`}
           >
@@ -374,7 +374,7 @@
               on:click={() => { selectedFilterCategory = cat.name; limit = 15; }}
               class={`h-[30px] inline-flex items-center justify-center px-3 rounded-md border transition-colors cursor-pointer whitespace-nowrap leading-none ${
                 selectedFilterCategory === cat.name
-                  ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border-[var(--color-border)] font-bold'
+                  ? 'bg-[var(--color-accent-subtle)] text-[var(--color-ink)] border-[var(--color-border)] font-bold shadow-xs'
                   : 'bg-[var(--color-paper-2)] text-[var(--color-ink-muted)] border-[var(--color-border)] hover:text-[var(--color-ink)]'
               }`}
             >
@@ -508,7 +508,7 @@
         <button
           type="button"
           on:click={() => (showNewCatInput = !showNewCatInput)}
-          class="text-[11px] text-[var(--color-accent)] hover:underline flex items-center gap-1 cursor-pointer"
+          class="text-[11px] text-emerald-700 dark:text-[var(--color-accent)] hover:underline flex items-center gap-1 cursor-pointer font-bold"
         >
           <Tag class="w-3 h-3" />
           <span>{showNewCatInput ? t.common_cancel : t.add_category_btn}</span>

@@ -11,7 +11,7 @@ import { registerSettingsTools } from "./tools/settings.js";
 import { registerBackupTools } from "./tools/backup.js";
 import { registerReminderTools } from "./tools/reminders.js";
 
-const apiUrl = process.env.POCKT_API_URL || "http://localhost:3001";
+const apiUrl = process.env.POCKT_API_URL || "http://localhost:3005";
 const username = process.env.POCKT_USERNAME || "";
 const password = process.env.POCKT_PASSWORD || "";
 

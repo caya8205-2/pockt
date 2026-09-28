@@ -295,7 +295,7 @@
                 </div>
                 <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-1 flex items-center gap-2 flex-wrap">
                   {#if item.isPaid || item.remainingAmount === 0}
-                    <span class="text-[var(--color-accent)] font-semibold">{t.common_paid}</span>
+                    <span class="text-emerald-700 dark:text-[var(--color-accent)] font-semibold">{t.common_paid}</span>
                   {:else if item.remainingAmount < item.totalAmount}
                     <span class="text-amber-500 font-semibold">
                       {$currentLang === 'id' ? `DIBAYAR SEBAGIAN (Terbayar ${formatRupiah(item.totalAmount - item.remainingAmount)})` : `PARTIALLY PAID (${formatRupiah(item.totalAmount - item.remainingAmount)} paid)`}
@@ -489,7 +489,7 @@
             <div class="font-bold text-[var(--color-ink)]">{formatDateNumeric(hp.date)} ({formatDate(hp.date)})</div>
             {#if hp.notes}<div class="text-[var(--color-ink-muted)] text-[11px] font-sans">{hp.notes}</div>{/if}
           </div>
-          <div class="font-bold text-[var(--color-accent)]">
+          <div class="font-bold text-emerald-700 dark:text-[var(--color-accent)]">
             {formatRupiah(hp.amount)}
           </div>
         </div>

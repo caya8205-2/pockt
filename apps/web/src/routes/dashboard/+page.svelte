@@ -127,7 +127,7 @@
             <span>- {t.dash_debts} ({dashboard.unpaidDebtsCount})</span>
             <span class="font-semibold">{formatRupiah(dashboard.outstandingDebt)}</span>
           </div>
-          <div class="pt-1.5 border-t border-[var(--color-border)] flex items-center justify-between text-[var(--color-accent)] font-bold">
+          <div class="pt-1.5 border-t border-[var(--color-border)] flex items-center justify-between text-emerald-700 dark:text-[var(--color-accent)] font-bold">
             <span>{t.dash_net}</span>
             <span>{formatRupiah(dashboard.freeToSpend)}</span>
           </div>
@@ -140,7 +140,7 @@
       <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-3.5 sm:p-4 flex flex-col justify-between gap-2 min-w-0">
         <div class="flex items-center justify-between gap-1 text-[var(--color-ink-muted)]">
           <span class="text-[11px] sm:text-xs font-mono font-semibold uppercase tracking-wider min-w-0 truncate">{t.stat_income}</span>
-          <Wallet class="w-4 h-4 text-[var(--color-accent)] shrink-0" />
+          <Wallet class="w-4 h-4 text-emerald-700 dark:text-[var(--color-accent)] shrink-0" />
         </div>
         <div class="text-base sm:text-lg lg:text-xl font-bold font-mono text-[var(--color-ink)] truncate" title={formatRupiah(dashboard.monthlyIncome)}>
           {formatRupiah(dashboard.monthlyIncome)}
@@ -183,7 +183,7 @@
   <section class="space-y-3">
     <div class="flex items-center justify-between border-b border-[var(--color-border)] pb-2.5 flex-wrap gap-2">
       <div class="flex items-center gap-2">
-        <Clock class="w-4 h-4 text-[var(--color-accent)]" />
+        <Clock class="w-4 h-4 text-emerald-700 dark:text-[var(--color-accent)]" />
         <h2 class="text-base font-bold text-[var(--color-ink)] font-mono">{t.timeline_feed}</h2>
       </div>
 
@@ -212,7 +212,7 @@
           <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] hover:border-slate-400 rounded-md p-3 flex items-center justify-between gap-4 transition-colors">
             <div class="flex items-center gap-3 min-w-0">
               {#if item.type === 'income'}
-                <div class="hidden sm:block p-2 bg-[var(--color-accent-subtle)] text-[var(--color-accent)] rounded shrink-0">
+                <div class="hidden sm:block p-2 bg-[var(--color-accent-subtle)] text-emerald-700 dark:text-[var(--color-accent)] rounded shrink-0">
                   <ArrowDownLeft class="w-4 h-4" />
                 </div>
               {:else if item.type === 'expense'}
@@ -255,7 +255,7 @@
 
             <div class="text-right shrink-0 font-mono">
               <div class={`text-sm font-bold ${
-                item.type === 'income' ? 'text-[var(--color-accent)]' : 'text-[var(--color-ink)]'
+                item.type === 'income' ? 'text-emerald-700 dark:text-[var(--color-accent)]' : 'text-[var(--color-ink)]'
               }`}>
                 {item.type === 'income' ? '+' : '-'}{formatRupiah(item.amount)}
               </div>

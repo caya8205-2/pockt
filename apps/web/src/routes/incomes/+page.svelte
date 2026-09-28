@@ -180,7 +180,7 @@
   <!-- Header Title & Create Button -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
     <div class="flex items-start sm:items-center gap-3 min-w-0">
-      <div class="p-2.5 bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)] rounded-md shrink-0 mt-0.5 sm:mt-0">
+      <div class="p-2.5 bg-[var(--color-accent-subtle)] text-emerald-700 dark:text-[var(--color-accent)] border border-[var(--color-border)] rounded-md shrink-0 mt-0.5 sm:mt-0">
         <Wallet class="w-5 h-5" />
       </div>
       <div class="min-w-0">
@@ -203,11 +203,11 @@
     <div class="space-y-1">
       <div class="text-xs font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider flex items-center gap-2">
         <span>{$currentLang === 'id' ? 'Total Pemasukan' : 'Total Income'}</span>
-        <span class="px-2 py-0.5 text-[10px] bg-[var(--color-accent-subtle)] text-[var(--color-accent)] rounded-full font-bold">
+        <span class="px-2 py-0.5 text-[10px] bg-[var(--color-accent-subtle)] text-emerald-700 dark:text-[var(--color-accent)] rounded-full font-bold">
           {periodLabelMap[selectedPeriod]}
         </span>
       </div>
-      <div class="text-2xl sm:text-3xl font-extrabold text-[var(--color-accent)]">
+      <div class="text-2xl sm:text-3xl font-extrabold text-emerald-700 dark:text-[var(--color-accent)]">
         {formatRupiah(totalFilteredAmount)}
       </div>
     </div>
@@ -235,7 +235,7 @@
           on:click={() => { selectedPeriod = p; limit = 15; }}
           class={`h-[30px] inline-flex items-center justify-center px-3 rounded-md border transition-colors cursor-pointer whitespace-nowrap leading-none ${
             selectedPeriod === p
-              ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border-[var(--color-border)] font-bold'
+              ? 'bg-[var(--color-accent-subtle)] text-[var(--color-ink)] border-[var(--color-border)] font-bold shadow-xs'
               : 'bg-[var(--color-paper-2)] text-[var(--color-ink-muted)] border-[var(--color-border)] hover:text-[var(--color-ink)]'
           }`}
         >
@@ -275,7 +275,7 @@
               <GripVertical class="w-4 h-4" />
             </div>
 
-            <div class="p-2 bg-[var(--color-accent-subtle)] text-[var(--color-accent)] rounded shrink-0 mt-0.5 sm:mt-0">
+            <div class="p-2 bg-[var(--color-accent-subtle)] text-emerald-700 dark:text-[var(--color-accent)] rounded shrink-0 mt-0.5 sm:mt-0">
               <ArrowDownLeft class="w-4 h-4" />
             </div>
 
@@ -288,7 +288,7 @@
           </div>
 
           <div class="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-[var(--color-border)] font-mono shrink-0">
-            <div class="font-bold text-[var(--color-accent)] text-sm sm:text-base">
+            <div class="font-bold text-emerald-700 dark:text-[var(--color-accent)] text-sm sm:text-base">
               +{formatRupiah(item.amount)}
             </div>
             <div class="flex items-center gap-1 shrink-0">

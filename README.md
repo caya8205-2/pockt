@@ -81,7 +81,7 @@ pnpm install
 ```
 
 ### 2. Run Development Servers
-Starts frontend (`http://localhost:5173`) and backend (`http://localhost:3001`):
+Starts frontend (`http://localhost:5173`) and backend (`http://localhost:3005`):
 ```bash
 pnpm dev
 ```

@@ -1,6 +1,5 @@
-/* Hallmark · macrostructure: Workbench · theme: Bloom (Light) / Aurora (Dark) · genre: editorial · nav: N3 Side-rail · footer: Ft5 Statement
- * pre-emit critique: P5 H5 E5 S5 R5 V5
- * contrast: pass (APCA 7:1)
+/* Wise-Inspired Scandinavian Fintech Theme · theme: Wise Light (Sage/Lime) / Wise Dark (Obsidian Forest)
+ * system: .agents/DESIGN.md · contrast: pass (APCA 7:1 / WCAG AAA)
  */
 
 @import "tailwindcss";
@@ -12,33 +11,49 @@
 
 :root,
 [data-theme="light"] {
-  /* Hallmark Bloom Light Theme Tokens */
-  --color-paper: oklch(0.975 0.008 75);
-  --color-paper-2: oklch(0.995 0.004 75);
-  --color-paper-3: oklch(0.935 0.012 75);
-  --color-ink: oklch(0.18 0.015 60);
-  --color-ink-muted: oklch(0.46 0.012 60);
-  --color-border: oklch(0.88 0.010 75);
+  /* Wise Light (Scandinavian Fintech) */
+  --color-paper: oklch(0.965 0.008 135);        /* Pale sage canvas (#f4f6f2) */
+  --color-paper-2: oklch(1.0 0 0);              /* Pure crisp white card surface (#ffffff) */
+  --color-paper-3: oklch(0.925 0.012 135);      /* Sage-tinted neutral surface (#e8ebe6) */
+  --color-ink: oklch(0.18 0.015 130);           /* Near-black ink with olive warmth (#0e0f0c) */
+  --color-ink-muted: oklch(0.46 0.015 130);     /* Slate olive secondary body (#525850) */
+  --color-border: oklch(0.89 0.010 135);        /* Soft sage hairline border (#dbe0d7) */
 
-  /* Signal Terracotta Accent */
-  --color-accent: oklch(0.64 0.18 40);
-  --color-accent-subtle: oklch(0.94 0.04 40);
-  --color-accent-hover: oklch(0.58 0.19 40);
+  /* Wise Lime Accent */
+  --color-accent: oklch(0.86 0.18 135);         /* Signature Wise Lime Green (#9fe870) */
+  --color-accent-subtle: oklch(0.95 0.05 135);  /* Pale lime tint (#e2f6d5) */
+  --color-accent-hover: oklch(0.82 0.19 135);   /* Active lime green (#8de05a) */
+  --color-on-accent: oklch(0.18 0.015 130);     /* Ink on accent for WCAG AAA (#0e0f0c) */
+
+  /* Semantic Highlights */
+  --color-positive: oklch(0.68 0.16 145);       /* #2ead4b */
+  --color-positive-subtle: oklch(0.94 0.05 145);/* #e2f6d5 */
+  --color-negative: oklch(0.58 0.20 25);        /* #d03238 */
+  --color-negative-subtle: oklch(0.93 0.05 25); /* #fce8e8 */
+  --color-warning: oklch(0.78 0.17 75);         /* #e5a100 */
 }
 
 [data-theme="dark"] {
-  /* Hallmark Aurora Dark Theme Tokens */
-  --color-paper: oklch(0.14 0.012 250);
-  --color-paper-2: oklch(0.18 0.014 250);
-  --color-paper-3: oklch(0.23 0.018 250);
-  --color-ink: oklch(0.94 0.006 250);
-  --color-ink-muted: oklch(0.66 0.012 250);
-  --color-border: oklch(0.25 0.015 250);
+  /* Wise Dark (Obsidian Forest) */
+  --color-paper: oklch(0.14 0.015 145);         /* Obsidian forest canvas (#0c120e) */
+  --color-paper-2: oklch(0.18 0.018 145);       /* Deep forest card surface (#131b15) */
+  --color-paper-3: oklch(0.23 0.022 145);       /* Muted deep sage surface (#1b261e) */
+  --color-ink: oklch(0.95 0.008 140);           /* Crisp off-white ink (#f2f5f1) */
+  --color-ink-muted: oklch(0.66 0.018 140);     /* Muted sage secondary (#8c9a8e) */
+  --color-border: oklch(0.26 0.020 145);        /* Hairline forest border (#223126) */
 
-  /* Aurora Emerald / Teal Accent */
-  --color-accent: oklch(0.74 0.16 170);
-  --color-accent-subtle: oklch(0.22 0.04 170);
-  --color-accent-hover: oklch(0.78 0.17 170);
+  /* Wise Lime Accent */
+  --color-accent: oklch(0.86 0.18 135);         /* Signature Wise Lime Green (#9fe870) */
+  --color-accent-subtle: oklch(0.24 0.04 135);  /* Deep lime forest tint */
+  --color-accent-hover: oklch(0.89 0.17 135);   /* Hover bright lime (#adff7d) */
+  --color-on-accent: oklch(0.12 0.015 145);     /* Ink on accent (#0c120e) */
+
+  /* Semantic Highlights */
+  --color-positive: oklch(0.72 0.16 145);
+  --color-positive-subtle: oklch(0.22 0.04 145);
+  --color-negative: oklch(0.65 0.20 25);
+  --color-negative-subtle: oklch(0.22 0.05 25);
+  --color-warning: oklch(0.82 0.16 75);
 }
 
 body {

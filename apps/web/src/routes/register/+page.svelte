@@ -73,7 +73,13 @@
       const data = await res.json();
 
       if (!res.ok) {
-        errorMessage = data.error || ($currentLang === 'id' ? 'Gagal membuat akun' : 'Failed to create account');
+        if (res.status === 403) {
+          errorMessage = $currentLang === 'id'
+            ? 'Akun owner sudah terdaftar (Pockt adalah aplikasi Single-Owner). Silakan login dengan akun yang ada, atau reset via terminal: pnpm user'
+            : 'Owner account is already registered (Single-Owner app). Please log in with existing credentials, or reset via terminal: pnpm user';
+        } else {
+          errorMessage = data.error || ($currentLang === 'id' ? 'Gagal membuat akun' : 'Failed to create account');
+        }
         return;
       }
 

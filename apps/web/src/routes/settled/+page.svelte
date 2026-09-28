@@ -137,7 +137,7 @@
       <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 flex flex-col justify-between gap-2 min-w-0">
         <div class="flex items-center justify-between gap-1 text-[var(--color-ink-muted)]">
           <span class="text-[11px] sm:text-xs font-mono font-semibold uppercase tracking-wider min-w-0 truncate">{t.settled_total_debt}</span>
-          <HandCoins class="w-4 h-4 text-[var(--color-accent)] shrink-0" />
+          <HandCoins class="w-4 h-4 text-emerald-700 dark:text-[var(--color-accent)] shrink-0" />
         </div>
         <div class="text-base sm:text-lg lg:text-xl font-bold font-mono text-[var(--color-ink)] truncate" title={formatRupiah(data.totals.settledDebtTotal)}>
           {formatRupiah(data.totals.settledDebtTotal)}
@@ -164,7 +164,7 @@
     <!-- Settled Debts Section -->
     <section class="space-y-3">
       <div class="flex items-center gap-2 border-b border-[var(--color-border)] pb-2.5">
-        <CheckCircle2 class="w-4 h-4 text-[var(--color-accent)]" />
+        <CheckCircle2 class="w-4 h-4 text-emerald-700 dark:text-[var(--color-accent)]" />
         <h2 class="text-base font-bold text-[var(--color-ink)] font-mono">{t.settled_debts_section}</h2>
       </div>
 
@@ -181,7 +181,7 @@
             >
               <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
                 <div class="flex items-start gap-2.5 min-w-0 flex-1">
-                  <div class="p-1.5 bg-[var(--color-accent-subtle)] text-[var(--color-accent)] rounded shrink-0 mt-0.5">
+                  <div class="p-1.5 bg-[var(--color-accent-subtle)] text-emerald-700 dark:text-[var(--color-accent)] rounded shrink-0 mt-0.5">
                     <CheckCircle2 class="w-4 h-4" />
                   </div>
                   <div class="min-w-0 flex-1">
@@ -189,7 +189,7 @@
                       {item.person}
                     </div>
                     <div class="text-xs font-mono text-[var(--color-ink-muted)] mt-1 flex items-center gap-2 flex-wrap">
-                      <span class="text-[var(--color-accent)] font-semibold">{t.common_paid}</span>
+                      <span class="text-emerald-700 dark:text-[var(--color-accent)] font-semibold">{t.common_paid}</span>
                       {#if item.settledAt}
                         • <span>{t.settled_paid_on} {formatDateNumeric(item.settledAt)} ({formatDate(item.settledAt)})</span>
                       {/if}
@@ -253,7 +253,7 @@
     <!-- Bill Payments Section -->
     <section class="space-y-3">
       <div class="flex items-center gap-2 border-b border-[var(--color-border)] pb-2.5">
-        <Receipt class="w-4 h-4 text-[var(--color-accent)]" />
+        <Receipt class="w-4 h-4 text-emerald-700 dark:text-[var(--color-accent)]" />
         <h2 class="text-base font-bold text-[var(--color-ink)] font-mono">{t.settled_bills_section}</h2>
       </div>
 
@@ -307,7 +307,7 @@
             <div class="font-bold text-[var(--color-ink)]">{formatDateNumeric(hp.date)} ({formatDate(hp.date)})</div>
             {#if hp.notes}<div class="text-[var(--color-ink-muted)] text-[11px] font-sans">{hp.notes}</div>{/if}
           </div>
-          <div class="font-bold text-[var(--color-accent)]">
+          <div class="font-bold text-emerald-700 dark:text-[var(--color-accent)]">
             {formatRupiah(hp.amount)}
           </div>
         </div>

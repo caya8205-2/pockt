@@ -160,7 +160,7 @@
         <button
           on:click={toggleTheme}
           class="p-2 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md cursor-pointer transition-colors"
-          title={currentTheme === 'light' ? 'Switch to Dark Mode (Aurora)' : 'Switch to Light Mode (Bloom)'}
+          title={currentTheme === 'light' ? 'Switch to Dark Mode (Wise Dark)' : 'Switch to Light Mode (Wise Light)'}
           aria-label="Toggle Theme"
         >
           {#if currentTheme === 'light'}
@@ -213,11 +213,11 @@
               on:click={() => (isMobileMenuOpen = false)}
               class={`flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-lg transition-colors ${
                 isActive
-                  ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] font-bold'
+                  ? 'bg-[var(--color-accent-subtle)] text-[var(--color-ink)] font-bold shadow-xs'
                   : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-2)]'
               }`}
             >
-              <svelte:component this={item.icon} class={`w-5 h-5 ${isActive ? 'text-[var(--color-accent)]' : 'text-[var(--color-ink-muted)]'}`} />
+              <svelte:component this={item.icon} class={`w-5 h-5 ${isActive ? 'text-emerald-700 dark:text-[var(--color-accent)]' : 'text-[var(--color-ink-muted)]'}`} />
               <span>{item.label}</span>
             </a>
           {/each}
@@ -336,12 +336,12 @@
             href={item.href}
             class={`flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
               isActive
-                ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] font-bold'
+                ? 'bg-[var(--color-accent-subtle)] text-[var(--color-ink)] font-bold shadow-xs'
                 : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-3)]'
             } ${isSidebarCompact ? 'justify-center px-0' : ''}`}
             title={isSidebarCompact ? item.label : undefined}
           >
-            <svelte:component this={item.icon} class={`w-4 h-4 shrink-0 ${isActive ? 'text-[var(--color-accent)]' : 'text-[var(--color-ink-muted)]'}`} />
+            <svelte:component this={item.icon} class={`w-4 h-4 shrink-0 ${isActive ? 'text-emerald-700 dark:text-[var(--color-accent)]' : 'text-[var(--color-ink-muted)]'}`} />
             {#if !isSidebarCompact}
               <span class="truncate">{item.label}</span>
             {/if}
@@ -464,7 +464,7 @@
           POCKT
         </div>
         {#if $authTransition.message}
-          <div class="text-xs text-[var(--color-accent)] font-bold tracking-wide animate-pulse">
+          <div class="text-xs text-emerald-700 dark:text-[var(--color-accent)] font-bold tracking-wide animate-pulse">
             {$authTransition.message}
           </div>
         {/if}

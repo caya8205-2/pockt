@@ -85,7 +85,7 @@
 <div class="space-y-6">
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div class="flex items-center gap-3">
-      <div class="p-2.5 bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)] rounded-md">
+      <div class="p-2.5 bg-[var(--color-accent-subtle)] text-emerald-700 dark:text-[var(--color-accent)] border border-[var(--color-border)] rounded-md">
         <Wallet class="w-5 h-5" />
       </div>
       <div>
@@ -98,7 +98,7 @@
       on:click={() => { newPaydayDate = data?.paydayDate || 5; settingsError = ''; showSettingsModal = true; }}
       class="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-[var(--color-paper-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink)] text-xs font-mono font-bold rounded-md transition-colors cursor-pointer shrink-0 self-start sm:self-center leading-none text-center shadow-xs"
     >
-      <Settings class="w-3.5 h-3.5 text-[var(--color-accent)] shrink-0" />
+      <Settings class="w-3.5 h-3.5 text-emerald-700 dark:text-[var(--color-accent)] shrink-0" />
       <span class="leading-none">{t.payday_change_date} ({data?.paydayDate || 5})</span>
     </button>
   </div>
@@ -116,7 +116,7 @@
         </div>
 
         <div class="flex items-center gap-2.5 px-3.5 py-2.5 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-xs font-mono shrink-0">
-          <Calendar class="w-4 h-4 text-[var(--color-accent)] shrink-0" />
+          <Calendar class="w-4 h-4 text-emerald-700 dark:text-[var(--color-accent)] shrink-0" />
           <div>
             <span class="text-[var(--color-ink-muted)]">{t.payday_cycle_badge}: </span>
             <span class="font-bold text-[var(--color-ink)]">{formatDate(data.cycleStart)} – {formatDate(data.cycleEnd)}</span>
@@ -197,10 +197,10 @@
 
       <div class="pt-5 border-t border-[var(--color-border)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[var(--color-accent-subtle)] p-5 rounded-md border border-[var(--color-border)]">
         <div>
-          <div class="text-xs font-mono font-bold uppercase tracking-wider text-[var(--color-accent)]">{t.payday_final_net}</div>
+          <div class="text-xs font-mono font-bold uppercase tracking-wider text-emerald-800 dark:text-[var(--color-accent)]">{t.payday_final_net}</div>
           <div class="text-xs text-[var(--color-ink-muted)] mt-0.5">{t.payday_net_desc}</div>
         </div>
-        <div class="text-2xl sm:text-3xl font-extrabold font-mono text-[var(--color-accent)]">
+        <div class="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-700 dark:text-[var(--color-accent)]">
           {formatRupiah(data.freeToSpend)}
         </div>
       </div>

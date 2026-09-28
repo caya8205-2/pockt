@@ -1,7 +1,7 @@
 import { request } from '@playwright/test';
 import type { APIRequestContext, APIResponse } from '@playwright/test';
 
-const API_BASE = 'http://localhost:3001';
+const API_BASE = process.env.VITE_BACKEND_URL || 'http://localhost:3005';
 const OWNER = { username: 'owner', password: 'password123' };
 
 export default async function globalSetup() {

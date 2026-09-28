@@ -43,8 +43,8 @@ export const translations = {
     quick_add: 'Catat Transaksi',
     export_csv: 'Export CSV',
     logout: 'Keluar (Logout)',
-    switch_theme_dark: 'Dark Mode (Aurora)',
-    switch_theme_light: 'Light Mode (Bloom)',
+    switch_theme_dark: 'Dark Mode (Obsidian)',
+    switch_theme_light: 'Light Mode (Wise)',
     lang_label: 'Bahasa: Indonesia',
     sidebar_tagline: 'Finance',
 
@@ -267,8 +267,8 @@ export const translations = {
     quick_add: 'Record Transaction',
     export_csv: 'Export CSV',
     logout: 'Sign Out (Logout)',
-    switch_theme_dark: 'Dark Mode (Aurora)',
-    switch_theme_light: 'Light Mode (Bloom)',
+    switch_theme_dark: 'Dark Mode (Obsidian)',
+    switch_theme_light: 'Light Mode (Wise)',
     lang_label: 'Language: English',
     sidebar_tagline: 'Finance',
 

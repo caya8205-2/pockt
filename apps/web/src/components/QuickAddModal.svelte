@@ -100,11 +100,11 @@
       on:click={() => (type = 'income')}
       class={`flex items-center justify-center gap-2 py-2 text-xs font-mono font-bold rounded transition-colors cursor-pointer ${
         type === 'income'
-          ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)]'
+          ? 'bg-[var(--color-accent-subtle)] text-[var(--color-ink)] border border-[var(--color-border)] shadow-xs'
           : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]'
       }`}
     >
-      <ArrowDownLeft class="w-4 h-4" />
+      <ArrowDownLeft class={`w-4 h-4 ${type === 'income' ? 'text-emerald-700 dark:text-[var(--color-accent)]' : ''}`} />
       <span>{t.type_income}</span>
     </button>
   </div>
