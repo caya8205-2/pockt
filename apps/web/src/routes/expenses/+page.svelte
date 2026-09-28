@@ -304,15 +304,15 @@
   </div>
 
   <!-- Total Expenses Summary Card -->
-  <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono shadow-xs">
-    <div class="space-y-1">
+  <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono shadow-xs">
+    <div class="space-y-1.5">
       <div class="text-xs font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider flex items-center gap-2">
         <span>{$currentLang === 'id' ? 'Total Pengeluaran' : 'Total Expenses'}</span>
-        <span class="px-2 py-0.5 text-[10px] bg-[var(--color-accent-subtle)] text-emerald-700 dark:text-[var(--color-accent)] rounded-full font-bold">
+        <span class="px-2.5 py-0.5 text-[10px] bg-[var(--color-accent-subtle)] text-emerald-700 dark:text-[var(--color-accent)] rounded-full font-bold">
           {periodLabelMap[selectedPeriod]}
         </span>
       </div>
-      <div class="text-2xl sm:text-3xl font-extrabold text-[var(--color-ink)]">
+      <div class="text-3xl sm:text-4xl font-extrabold text-[var(--color-ink)]">
         {formatRupiah(totalFilteredAmount)}
       </div>
     </div>
@@ -409,28 +409,28 @@
           on:dragstart={(e) => handleDragStart(e, index)}
           on:dragover={(e) => handleDragOver(e, index)}
           on:dragend={handleDragEnd}
-          class={`bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 transition-all ${
-            draggedIndex === index ? 'opacity-40 border-dashed border-[var(--color-accent)]' : 'hover:border-slate-400'
+          class={`bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-xl p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 transition-all shadow-xs ${
+            draggedIndex === index ? 'opacity-40 border-dashed border-[var(--color-accent)]' : 'hover:border-[var(--color-ink-muted)]/40'
           }`}
         >
-          <div class="flex items-start sm:items-center gap-2.5 min-w-0 flex-1">
+          <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
             <!-- Drag Handle Icon -->
             <div class="cursor-grab active:cursor-grabbing text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] p-1 shrink-0 mt-0.5 sm:mt-0" title="Drag to reorder">
               <GripVertical class="w-4 h-4" />
             </div>
 
-            <div class="p-2 bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded shrink-0 mt-0.5 sm:mt-0">
+            <div class="p-2 bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded-lg shrink-0 mt-0.5 sm:mt-0">
               <ArrowUpRight class="w-4 h-4" />
             </div>
 
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2 flex-wrap">
                 <span class="font-bold text-[var(--color-ink)] text-sm">{item.title}</span>
-                <span class="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded shrink-0">
+                <span class="px-2 py-0.5 text-[10px] font-mono font-semibold bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded-md shrink-0">
                   {catLabel(item.category)}
                 </span>
                 {#if item.paymentMethod && item.paymentMethod !== 'CASH'}
-                  <span class={`px-1.5 py-0.5 text-[10px] font-mono font-semibold rounded shrink-0 ${
+                  <span class={`px-2 py-0.5 text-[10px] font-mono font-semibold rounded-md shrink-0 ${
                     item.isPaylater || ['GOPAY_LATER', 'SPAYLATER', 'OTHER_PAYLATER'].includes(item.paymentMethod)
                       ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
                       : 'bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]'
@@ -452,14 +452,14 @@
             <div class="flex items-center gap-1 shrink-0">
               <button
                 on:click={() => openEditModal(item)}
-                class="p-1.5 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-3)] rounded transition-colors cursor-pointer"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-3)] transition-colors cursor-pointer"
                 aria-label={t.common_edit}
               >
                 <Edit3 class="w-4 h-4" />
               </button>
               <button
                 on:click={() => handleDelete(item.id)}
-                class="p-1.5 text-[var(--color-ink-muted)] hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-ink-muted)] hover:text-rose-600 hover:bg-rose-500/15 transition-colors cursor-pointer"
                 aria-label={t.common_delete}
               >
                 <Trash2 class="w-4 h-4" />
