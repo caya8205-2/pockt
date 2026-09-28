@@ -81,30 +81,34 @@
 
 <Modal {isOpen} title={t.quick_add_title} onClose={closeModal}>
   <!-- Type Switcher -->
-  <div class="grid grid-cols-2 gap-2 bg-[var(--color-paper)] p-1 rounded-md mb-4 border border-[var(--color-border)]">
+  <div class="grid grid-cols-2 gap-2 bg-[var(--color-paper)] p-1 rounded-xl mb-4 border border-[var(--color-border)]">
     <button
       type="button"
       on:click={() => (type = 'expense')}
-      class={`flex items-center justify-center gap-2 py-2 text-xs font-mono font-bold rounded transition-colors cursor-pointer ${
+      class={`flex items-center justify-center gap-2 h-10 text-xs font-mono font-bold rounded-lg transition-all cursor-pointer ${
         type === 'expense'
-          ? 'bg-[var(--color-paper-3)] text-[var(--color-ink)] border border-[var(--color-border)]'
+          ? 'bg-[var(--color-paper-3)] text-[var(--color-ink)] border border-[var(--color-border)] shadow-xs'
           : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]'
       }`}
     >
-      <ArrowUpRight class="w-4 h-4" />
+      <div class="p-1 rounded bg-[var(--color-paper-2)]/60">
+        <ArrowUpRight class="w-3.5 h-3.5" />
+      </div>
       <span>{t.type_expense}</span>
     </button>
 
     <button
       type="button"
       on:click={() => (type = 'income')}
-      class={`flex items-center justify-center gap-2 py-2 text-xs font-mono font-bold rounded transition-colors cursor-pointer ${
+      class={`flex items-center justify-center gap-2 h-10 text-xs font-mono font-bold rounded-lg transition-all cursor-pointer ${
         type === 'income'
           ? 'bg-[var(--color-accent-subtle)] text-[var(--color-ink)] border border-[var(--color-border)] shadow-xs'
           : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]'
       }`}
     >
-      <ArrowDownLeft class={`w-4 h-4 ${type === 'income' ? 'text-emerald-700 dark:text-[var(--color-accent)]' : ''}`} />
+      <div class={`p-1 rounded ${type === 'income' ? 'bg-[var(--color-accent)] text-slate-950' : 'bg-[var(--color-paper-2)]/60'}`}>
+        <ArrowDownLeft class="w-3.5 h-3.5" />
+      </div>
       <span>{t.type_income}</span>
     </button>
   </div>
@@ -193,11 +197,11 @@
       </div>
     </div>
 
-    <div class="pt-3 flex justify-end gap-2">
+    <div class="pt-3 flex justify-end gap-2.5">
       <button
         type="button"
         on:click={closeModal}
-        class="px-4 py-2 text-xs font-mono font-semibold text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] cursor-pointer"
+        class="px-4 py-2.5 text-xs font-mono font-semibold text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-3)] rounded-xl transition-colors cursor-pointer"
       >
         {t.common_cancel}
       </button>
@@ -205,9 +209,9 @@
       <button
         type="submit"
         disabled={isLoading}
-        class="px-5 py-2 text-xs font-mono font-bold text-slate-950 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] rounded-md transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+        class="h-10 px-5 text-xs font-mono font-bold text-slate-950 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] rounded-xl transition-all disabled:opacity-50 cursor-pointer shadow-xs flex items-center justify-center gap-2"
       >
-        {isLoading ? t.common_saving : t.save_transaction}
+        <span>{isLoading ? t.common_saving : t.save_transaction}</span>
       </button>
     </div>
   </form>

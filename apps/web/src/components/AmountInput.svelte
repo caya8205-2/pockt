@@ -58,7 +58,9 @@
   {/if}
 
   <div class="relative flex items-center">
-    <span class="absolute left-3 text-xs font-mono font-bold text-[var(--color-ink-muted)] select-none pointer-events-none">Rp</span>
+    <div class="absolute left-2.5 px-2 py-0.5 rounded-md bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[11px] font-mono font-bold text-[var(--color-ink-muted)] select-none pointer-events-none">
+      Rp
+    </div>
     <input
       {id}
       type="text"
@@ -68,7 +70,7 @@
       {placeholder}
       {required}
       class={`${inputClass} font-mono font-bold text-sm`}
-      style="padding-left: 2.5rem !important;"
+      style="padding-left: 3.5rem !important;"
     />
   </div>
 
