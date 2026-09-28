@@ -106,7 +106,13 @@
   {#if isLoading}
     <div class="p-10 text-center font-mono text-xs text-[var(--color-ink-muted)]">{t.payday_loading}</div>
   {:else if data}
-    <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-6 space-y-6 shadow-xs">
+    {@const totalIncome = data.salaryReceived || 1}
+    {@const billsPct = Math.min(100, Math.round(((data.billsTotal + data.billPaidThisMonth) / totalIncome) * 100))}
+    {@const debtsPct = Math.min(100, Math.round(((data.debtDueThisMonth + data.debtPaidThisMonth) / totalIncome) * 100))}
+    {@const spentPct = Math.min(100, Math.round((data.spentTotal / totalIncome) * 100))}
+    {@const freePct = Math.max(0, 100 - billsPct - debtsPct - spentPct)}
+
+    <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-2xl p-6 sm:p-7 space-y-6 shadow-xs">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[var(--color-border)]">
         <div>
           <div class="text-xs font-mono font-semibold uppercase tracking-wider text-[var(--color-ink-muted)]">{t.payday_total_salary}</div>
@@ -115,8 +121,10 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-2.5 px-3.5 py-2.5 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md text-xs font-mono shrink-0">
-          <Calendar class="w-4 h-4 text-emerald-700 dark:text-[var(--color-accent)] shrink-0" />
+        <div class="flex items-center gap-2.5 px-3.5 py-2.5 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-xl text-xs font-mono shrink-0 shadow-xs">
+          <div class="p-1.5 rounded-lg bg-[var(--color-paper-3)] text-emerald-700 dark:text-[var(--color-accent)]">
+            <Calendar class="w-4 h-4" />
+          </div>
           <div>
             <span class="text-[var(--color-ink-muted)]">{t.payday_cycle_badge}: </span>
             <span class="font-bold text-[var(--color-ink)]">{formatDate(data.cycleStart)} – {formatDate(data.cycleEnd)}</span>
@@ -124,13 +132,45 @@
         </div>
       </div>
 
+      <!-- Allocation Distribution Bar -->
+      <div class="space-y-2.5 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-xl p-4 shadow-xs">
+        <div class="flex items-center justify-between text-xs font-mono font-semibold text-[var(--color-ink)] flex-wrap gap-2">
+          <span>{$currentLang === 'id' ? 'Distribusi Alokasi Gaji' : 'Salary Allocation Distribution'}</span>
+          <span class="text-emerald-700 dark:text-[var(--color-accent)] font-bold">{formatRupiah(data.freeToSpend)} ({freePct}% {$currentLang === 'id' ? 'Bebas' : 'Free'})</span>
+        </div>
+
+        <div class="h-3 w-full bg-[var(--color-paper-3)] rounded-full overflow-hidden flex">
+          {#if billsPct > 0}
+            <div class="bg-blue-500 h-full transition-all" style={`width: ${billsPct}%`} title={`Tagihan: ${billsPct}%`}></div>
+          {/if}
+          {#if debtsPct > 0}
+            <div class="bg-amber-500 h-full transition-all" style={`width: ${debtsPct}%`} title={`Hutang: ${debtsPct}%`}></div>
+          {/if}
+          {#if spentPct > 0}
+            <div class="bg-rose-500 h-full transition-all" style={`width: ${spentPct}%`} title={`Pengeluaran: ${spentPct}%`}></div>
+          {/if}
+          {#if freePct > 0}
+            <div class="bg-emerald-500 dark:bg-[var(--color-accent)] h-full transition-all" style={`width: ${freePct}%`} title={`Sisa Bebas: ${freePct}%`}></div>
+          {/if}
+        </div>
+
+        <div class="flex items-center gap-3.5 text-[11px] font-mono text-[var(--color-ink-muted)] flex-wrap pt-1">
+          <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span>{t.stat_bills} ({billsPct}%)</span>
+          <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span>{t.stat_debt} ({debtsPct}%)</span>
+          <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500"></span>{t.stat_expenses} ({spentPct}%)</span>
+          <span class="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-[var(--color-accent)]"><span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-[var(--color-accent)]"></span>{$currentLang === 'id' ? 'Sisa Bebas' : 'Free Balance'} ({freePct}%)</span>
+        </div>
+      </div>
+
       <div class="space-y-3">
         <div class="text-xs font-mono font-semibold uppercase tracking-wider text-[var(--color-ink-muted)]">{t.payday_scheduled}</div>
 
         <div class="grid gap-2.5 font-mono">
-          <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+          <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 shadow-xs">
             <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-              <CalendarCheck class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5 sm:mt-0" />
+              <div class="p-2 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
+                <CalendarCheck class="w-4 h-4" />
+              </div>
               <div class="min-w-0 flex-1">
                 <div class="text-sm font-bold text-[var(--color-ink)]">{t.payday_bills}</div>
                 <div class="text-xs text-[var(--color-ink-muted)]">{data.unpaidBills.length} {t.payday_unpaid_bills}</div>
@@ -141,9 +181,11 @@
             </div>
           </div>
 
-          <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+          <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 shadow-xs">
             <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-              <CalendarCheck class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5 sm:mt-0" />
+              <div class="p-2 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
+                <CalendarCheck class="w-4 h-4" />
+              </div>
               <div class="min-w-0 flex-1">
                 <div class="text-sm font-bold text-[var(--color-ink)]">{t.payday_bills_paid_this_month}</div>
                 <div class="text-xs text-[var(--color-ink-muted)]">{data.billPaidCount} {t.payday_bill_payments_count}</div>
@@ -154,9 +196,11 @@
             </div>
           </div>
 
-          <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+          <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 shadow-xs">
             <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-              <DollarSign class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5 sm:mt-0" />
+              <div class="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+                <DollarSign class="w-4 h-4" />
+              </div>
               <div class="min-w-0 flex-1">
                 <div class="text-sm font-bold text-[var(--color-ink)]">{t.payday_debts_paid_this_month}</div>
                 <div class="text-xs text-[var(--color-ink-muted)]">{data.debtPaidCount} {t.payday_payments_made}</div>
@@ -167,9 +211,11 @@
             </div>
           </div>
 
-          <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+          <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 shadow-xs">
             <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-              <HandCoins class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5 sm:mt-0" />
+              <div class="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+                <HandCoins class="w-4 h-4" />
+              </div>
               <div class="min-w-0 flex-1">
                 <div class="text-sm font-bold text-[var(--color-ink)]">{t.payday_debts_due_this_month}</div>
                 <div class="text-xs text-[var(--color-ink-muted)]">{data.debtDueCount} {t.payday_due_debts_count}</div>
@@ -180,9 +226,11 @@
             </div>
           </div>
 
-          <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+          <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 shadow-xs">
             <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-              <Receipt class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0 mt-0.5 sm:mt-0" />
+              <div class="p-2 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0">
+                <Receipt class="w-4 h-4" />
+              </div>
               <div class="min-w-0 flex-1">
                 <div class="text-sm font-bold text-[var(--color-ink)]">{t.payday_spent}</div>
                 <div class="text-xs text-[var(--color-ink-muted)]">{t.payday_spent_this_month}</div>
@@ -195,7 +243,7 @@
         </div>
       </div>
 
-      <div class="pt-5 border-t border-[var(--color-border)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[var(--color-accent-subtle)] p-5 rounded-md border border-[var(--color-border)]">
+      <div class="pt-5 border-t border-[var(--color-border)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[var(--color-accent-subtle)] p-5 rounded-xl border border-[var(--color-border)] shadow-xs">
         <div>
           <div class="text-xs font-mono font-bold uppercase tracking-wider text-emerald-800 dark:text-[var(--color-accent)]">{t.payday_final_net}</div>
           <div class="text-xs text-[var(--color-ink-muted)] mt-0.5">{t.payday_net_desc}</div>
