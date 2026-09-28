@@ -139,17 +139,17 @@
 {:else if isAuthenticated}
   <div class="min-h-screen flex flex-col md:flex-row bg-[var(--color-paper)] text-[var(--color-ink)] selection:bg-[var(--color-accent-subtle)] selection:text-[var(--color-accent)] transition-colors duration-150">
     <!-- Mobile Header Bar -->
-    <header class="md:hidden sticky top-0 z-40 bg-[var(--color-paper-2)] border-b border-[var(--color-border)] px-4 py-3 flex items-center justify-between shadow-xs">
+    <header class="md:hidden sticky top-0 z-40 bg-[var(--color-paper-2)] border-b border-[var(--color-border)] px-4 h-14 flex items-center justify-between shadow-xs">
       <a href="/dashboard" class="flex items-center gap-2.5">
-        <img src="/logo-no-bg.png" alt="Pockt Logo" class="h-9 w-auto object-contain" />
-        <span class="font-mono font-bold text-lg text-[var(--color-ink)] tracking-tight">POCKT</span>
+        <img src="/logo-no-bg.png" alt="Pockt Logo" class="h-8 w-auto object-contain" />
+        <span class="font-mono font-extrabold text-base text-[var(--color-ink)] tracking-tight">POCKT</span>
       </a>
 
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1.5">
         <!-- Language Toggle Mobile Button -->
         <button
           on:click={toggleLang}
-          class="p-2 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md cursor-pointer transition-colors text-xs font-mono font-bold"
+          class="w-9 h-9 flex items-center justify-center text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper)] border border-[var(--color-border)] rounded-lg cursor-pointer transition-colors"
           title="Switch Language (ID / EN)"
           aria-label="Toggle Language"
         >
@@ -159,7 +159,7 @@
         <!-- Theme Toggle Mobile Button -->
         <button
           on:click={toggleTheme}
-          class="p-2 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md cursor-pointer transition-colors"
+          class="w-9 h-9 flex items-center justify-center text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper)] border border-[var(--color-border)] rounded-lg cursor-pointer transition-colors"
           title={currentTheme === 'light' ? 'Switch to Dark Mode (Wise Dark)' : 'Switch to Light Mode (Wise Light)'}
           aria-label="Toggle Theme"
         >
@@ -172,7 +172,7 @@
 
         <button
           on:click={openQuickAdd}
-          class="p-2 bg-[var(--color-accent)] text-slate-950 font-bold text-xs flex items-center justify-center cursor-pointer rounded-md shadow-xs"
+          class="w-9 h-9 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-bold text-xs flex items-center justify-center cursor-pointer rounded-lg shadow-xs transition-colors"
           aria-label={t.quick_add}
         >
           <Plus class="w-4 h-4 stroke-[3]" />
@@ -180,7 +180,7 @@
 
         <button
           on:click={toggleMobileMenu}
-          class="p-2 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md cursor-pointer"
+          class="w-9 h-9 flex items-center justify-center text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper)] border border-[var(--color-border)] rounded-lg cursor-pointer transition-colors"
           aria-label="Toggle Menu"
         >
           {#if isMobileMenuOpen}
@@ -197,59 +197,68 @@
       <div class="md:hidden fixed inset-0 z-50 bg-[var(--color-paper)]/95 backdrop-blur-md flex flex-col p-6 space-y-6">
         <div class="flex items-center justify-between pb-4 border-b border-[var(--color-border)]">
           <a href="/dashboard" on:click={() => (isMobileMenuOpen = false)} class="flex items-center gap-3">
-            <img src="/logo-no-bg.png" alt="Pockt Logo" class="h-10 w-auto object-contain" />
-            <span class="font-mono font-bold text-lg text-[var(--color-ink)]">POCKT</span>
+            <img src="/logo-no-bg.png" alt="Pockt Logo" class="h-9 w-auto object-contain" />
+            <span class="font-mono font-extrabold text-lg text-[var(--color-ink)] tracking-tight">POCKT</span>
           </a>
-          <button on:click={toggleMobileMenu} class="p-2 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]">
+          <button on:click={toggleMobileMenu} class="p-2 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] rounded-lg">
             <X class="w-6 h-6" />
           </button>
         </div>
 
-        <nav class="space-y-1.5 flex-1">
+        <nav class="space-y-1 flex-1">
           {#each navItems as item}
             {@const isActive = $page.url.pathname === item.href}
             <a
               href={item.href}
               on:click={() => (isMobileMenuOpen = false)}
-              class={`flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-lg transition-colors ${
+              class={`flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold rounded-xl transition-all ${
                 isActive
-                  ? 'bg-[var(--color-accent-subtle)] text-[var(--color-ink)] font-bold shadow-xs'
+                  ? 'bg-[var(--color-accent-subtle)] text-[var(--color-ink)] font-bold shadow-xs border-l-3 border-[var(--color-accent)]'
                   : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-2)]'
               }`}
             >
-              <svelte:component this={item.icon} class={`w-5 h-5 ${isActive ? 'text-emerald-700 dark:text-[var(--color-accent)]' : 'text-[var(--color-ink-muted)]'}`} />
-              <span>{item.label}</span>
+              <div class={`p-1.5 rounded-lg transition-colors shrink-0 flex items-center justify-center ${
+                isActive
+                  ? 'bg-[var(--color-accent)] text-slate-950 shadow-xs'
+                  : 'bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]'
+              }`}>
+                <svelte:component this={item.icon} class="w-4 h-4" />
+              </div>
+              <span class="text-sm font-semibold">{item.label}</span>
             </a>
           {/each}
         </nav>
 
-        <div class="pt-4 border-t border-[var(--color-border)] space-y-3">
+        <div class="pt-4 border-t border-[var(--color-border)] space-y-2.5">
           <!-- Mobile Drawer Language Toggle -->
           <button
             on:click={toggleLang}
-            class="w-full py-2.5 bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink)] font-mono text-xs rounded-md flex items-center justify-center gap-2 cursor-pointer"
+            class="w-full py-2.5 bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink)] font-mono text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:bg-[var(--color-paper-3)] transition-colors"
           >
-            <Languages class="w-4 h-4 text-[var(--color-ink-muted)]" />
+            <div class="p-1 rounded-md bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]">
+              <Languages class="w-3.5 h-3.5" />
+            </div>
             <span>{t.lang_label}</span>
           </button>
 
           <!-- Mobile Drawer Theme Toggle Button -->
           <button
             on:click={toggleTheme}
-            class="w-full py-2.5 bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink)] font-mono text-xs rounded-md flex items-center justify-center gap-2 cursor-pointer"
+            class="w-full py-2.5 bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink)] font-mono text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:bg-[var(--color-paper-3)] transition-colors"
           >
-            {#if currentTheme === 'light'}
-              <Moon class="w-4 h-4 text-[var(--color-ink-muted)]" />
-              <span>{t.switch_theme_dark}</span>
-            {:else}
-              <Sun class="w-4 h-4 text-[var(--color-ink-muted)]" />
-              <span>{t.switch_theme_light}</span>
-            {/if}
+            <div class="p-1 rounded-md bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]">
+              {#if currentTheme === 'light'}
+                <Moon class="w-3.5 h-3.5" />
+              {:else}
+                <Sun class="w-3.5 h-3.5" />
+              {/if}
+            </div>
+            <span>{currentTheme === 'light' ? t.switch_theme_dark : t.switch_theme_light}</span>
           </button>
 
           <button
             on:click={() => { isMobileMenuOpen = false; openQuickAdd(); }}
-            class="w-full py-3 bg-[var(--color-accent)] text-slate-950 font-mono font-bold text-sm rounded-md flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+            class="w-full py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-colors"
           >
             <Plus class="w-4 h-4 stroke-[3]" />
             <span>{t.quick_add}</span>
@@ -258,15 +267,17 @@
           <a
             href="/api/export/csv"
             download
-            class="w-full py-2.5 bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink-muted)] font-mono text-xs rounded-md flex items-center justify-center gap-2"
+            class="w-full py-2.5 bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] font-mono text-xs rounded-xl flex items-center justify-center gap-2 transition-colors"
           >
-            <Download class="w-4 h-4" />
+            <div class="p-1 rounded-md bg-[var(--color-paper-3)]">
+              <Download class="w-3.5 h-3.5" />
+            </div>
             <span>{t.export_csv}</span>
           </a>
 
           <button
             on:click={handleLogout}
-            class="w-full py-2.5 bg-rose-500/10 border border-rose-500/20 text-rose-500 font-mono text-xs rounded-md flex items-center justify-center gap-2 cursor-pointer"
+            class="w-full py-2.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-500 font-mono text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors"
           >
             <LogOut class="w-4 h-4" />
             <span>{t.logout}</span>
@@ -282,32 +293,32 @@
       }`}
     >
       <!-- Sidebar Header -->
-      <div class={`p-4 flex items-center border-b border-[var(--color-border)] h-18 ${isSidebarCompact ? 'justify-center px-2' : 'justify-between'}`}>
+      <div class={`px-4 flex items-center border-b border-[var(--color-border)] h-[68px] ${isSidebarCompact ? 'justify-center px-2' : 'justify-between'}`}>
         {#if isSidebarCompact}
           <button
             on:click={toggleSidebar}
-            class="p-1 rounded-md hover:bg-[var(--color-paper-3)] transition-all cursor-pointer group"
+            class="p-1.5 rounded-xl hover:bg-[var(--color-paper-3)] transition-all cursor-pointer group"
             title="Expand Sidebar"
             aria-label="Expand Sidebar"
           >
-            <img src="/logo-no-bg.png" alt="Pockt Logo" class="h-10 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform" />
+            <img src="/logo-no-bg.png" alt="Pockt Logo" class="h-9 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform" />
           </button>
         {:else}
           <a href="/dashboard" class="flex items-center gap-3 overflow-hidden">
-            <img src="/logo-no-bg.png" alt="Pockt Logo" class="h-10 w-auto object-contain shrink-0" />
+            <img src="/logo-no-bg.png" alt="Pockt Logo" class="h-9 w-auto object-contain shrink-0" />
             <div class="flex flex-col min-w-0">
-              <span class="font-mono font-extrabold text-lg tracking-tight text-[var(--color-ink)] leading-none">POCKT</span>
-              <span class="text-[10px] font-mono text-[var(--color-ink-muted)] uppercase tracking-wider mt-0.5">{t.sidebar_tagline}</span>
+              <span class="font-mono font-extrabold text-base tracking-tight text-[var(--color-ink)] leading-none">POCKT</span>
+              <span class="text-[10px] font-mono text-[var(--color-ink-muted)] uppercase tracking-wider mt-1">{t.sidebar_tagline}</span>
             </div>
           </a>
 
           <button
             on:click={toggleSidebar}
-            class="p-1.5 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper)] border border-[var(--color-border)] rounded-md transition-colors cursor-pointer"
+            class="w-7 h-7 flex items-center justify-center text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper)] border border-[var(--color-border)] rounded-lg transition-colors cursor-pointer"
             title="Collapse Sidebar"
             aria-label="Collapse Sidebar"
           >
-            <ChevronLeft class="w-4 h-4" />
+            <ChevronLeft class="w-3.5 h-3.5" />
           </button>
         {/if}
       </div>
@@ -316,32 +327,40 @@
       <div class="p-3">
         <button
           on:click={openQuickAdd}
-          class={`w-full py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors shadow-xs flex items-center justify-center gap-2 cursor-pointer ${
+          class={`w-full h-10 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer ${
             isSidebarCompact ? 'px-0' : 'px-3'
           }`}
           title={t.quick_add}
         >
-          <Plus class="w-4 h-4 stroke-[3]" />
+          <div class="p-1 rounded-md bg-slate-950/15 text-slate-950">
+            <Plus class="w-3.5 h-3.5 stroke-[3]" />
+          </div>
           {#if !isSidebarCompact}
-            <span>{t.quick_add}</span>
+            <span class="tracking-wide">{t.quick_add}</span>
           {/if}
         </button>
       </div>
 
       <!-- Navigation Items -->
-      <nav class="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+      <nav class="flex-1 px-3 py-2 space-y-1.5 overflow-y-auto">
         {#each navItems as item}
           {@const isActive = $page.url.pathname === item.href}
           <a
             href={item.href}
-            class={`flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+            class={`flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-xl transition-all group ${
               isActive
-                ? 'bg-[var(--color-accent-subtle)] text-[var(--color-ink)] font-bold shadow-xs'
+                ? 'bg-[var(--color-accent-subtle)] text-[var(--color-ink)] font-bold shadow-xs border-l-3 border-[var(--color-accent)]'
                 : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-3)]'
             } ${isSidebarCompact ? 'justify-center px-0' : ''}`}
             title={isSidebarCompact ? item.label : undefined}
           >
-            <svelte:component this={item.icon} class={`w-4 h-4 shrink-0 ${isActive ? 'text-emerald-700 dark:text-[var(--color-accent)]' : 'text-[var(--color-ink-muted)]'}`} />
+            <div class={`p-1.5 rounded-lg transition-colors shrink-0 flex items-center justify-center ${
+              isActive
+                ? 'bg-[var(--color-accent)] text-slate-950 shadow-xs'
+                : 'bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] group-hover:text-[var(--color-ink)]'
+            }`}>
+              <svelte:component this={item.icon} class="w-4 h-4" />
+            </div>
             {#if !isSidebarCompact}
               <span class="truncate">{item.label}</span>
             {/if}
@@ -354,12 +373,14 @@
         <!-- Language Switcher Button -->
         <button
           on:click={toggleLang}
-          class={`w-full py-2 bg-[var(--color-paper)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] font-mono text-[11px] rounded-md transition-colors flex items-center justify-center gap-2 cursor-pointer ${
+          class={`w-full py-2 bg-[var(--color-paper)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] font-mono text-[11px] rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer ${
             isSidebarCompact ? 'px-0' : 'px-3'
           }`}
           title="Switch Language (ID / EN)"
         >
-          <Languages class="w-3.5 h-3.5 text-[var(--color-ink-muted)] shrink-0" />
+          <div class="p-1 rounded-md bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]">
+            <Languages class="w-3.5 h-3.5 shrink-0" />
+          </div>
           {#if !isSidebarCompact}
             <span>{t.lang_label}</span>
           {/if}
@@ -368,33 +389,34 @@
         <!-- Theme Toggle Switch -->
         <button
           on:click={toggleTheme}
-          class={`w-full py-2 bg-[var(--color-paper)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] font-mono text-[11px] rounded-md transition-colors flex items-center justify-center gap-2 cursor-pointer ${
+          class={`w-full py-2 bg-[var(--color-paper)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] font-mono text-[11px] rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer ${
             isSidebarCompact ? 'px-0' : 'px-3'
           }`}
           title={currentTheme === 'light' ? t.switch_theme_dark : t.switch_theme_light}
         >
-          {#if currentTheme === 'light'}
-            <Moon class="w-3.5 h-3.5 text-[var(--color-ink-muted)] shrink-0" />
-            {#if !isSidebarCompact}
-              <span>{t.switch_theme_dark}</span>
+          <div class="p-1 rounded-md bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]">
+            {#if currentTheme === 'light'}
+              <Moon class="w-3.5 h-3.5 shrink-0" />
+            {:else}
+              <Sun class="w-3.5 h-3.5 shrink-0" />
             {/if}
-          {:else}
-            <Sun class="w-3.5 h-3.5 text-[var(--color-ink-muted)] shrink-0" />
-            {#if !isSidebarCompact}
-              <span>{t.switch_theme_light}</span>
-            {/if}
+          </div>
+          {#if !isSidebarCompact}
+            <span>{currentTheme === 'light' ? t.switch_theme_dark : t.switch_theme_light}</span>
           {/if}
         </button>
 
         <a
           href="/api/export/csv"
           download
-          class={`w-full py-2 bg-[var(--color-paper)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] font-mono text-[11px] rounded-md transition-colors flex items-center justify-center gap-2 ${
+          class={`w-full py-2 bg-[var(--color-paper)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] font-mono text-[11px] rounded-xl transition-colors flex items-center justify-center gap-2 ${
             isSidebarCompact ? 'px-0' : 'px-3'
           }`}
           title={t.export_csv}
         >
-          <Download class="w-3.5 h-3.5 shrink-0" />
+          <div class="p-1 rounded-md bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]">
+            <Download class="w-3.5 h-3.5 shrink-0" />
+          </div>
           {#if !isSidebarCompact}
             <span>{t.export_csv}</span>
           {/if}
@@ -402,7 +424,7 @@
 
         <button
           on:click={handleLogout}
-          class={`w-full py-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-500 font-mono text-[11px] rounded-md transition-colors flex items-center justify-center gap-2 cursor-pointer ${
+          class={`w-full py-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-500 font-mono text-[11px] rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer ${
             isSidebarCompact ? 'px-0' : 'px-3'
           }`}
           title={t.logout}
