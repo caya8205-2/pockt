@@ -133,11 +133,13 @@
     <div class="p-10 text-center font-mono text-xs text-[var(--color-ink-muted)]">{t.settled_loading}</div>
   {:else if data}
     <!-- Summary Cards -->
-    <div class="grid grid-cols-2 gap-3">
-      <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 flex flex-col justify-between gap-2 min-w-0">
-        <div class="flex items-center justify-between gap-1 text-[var(--color-ink-muted)]">
+    <div class="grid grid-cols-2 gap-3.5 sm:gap-4">
+      <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-xl p-4 flex flex-col justify-between gap-3 shadow-xs">
+        <div class="flex items-center justify-between gap-2 text-[var(--color-ink-muted)]">
           <span class="text-[11px] sm:text-xs font-mono font-semibold uppercase tracking-wider min-w-0 truncate">{t.settled_total_debt}</span>
-          <HandCoins class="w-4 h-4 text-emerald-700 dark:text-[var(--color-accent)] shrink-0" />
+          <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-[var(--color-accent)] shrink-0">
+            <HandCoins class="w-4 h-4" />
+          </div>
         </div>
         <div class="text-base sm:text-lg lg:text-xl font-bold font-mono text-[var(--color-ink)] truncate" title={formatRupiah(data.totals.settledDebtTotal)}>
           {formatRupiah(data.totals.settledDebtTotal)}
@@ -147,10 +149,12 @@
         </div>
       </div>
 
-      <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md p-4 flex flex-col justify-between gap-2 min-w-0">
-        <div class="flex items-center justify-between gap-1 text-[var(--color-ink-muted)]">
+      <div class="bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-xl p-4 flex flex-col justify-between gap-3 shadow-xs">
+        <div class="flex items-center justify-between gap-2 text-[var(--color-ink-muted)]">
           <span class="text-[11px] sm:text-xs font-mono font-semibold uppercase tracking-wider min-w-0 truncate">{t.settled_total_bills}</span>
-          <CalendarCheck class="w-4 h-4 text-[var(--color-ink-muted)] shrink-0" />
+          <div class="p-2 rounded-lg bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] shrink-0">
+            <CalendarCheck class="w-4 h-4" />
+          </div>
         </div>
         <div class="text-base sm:text-lg lg:text-xl font-bold font-mono text-[var(--color-ink)] truncate" title={formatRupiah(data.totals.billPaymentsTotal)}>
           {formatRupiah(data.totals.billPaymentsTotal)}
@@ -177,11 +181,11 @@
           {#each displayedDebts as item (item.id)}
             <div
               role="listitem"
-              class="border rounded-md p-4 space-y-3 bg-[var(--color-paper-2)]/40 border-[var(--color-border)]"
+              class="border rounded-xl p-4 sm:p-5 space-y-3 bg-[var(--color-paper-2)]/50 border-[var(--color-border)] shadow-xs"
             >
               <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
-                <div class="flex items-start gap-2.5 min-w-0 flex-1">
-                  <div class="p-1.5 bg-[var(--color-accent-subtle)] text-emerald-700 dark:text-[var(--color-accent)] rounded shrink-0 mt-0.5">
+                <div class="flex items-start gap-3 min-w-0 flex-1">
+                  <div class="p-2 bg-emerald-500/10 text-emerald-700 dark:text-[var(--color-accent)] rounded-lg shrink-0 mt-0.5">
                     <CheckCircle2 class="w-4 h-4" />
                   </div>
                   <div class="min-w-0 flex-1">
@@ -213,7 +217,7 @@
               <div class="pt-2.5 border-t border-[var(--color-border)] flex items-center justify-between">
                 <button
                   on:click={() => openHistoryModal(item)}
-                  class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] rounded-md transition-colors cursor-pointer"
+                  class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] rounded-lg transition-colors cursor-pointer"
                 >
                   <History class="w-3.5 h-3.5" />
                   <span>{t.history}</span>
@@ -222,14 +226,14 @@
                 <div class="flex items-center gap-2">
                   <button
                     on:click={() => handleRestore(item)}
-                    class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] rounded-md transition-colors cursor-pointer"
+                    class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] rounded-lg transition-colors cursor-pointer"
                   >
                     <RotateCcw class="w-3.5 h-3.5" />
                     <span>{t.settled_restore}</span>
                   </button>
                   <button
                     on:click={() => handleDelete(item)}
-                    class="p-1.5 text-[var(--color-ink-muted)] hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                    class="p-1.5 text-[var(--color-ink-muted)] hover:text-rose-600 hover:bg-rose-500/15 rounded-lg transition-colors cursor-pointer"
                     aria-label={t.common_delete}
                   >
                     <Trash2 class="w-4 h-4" />

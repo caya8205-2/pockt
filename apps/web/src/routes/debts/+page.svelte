@@ -263,23 +263,29 @@
     <div class="grid gap-2.5" role="list">
       {#each displayedDebts as item, index (item.id)}
         <!-- svelte-ignore a11y_no_static_element_interactions -->
+        {@const paidAmount = item.totalAmount - item.remainingAmount}
+        {@const paidPct = Math.min(100, Math.round((paidAmount / (item.totalAmount || 1)) * 100))}
         <div
           role="listitem"
           draggable="true"
           on:dragstart={(e) => handleDragStart(e, index)}
           on:dragover={(e) => handleDragOver(e, index)}
           on:dragend={handleDragEnd}
-          class={`border rounded-md p-4 space-y-3 transition-all ${
+          class={`border rounded-xl p-4 sm:p-5 space-y-3.5 transition-all shadow-xs ${
             draggedIndex === index ? 'opacity-40 border-dashed border-[var(--color-accent)]' : ''
           } ${
-            item.isPaid ? 'bg-[var(--color-paper-2)]/40 border-[var(--color-border)] opacity-75' : 'bg-[var(--color-paper-2)] border-[var(--color-border)] hover:border-slate-400'
+            item.isPaid ? 'bg-[var(--color-paper-2)]/50 border-[var(--color-border)] opacity-75' : 'bg-[var(--color-paper-2)] border-[var(--color-border)] hover:border-[var(--color-ink-muted)]/40'
           }`}
         >
           <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
-            <div class="flex items-start gap-2.5 min-w-0 flex-1">
+            <div class="flex items-start gap-3 min-w-0 flex-1">
               <!-- Drag Handle Icon -->
               <div class="cursor-grab active:cursor-grabbing text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] p-1 shrink-0 mt-0.5" title="Drag to reorder">
                 <GripVertical class="w-4 h-4" />
+              </div>
+
+              <div class={`p-2 rounded-lg shrink-0 mt-0.5 ${item.isPaid ? 'bg-emerald-500/10 text-emerald-700 dark:text-[var(--color-accent)]' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'}`}>
+                <HandCoins class="w-4 h-4" />
               </div>
 
               <div class="min-w-0 flex-1">
@@ -288,7 +294,7 @@
                     {item.person}
                   </span>
                   {#if item.type && item.type !== 'PERSONAL'}
-                    <span class="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 rounded shrink-0">
+                    <span class="px-2 py-0.5 text-[10px] font-mono font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 rounded-md shrink-0">
                       {formatDebtTypeLabel(item.type)}
                     </span>
                   {/if}
@@ -318,12 +324,23 @@
             </div>
           </div>
 
+          <!-- Debt Repayment Progress Bar -->
+          <div class="space-y-1 bg-[var(--color-paper)] p-2.5 rounded-lg border border-[var(--color-border)]">
+            <div class="h-2 w-full bg-[var(--color-paper-3)] rounded-full overflow-hidden">
+              <div class="bg-emerald-500 dark:bg-[var(--color-accent)] h-full transition-all" style={`width: ${paidPct}%`}></div>
+            </div>
+            <div class="flex items-center justify-between text-[10px] font-mono text-[var(--color-ink-muted)]">
+              <span>{paidPct}% {$currentLang === 'id' ? 'terbayar' : 'paid'}</span>
+              <span>{formatRupiah(paidAmount)} / {formatRupiah(item.totalAmount)}</span>
+            </div>
+          </div>
+
           <div class="pt-2.5 border-t border-[var(--color-border)] flex items-center justify-between">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
               {#if !item.isPaid && item.remainingAmount > 0}
                 <button
                   on:click={() => openPayModal(item)}
-                  class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 rounded-md transition-colors cursor-pointer shadow-xs"
+                  class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 rounded-lg transition-colors cursor-pointer shadow-xs"
                 >
                   <DollarSign class="w-3.5 h-3.5" />
                   <span>{t.pay_installment}</span>
@@ -332,7 +349,7 @@
 
               <button
                 on:click={() => openHistoryModal(item)}
-                class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] rounded-md transition-colors cursor-pointer"
+                class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] rounded-lg transition-colors cursor-pointer"
               >
                 <History class="w-3.5 h-3.5" />
                 <span>{t.history}</span>
@@ -340,7 +357,7 @@
 
               <button
                 on:click={() => openAttachedExpensesModal(item)}
-                class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] rounded-md transition-colors cursor-pointer"
+                class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] rounded-lg transition-colors cursor-pointer"
                 title={t.debt_attached_expenses}
               >
                 <Receipt class="w-3.5 h-3.5" />
@@ -351,14 +368,14 @@
             <div class="flex items-center gap-1">
               <button
                 on:click={() => openEditModal(item)}
-                class="p-1.5 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-3)] rounded transition-colors cursor-pointer"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-3)] transition-colors cursor-pointer"
                 aria-label={t.common_edit}
               >
                 <Edit3 class="w-4 h-4" />
               </button>
               <button
                 on:click={() => handleDelete(item.id)}
-                class="p-1.5 text-[var(--color-ink-muted)] hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-ink-muted)] hover:text-rose-600 hover:bg-rose-500/15 transition-colors cursor-pointer"
                 aria-label={t.common_delete}
               >
                 <Trash2 class="w-4 h-4" />
