@@ -5,23 +5,24 @@
   import { goto } from '$app/navigation';
   import { browser } from '$app/environment';
   import { currentLang, toggleLang, translations } from '$lib/i18n';
+  import Icon from '$components/Icon.svelte';
   import {
-    LayoutDashboard,
-    Wallet,
-    Receipt,
-    CalendarCheck,
-    HandCoins,
-    BadgeCheck,
-    Plus,
-    Download,
-    ChevronLeft,
-    Menu,
-    X,
-    Sun,
-    Moon,
-    LogOut,
-    Languages
-  } from 'lucide-svelte';
+    DashboardSquare01Icon,
+    Wallet01Icon,
+    ReceiptIcon,
+    CalendarCheck01Icon,
+    HandCoinsIcon,
+    CheckmarkBadge01Icon,
+    PlusSignIcon,
+    Download01Icon,
+    ArrowLeft01Icon,
+    Menu01Icon,
+    Cancel01Icon,
+    Sun03Icon,
+    Moon02Icon,
+    Logout01Icon,
+    TranslateIcon,
+  } from '@hugeicons/core-free-icons';
   import QuickAddModal from '$components/QuickAddModal.svelte';
 
   $: t = translations[$currentLang];
@@ -111,13 +112,13 @@
   }
 
   $: navItems = [
-    { href: '/dashboard', label: t.nav_timeline, icon: LayoutDashboard },
-    { href: '/payday', label: t.nav_payday, icon: Wallet },
-    { href: '/incomes', label: t.nav_incomes, icon: Wallet },
-    { href: '/expenses', label: t.nav_expenses, icon: Receipt },
-    { href: '/bills', label: t.nav_bills, icon: CalendarCheck },
-    { href: '/debts', label: t.nav_debts, icon: HandCoins },
-    { href: '/settled', label: t.nav_settled, icon: BadgeCheck },
+    { href: '/dashboard', label: t.nav_timeline, icon: DashboardSquare01Icon },
+    { href: '/payday', label: t.nav_payday, icon: Wallet01Icon },
+    { href: '/incomes', label: t.nav_incomes, icon: Wallet01Icon },
+    { href: '/expenses', label: t.nav_expenses, icon: ReceiptIcon },
+    { href: '/bills', label: t.nav_bills, icon: CalendarCheck01Icon },
+    { href: '/debts', label: t.nav_debts, icon: HandCoinsIcon },
+    { href: '/settled', label: t.nav_settled, icon: CheckmarkBadge01Icon },
   ];
 
   function toggleSidebar() {
@@ -154,7 +155,7 @@
           title="Switch Language (ID / EN)"
           aria-label="Toggle Language"
         >
-          <Languages class="w-4 h-4 text-[var(--color-ink-muted)]" />
+          <Icon icon={TranslateIcon} class="w-4 h-4 text-[var(--color-ink-muted)]" />
         </button>
 
         <!-- Theme Toggle Mobile Button -->
@@ -165,9 +166,9 @@
           aria-label="Toggle Theme"
         >
           {#if currentTheme === 'light'}
-            <Moon class="w-4 h-4 text-[var(--color-ink-muted)]" />
+            <Icon icon={Moon02Icon} class="w-4 h-4 text-[var(--color-ink-muted)]" />
           {:else}
-            <Sun class="w-4 h-4 text-[var(--color-ink-muted)]" />
+            <Icon icon={Sun03Icon} class="w-4 h-4 text-[var(--color-ink-muted)]" />
           {/if}
         </button>
 
@@ -176,7 +177,7 @@
           class="w-9 h-9 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-bold text-xs flex items-center justify-center cursor-pointer rounded-lg shadow-xs transition-colors"
           aria-label={t.quick_add}
         >
-          <Plus class="w-4 h-4 stroke-[3]" />
+          <Icon icon={PlusSignIcon} class="w-4 h-4 stroke-[3]" />
         </button>
 
         <button
@@ -185,9 +186,9 @@
           aria-label="Toggle Menu"
         >
           {#if isMobileMenuOpen}
-            <X class="w-5 h-5" />
+            <Icon icon={Cancel01Icon} class="w-5 h-5" />
           {:else}
-            <Menu class="w-5 h-5" />
+            <Icon icon={Menu01Icon} class="w-5 h-5" />
           {/if}
         </button>
       </div>
@@ -202,7 +203,7 @@
             <span class="font-mono font-extrabold text-lg text-[var(--color-ink)] tracking-tight">POCKT</span>
           </a>
           <button on:click={toggleMobileMenu} class="p-2 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] rounded-lg">
-            <X class="w-6 h-6" />
+            <Icon icon={Cancel01Icon} class="w-6 h-6" />
           </button>
         </div>
 
@@ -223,7 +224,7 @@
                   ? 'bg-[var(--color-accent)] text-slate-950 shadow-xs'
                   : 'bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]'
               }`}>
-                <svelte:component this={item.icon} class="w-4 h-4" />
+                <Icon icon={item.icon} class="w-4 h-4" />
               </div>
               <span class="text-sm font-semibold">{item.label}</span>
             </a>
@@ -237,7 +238,7 @@
             class="w-full py-2.5 bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink)] font-mono text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:bg-[var(--color-paper-3)] transition-colors"
           >
             <div class="p-1 rounded-md bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]">
-              <Languages class="w-3.5 h-3.5" />
+              <Icon icon={TranslateIcon} class="w-3.5 h-3.5" />
             </div>
             <span>{t.lang_label}</span>
           </button>
@@ -249,9 +250,9 @@
           >
             <div class="p-1 rounded-md bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]">
               {#if currentTheme === 'light'}
-                <Moon class="w-3.5 h-3.5" />
+                <Icon icon={Moon02Icon} class="w-3.5 h-3.5" />
               {:else}
-                <Sun class="w-3.5 h-3.5" />
+                <Icon icon={Sun03Icon} class="w-3.5 h-3.5" />
               {/if}
             </div>
             <span>{currentTheme === 'light' ? t.switch_theme_dark : t.switch_theme_light}</span>
@@ -261,7 +262,7 @@
             on:click={() => { isMobileMenuOpen = false; openQuickAdd(); }}
             class="w-full py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-colors"
           >
-            <Plus class="w-4 h-4 stroke-[3]" />
+            <Icon icon={PlusSignIcon} class="w-4 h-4 stroke-[3]" />
             <span>{t.quick_add}</span>
           </button>
 
@@ -271,7 +272,7 @@
             class="w-full py-2.5 bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] font-mono text-xs rounded-xl flex items-center justify-center gap-2 transition-colors"
           >
             <div class="p-1 rounded-md bg-[var(--color-paper-3)]">
-              <Download class="w-3.5 h-3.5" />
+              <Icon icon={Download01Icon} class="w-3.5 h-3.5" />
             </div>
             <span>{t.export_csv}</span>
           </a>
@@ -280,7 +281,7 @@
             on:click={handleLogout}
             class="w-full py-2.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-500 font-mono text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors"
           >
-            <LogOut class="w-4 h-4" />
+            <Icon icon={Logout01Icon} class="w-4 h-4" />
             <span>{t.logout}</span>
           </button>
         </div>
@@ -319,7 +320,7 @@
             title="Collapse Sidebar"
             aria-label="Collapse Sidebar"
           >
-            <ChevronLeft class="w-3.5 h-3.5" />
+            <Icon icon={ArrowLeft01Icon} class="w-3.5 h-3.5" />
           </button>
         {/if}
       </div>
@@ -334,7 +335,7 @@
           title={t.quick_add}
         >
           <div class="p-1 rounded-md bg-slate-950/15 text-slate-950">
-            <Plus class="w-3.5 h-3.5 stroke-[3]" />
+            <Icon icon={PlusSignIcon} class="w-3.5 h-3.5 stroke-[3]" />
           </div>
           {#if !isSidebarCompact}
             <span class="tracking-wide">{t.quick_add}</span>
@@ -360,7 +361,7 @@
                 ? 'bg-[var(--color-accent)] text-slate-950 shadow-xs'
                 : 'bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] group-hover:text-[var(--color-ink)]'
             }`}>
-              <svelte:component this={item.icon} class="w-4 h-4" />
+              <Icon icon={item.icon} class="w-4 h-4" />
             </div>
             {#if !isSidebarCompact}
               <span class="truncate">{item.label}</span>
@@ -380,7 +381,7 @@
           title="Switch Language (ID / EN)"
         >
           <div class="p-1 rounded-md bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]">
-            <Languages class="w-3.5 h-3.5 shrink-0" />
+            <Icon icon={TranslateIcon} class="w-3.5 h-3.5 shrink-0" />
           </div>
           {#if !isSidebarCompact}
             <span>{t.lang_label}</span>
@@ -397,9 +398,9 @@
         >
           <div class="p-1 rounded-md bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]">
             {#if currentTheme === 'light'}
-              <Moon class="w-3.5 h-3.5 shrink-0" />
+              <Icon icon={Moon02Icon} class="w-3.5 h-3.5 shrink-0" />
             {:else}
-              <Sun class="w-3.5 h-3.5 shrink-0" />
+              <Icon icon={Sun03Icon} class="w-3.5 h-3.5 shrink-0" />
             {/if}
           </div>
           {#if !isSidebarCompact}
@@ -416,7 +417,7 @@
           title={t.export_csv}
         >
           <div class="p-1 rounded-md bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]">
-            <Download class="w-3.5 h-3.5 shrink-0" />
+            <Icon icon={Download01Icon} class="w-3.5 h-3.5 shrink-0" />
           </div>
           {#if !isSidebarCompact}
             <span>{t.export_csv}</span>
@@ -430,7 +431,7 @@
           }`}
           title={t.logout}
         >
-          <LogOut class="w-3.5 h-3.5 shrink-0" />
+          <Icon icon={Logout01Icon} class="w-3.5 h-3.5 shrink-0" />
           {#if !isSidebarCompact}
             <span>{t.logout}</span>
           {/if}

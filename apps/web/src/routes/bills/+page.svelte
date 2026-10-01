@@ -5,7 +5,17 @@
   import { currentLang, translations } from '$lib/i18n';
   import { sortWithCustomOrder, saveCustomOrder } from '$lib/order';
   import { sortItems, type SortOption } from '$lib/sort';
-  import { CalendarCheck, Plus, Trash2, Edit3, CheckCircle2, RotateCcw, DollarSign, History, GripVertical } from 'lucide-svelte';
+  import Icon from '$components/Icon.svelte';
+  import {
+    CalendarCheck01Icon,
+    PlusSignIcon,
+    Delete02Icon,
+    Edit02Icon,
+    RotateLeft01Icon,
+    DollarSignIcon,
+    Time04Icon,
+    DragDropVerticalIcon,
+  } from '@hugeicons/core-free-icons';
   import Modal from '$components/Modal.svelte';
   import AmountInput from '$components/AmountInput.svelte';
   import SortDropdown from '$components/SortDropdown.svelte';
@@ -229,7 +239,7 @@
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
     <div class="flex items-start sm:items-center gap-3 min-w-0">
       <div class="p-2.5 bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] border border-[var(--color-border)] rounded-md shrink-0 mt-0.5 sm:mt-0">
-        <CalendarCheck class="w-5 h-5" />
+        <Icon icon={CalendarCheck01Icon} class="w-5 h-5" />
       </div>
       <div class="min-w-0">
         <h1 class="text-xl font-bold font-mono text-[var(--color-ink)]">{t.bills_title}</h1>
@@ -243,7 +253,7 @@
         on:click={resetMonthlyBills}
         class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-mono font-bold text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] hover:bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md transition-colors cursor-pointer shadow-xs leading-none text-center"
       >
-        <RotateCcw class="w-4 h-4" />
+        <Icon icon={RotateLeft01Icon} class="w-4 h-4" />
         <span class="leading-none">{t.bills_reset_month}</span>
       </button>
 
@@ -251,7 +261,7 @@
         on:click={openCreateModal}
         class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors shadow-xs cursor-pointer leading-none text-center"
       >
-        <Plus class="w-4 h-4 stroke-[3]" />
+        <Icon icon={PlusSignIcon} class="w-4 h-4 stroke-[3]" />
         <span class="leading-none">{t.add_bill}</span>
       </button>
     </div>
@@ -287,11 +297,11 @@
             <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
               <!-- Drag Handle Icon -->
               <div class="cursor-grab active:cursor-grabbing text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] p-1 shrink-0 mt-0.5 sm:mt-0" title="Drag to reorder">
-                <GripVertical class="w-4 h-4" />
+                <Icon icon={DragDropVerticalIcon} class="w-4 h-4" />
               </div>
 
               <div class={`p-2 rounded-lg shrink-0 mt-0.5 sm:mt-0 ${item.isPaid ? 'bg-emerald-500/10 text-emerald-700 dark:text-[var(--color-accent)]' : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'}`}>
-                <CalendarCheck class="w-4 h-4" />
+                <Icon icon={CalendarCheck01Icon} class="w-4 h-4" />
               </div>
 
               <div class="min-w-0 flex-1">
@@ -351,7 +361,7 @@
                   on:click={() => openPayModal(item)}
                   class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 rounded-lg transition-colors cursor-pointer shadow-xs"
                 >
-                  <DollarSign class="w-3.5 h-3.5" />
+                  <Icon icon={DollarSignIcon} class="w-3.5 h-3.5" />
                   <span>{$currentLang === 'id' ? 'Bayar / Cicil Tagihan' : 'Pay / Installment'}</span>
                 </button>
               {:else if item.isPaid}
@@ -360,7 +370,7 @@
                   class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-medium text-[var(--color-ink)] hover:text-slate-950 bg-[var(--color-paper-3)] hover:bg-[var(--color-accent)] border border-[var(--color-border)] rounded-lg transition-colors cursor-pointer shadow-xs"
                   title={$currentLang === 'id' ? 'Bayar tagihan untuk siklus bulan depan lebih awal' : 'Pay bill for next month cycle early'}
                 >
-                  <DollarSign class="w-3.5 h-3.5" />
+                  <Icon icon={DollarSignIcon} class="w-3.5 h-3.5" />
                   <span>{$currentLang === 'id' ? 'Bayar Awal Bulan Depan' : 'Pay Next Month Early'}</span>
                 </button>
               {/if}
@@ -369,7 +379,7 @@
                 on:click={() => openHistoryModal(item)}
                 class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] rounded-lg transition-colors cursor-pointer"
               >
-                <History class="w-3.5 h-3.5" />
+                <Icon icon={Time04Icon} class="w-3.5 h-3.5" />
                 <span>{t.history}</span>
               </button>
             </div>
@@ -380,14 +390,14 @@
                 class="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-3)] transition-colors cursor-pointer"
                 aria-label={t.common_edit}
               >
-                <Edit3 class="w-4 h-4" />
+                <Icon icon={Edit02Icon} class="w-4 h-4" />
               </button>
               <button
                 on:click={() => handleDelete(item.id)}
                 class="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-ink-muted)] hover:text-rose-600 hover:bg-rose-500/15 transition-colors cursor-pointer"
                 aria-label={t.common_delete}
               >
-                <Trash2 class="w-4 h-4" />
+                <Icon icon={Delete02Icon} class="w-4 h-4" />
               </button>
             </div>
           </div>

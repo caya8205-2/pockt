@@ -1,6 +1,7 @@
 <script lang="ts">
   import { currentLang } from '$lib/i18n';
-  import { ChevronDown, ChevronUp, ChevronsDown } from 'lucide-svelte';
+  import Icon from './Icon.svelte';
+  import { ArrowDown01Icon, ArrowUp01Icon, ArrowDownDoubleIcon } from '@hugeicons/core-free-icons';
 
   export let totalItems: number;
   export let limit: number = 15;
@@ -43,7 +44,7 @@
           on:click={showMore}
           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-paper-3)] hover:bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink)] rounded-md transition-colors cursor-pointer shadow-xs font-bold leading-none"
         >
-          <ChevronDown class="w-3.5 h-3.5" />
+          <Icon icon={ArrowDown01Icon} class="w-3.5 h-3.5" />
           <span>{$currentLang === 'id' ? `+${Math.min(step, remainingCount)} Lagi` : `+${Math.min(step, remainingCount)} More`}</span>
         </button>
 
@@ -52,7 +53,7 @@
           on:click={showAll}
           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-paper-3)] hover:bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] rounded-md transition-colors cursor-pointer shadow-xs leading-none"
         >
-          <ChevronsDown class="w-3.5 h-3.5" />
+          <Icon icon={ArrowDownDoubleIcon} class="w-3.5 h-3.5" />
           <span>{$currentLang === 'id' ? 'Tampilkan Semua' : 'Show All'}</span>
         </button>
       {/if}
@@ -63,7 +64,7 @@
           on:click={showLess}
           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-paper-3)] hover:bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] rounded-md transition-colors cursor-pointer shadow-xs leading-none"
         >
-          <ChevronUp class="w-3.5 h-3.5" />
+          <Icon icon={ArrowUp01Icon} class="w-3.5 h-3.5" />
           <span>{$currentLang === 'id' ? 'Tampilkan Lebih Sedikit' : 'Show Less'}</span>
         </button>
       {/if}

@@ -82,15 +82,18 @@ importers:
 
   apps/web:
     dependencies:
+      '@hugeicons/core-free-icons':
+        specifier: ^4.3.5
+        version: 4.3.5
+      '@hugeicons/svelte':
+        specifier: ^1.1.5
+        version: 1.1.5(svelte@5.56.8)
       '@tauri-apps/api':
         specifier: ^2.11.1
         version: 2.11.1
       cookie:
         specifier: 0.6.0
         version: 0.6.0
-      lucide-svelte:
-        specifier: ^0.475.0
-        version: 0.475.0(svelte@5.56.8)
     devDependencies:
       '@playwright/test':
         specifier: ^1.62.1
@@ -753,6 +756,14 @@ packages:
     engines: {node: '>=20'}
     peerDependencies:
       hono: ^4
+
+  '@hugeicons/core-free-icons@4.3.5':
+    resolution: {integrity: sha512-Sv+NjHRPnQk+yZsGCMcGznCHdTfJR9PMMOEKcJYAQU4gy90dmlc9PwdtvYOImBZIjiheMsTLL5eMn2DmHxUiUg==}
+
+  '@hugeicons/svelte@1.1.5':
+    resolution: {integrity: sha512-aau7Z9kJWi3QtakeHeFBj+TqHl7NQBO6/BWbnBTete8On3+L/CD1iSmf4vFNs90fcpQeP+567hT4wImEMNd1Fg==}
+    peerDependencies:
+      svelte: ^5.0.0
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -1960,12 +1971,6 @@ packages:
   loupe@3.2.1:
     resolution: {integrity: sha512-CdzqowRJCeLU72bHvWqwRBBlLcMEtIvGrlvef74kMnV2AolS9Y8xUv1I0U/MNAWMhBlKIoyuEgoJ0t/bbwHbLQ==}
 
-  lucide-svelte@0.475.0:
-    resolution: {integrity: sha512-N5+hFTPHaZe9HhqJDxxxODfYuOmI6v+JIowzERcea/uxytN/JZlehVTcINBNp8wMo7l6ov1Jf5srrDbkI/WsJg==}
-    deprecated: Package deprecated. Please use @lucide/svelte instead.
-    peerDependencies:
-      svelte: ^3 || ^4 || ^5.0.0-next.42
-
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
@@ -2868,6 +2873,12 @@ snapshots:
   '@hono/node-server@2.1.1(hono@4.13.2)':
     dependencies:
       hono: 4.13.2
+
+  '@hugeicons/core-free-icons@4.3.5': {}
+
+  '@hugeicons/svelte@1.1.5(svelte@5.56.8)':
+    dependencies:
+      svelte: 5.56.8
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
@@ -3944,10 +3955,6 @@ snapshots:
   locate-character@3.0.0: {}
 
   loupe@3.2.1: {}
-
-  lucide-svelte@0.475.0(svelte@5.56.8):
-    dependencies:
-      svelte: 5.56.8
 
   magic-string@0.30.21:
     dependencies:

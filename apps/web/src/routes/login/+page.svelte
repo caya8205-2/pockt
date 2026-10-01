@@ -2,7 +2,8 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { currentLang, toggleLang, translations } from '$lib/i18n';
-  import { User, KeyRound, ArrowRight, Languages } from 'lucide-svelte';
+  import Icon from '$components/Icon.svelte';
+  import { UserIcon, Key01Icon, ArrowRight01Icon, TranslateIcon } from '@hugeicons/core-free-icons';
 
   $: t = translations[$currentLang];
 
@@ -98,7 +99,7 @@
       on:click={toggleLang}
       class="px-3 py-1.5 bg-[var(--color-paper-2)] border border-[var(--color-border)] hover:border-[var(--color-ink-muted)] text-[var(--color-ink)] font-mono text-xs rounded-md transition-colors flex items-center gap-2 cursor-pointer shadow-xs"
     >
-      <Languages class="w-4 h-4 text-[var(--color-ink-muted)]" />
+      <Icon icon={TranslateIcon} class="w-4 h-4 text-[var(--color-ink-muted)]" />
       <span>{t.lang_label}</span>
     </button>
   </div>
@@ -131,7 +132,7 @@
         <div class="space-y-1.5">
           <label for="username-input" class="text-xs font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider block">{t.username}</label>
           <div class="relative">
-            <User class="w-4 h-4 text-[var(--color-ink-muted)] absolute left-3 top-3" />
+            <Icon icon={UserIcon} class="w-4 h-4 text-[var(--color-ink-muted)] absolute left-3 top-3" />
             <input
               id="username-input"
               name="username"
@@ -148,7 +149,7 @@
         <div class="space-y-1.5">
           <label for="password-input" class="text-xs font-semibold text-[var(--color-ink-muted)] uppercase tracking-wider block">{t.password}</label>
           <div class="relative">
-            <KeyRound class="w-4 h-4 text-[var(--color-ink-muted)] absolute left-3 top-3" />
+            <Icon icon={Key01Icon} class="w-4 h-4 text-[var(--color-ink-muted)] absolute left-3 top-3" />
             <input
               id="password-input"
               name="password"
@@ -171,7 +172,7 @@
             <span>{$currentLang === 'id' ? 'Memproses...' : 'Processing...'}</span>
           {:else}
             <span>{t.btn_login}</span>
-            <ArrowRight class="w-4 h-4" />
+            <Icon icon={ArrowRight01Icon} class="w-4 h-4" />
           {/if}
         </button>
 

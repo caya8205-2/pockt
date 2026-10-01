@@ -1,6 +1,7 @@
 <script lang="ts">
   import { currentLang, translations } from '$lib/i18n';
-  import { ArrowUpDown } from 'lucide-svelte';
+  import Icon from './Icon.svelte';
+  import { Sorting01Icon } from '@hugeicons/core-free-icons';
   import type { SortOption } from '$lib/sort';
 
   export let value: SortOption = 'date_desc';
@@ -58,7 +59,7 @@
     }`}
   >
     <div class="p-1 rounded bg-[var(--color-paper-2)]/60 text-[var(--color-ink-muted)] shrink-0">
-      <ArrowUpDown class={size === 'sm' ? 'w-3 h-3' : 'w-3.5 h-3.5'} />
+      <Icon icon={Sorting01Icon} class={size === 'sm' ? 'w-3 h-3' : 'w-3.5 h-3.5'} />
     </div>
     <span class="text-[11px] text-[var(--color-ink-muted)] font-bold uppercase tracking-wider shrink-0 hidden sm:inline">
       {t.sort_label}

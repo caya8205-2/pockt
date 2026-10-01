@@ -12,9 +12,10 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@hugeicons/core-free-icons": "^4.3.5",
+    "@hugeicons/svelte": "^1.1.5",
     "@tauri-apps/api": "^2.11.1",
-    "cookie": "0.6.0",
-    "lucide-svelte": "^0.475.0"
+    "cookie": "0.6.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

@@ -3,7 +3,16 @@
   import { fetchApi } from '$lib/api';
   import { formatRupiah, formatDate } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
-  import { CalendarCheck, HandCoins, Receipt, Wallet, DollarSign, Settings, Calendar } from 'lucide-svelte';
+  import Icon from '$components/Icon.svelte';
+  import {
+    CalendarCheck01Icon,
+    HandCoinsIcon,
+    ReceiptIcon,
+    Wallet01Icon,
+    DollarSignIcon,
+    Settings02Icon,
+    Calendar03Icon,
+  } from '@hugeicons/core-free-icons';
   import Modal from '$components/Modal.svelte';
 
   $: t = translations[$currentLang];
@@ -86,7 +95,7 @@
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div class="flex items-center gap-3">
       <div class="p-2.5 bg-[var(--color-accent-subtle)] text-emerald-700 dark:text-[var(--color-accent)] border border-[var(--color-border)] rounded-md">
-        <Wallet class="w-5 h-5" />
+        <Icon icon={Wallet01Icon} class="w-5 h-5" />
       </div>
       <div>
         <h1 class="text-xl font-bold font-mono text-[var(--color-ink)]">{t.payday_title}</h1>
@@ -98,7 +107,7 @@
       on:click={() => { newPaydayDate = data?.paydayDate || 5; settingsError = ''; showSettingsModal = true; }}
       class="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-[var(--color-paper-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink)] text-xs font-mono font-bold rounded-md transition-colors cursor-pointer shrink-0 self-start sm:self-center leading-none text-center shadow-xs"
     >
-      <Settings class="w-3.5 h-3.5 text-emerald-700 dark:text-[var(--color-accent)] shrink-0" />
+      <Icon icon={Settings02Icon} class="w-3.5 h-3.5 text-emerald-700 dark:text-[var(--color-accent)] shrink-0" />
       <span class="leading-none">{t.payday_change_date} ({data?.paydayDate || 5})</span>
     </button>
   </div>
@@ -123,7 +132,7 @@
 
         <div class="flex items-center gap-2.5 px-3.5 py-2.5 bg-[var(--color-paper)] border border-[var(--color-border)] rounded-xl text-xs font-mono shrink-0 shadow-xs">
           <div class="p-1.5 rounded-lg bg-[var(--color-paper-3)] text-emerald-700 dark:text-[var(--color-accent)]">
-            <Calendar class="w-4 h-4" />
+            <Icon icon={Calendar03Icon} class="w-4 h-4" />
           </div>
           <div>
             <span class="text-[var(--color-ink-muted)]">{t.payday_cycle_badge}: </span>
@@ -169,7 +178,7 @@
           <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 shadow-xs">
             <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
               <div class="p-2 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
-                <CalendarCheck class="w-4 h-4" />
+                <Icon icon={CalendarCheck01Icon} class="w-4 h-4" />
               </div>
               <div class="min-w-0 flex-1">
                 <div class="text-sm font-bold text-[var(--color-ink)]">{t.payday_bills}</div>
@@ -184,7 +193,7 @@
           <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 shadow-xs">
             <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
               <div class="p-2 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
-                <CalendarCheck class="w-4 h-4" />
+                <Icon icon={CalendarCheck01Icon} class="w-4 h-4" />
               </div>
               <div class="min-w-0 flex-1">
                 <div class="text-sm font-bold text-[var(--color-ink)]">{t.payday_bills_paid_this_month}</div>
@@ -199,7 +208,7 @@
           <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 shadow-xs">
             <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
               <div class="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
-                <DollarSign class="w-4 h-4" />
+                <Icon icon={DollarSignIcon} class="w-4 h-4" />
               </div>
               <div class="min-w-0 flex-1">
                 <div class="text-sm font-bold text-[var(--color-ink)]">{t.payday_debts_paid_this_month}</div>
@@ -214,7 +223,7 @@
           <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 shadow-xs">
             <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
               <div class="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
-                <HandCoins class="w-4 h-4" />
+                <Icon icon={HandCoinsIcon} class="w-4 h-4" />
               </div>
               <div class="min-w-0 flex-1">
                 <div class="text-sm font-bold text-[var(--color-ink)]">{t.payday_debts_due_this_month}</div>
@@ -229,7 +238,7 @@
           <div class="bg-[var(--color-paper)] border border-[var(--color-border)] rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 shadow-xs">
             <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
               <div class="p-2 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0">
-                <Receipt class="w-4 h-4" />
+                <Icon icon={ReceiptIcon} class="w-4 h-4" />
               </div>
               <div class="min-w-0 flex-1">
                 <div class="text-sm font-bold text-[var(--color-ink)]">{t.payday_spent}</div>

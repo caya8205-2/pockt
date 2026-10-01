@@ -1,7 +1,8 @@
 <script lang="ts">
   import { fetchApi } from '$lib/api';
   import { currentLang, translations, categoryLabel } from '$lib/i18n';
-  import { Plus, ArrowUpRight, ArrowDownLeft } from 'lucide-svelte';
+  import Icon from '$components/Icon.svelte';
+  import { PlusSignIcon, ArrowUpRight01Icon, ArrowDownLeft01Icon } from '@hugeicons/core-free-icons';
   import Modal from '$components/Modal.svelte';
   import AmountInput from '$components/AmountInput.svelte';
 
@@ -92,7 +93,7 @@
       }`}
     >
       <div class="p-1 rounded bg-[var(--color-paper-2)]/60">
-        <ArrowUpRight class="w-3.5 h-3.5" />
+        <Icon icon={ArrowUpRight01Icon} class="w-3.5 h-3.5" />
       </div>
       <span>{t.type_expense}</span>
     </button>
@@ -107,7 +108,7 @@
       }`}
     >
       <div class={`p-1 rounded ${type === 'income' ? 'bg-[var(--color-accent)] text-slate-950' : 'bg-[var(--color-paper-2)]/60'}`}>
-        <ArrowDownLeft class="w-3.5 h-3.5" />
+        <Icon icon={ArrowDownLeft01Icon} class="w-3.5 h-3.5" />
       </div>
       <span>{t.type_income}</span>
     </button>

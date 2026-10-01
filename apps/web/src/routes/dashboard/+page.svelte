@@ -4,7 +4,17 @@
   import { formatRupiah, formatDate } from '$lib/format';
   import { currentLang, translations } from '$lib/i18n';
   import { sortItems, type SortOption } from '$lib/sort';
-  import { Wallet, Receipt, CalendarCheck, HandCoins, ArrowUpRight, ArrowDownLeft, Clock, RefreshCw } from 'lucide-svelte';
+  import Icon from '$components/Icon.svelte';
+  import {
+    Wallet01Icon,
+    ReceiptIcon,
+    CalendarCheck01Icon,
+    HandCoinsIcon,
+    ArrowUpRight01Icon,
+    ArrowDownLeft01Icon,
+    Clock01Icon,
+    ReloadIcon,
+  } from '@hugeicons/core-free-icons';
   import SortDropdown from '$components/SortDropdown.svelte';
   import ListLimiter from '$components/ListLimiter.svelte';
 
@@ -121,7 +131,7 @@
           <div class="flex items-center justify-between pb-2 border-b border-[var(--color-border)]">
             <div class="flex items-center gap-2">
               <div class="p-1 rounded bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]">
-                <Wallet class="w-3.5 h-3.5" />
+                <Icon icon={Wallet01Icon} class="w-3.5 h-3.5" />
               </div>
               <span class="text-[var(--color-ink-muted)]">{t.dash_cash_balance}</span>
             </div>
@@ -130,7 +140,7 @@
           <div class="flex items-center justify-between text-[var(--color-ink-muted)]">
             <div class="flex items-center gap-2">
               <div class="p-1 rounded bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]">
-                <CalendarCheck class="w-3.5 h-3.5" />
+                <Icon icon={CalendarCheck01Icon} class="w-3.5 h-3.5" />
               </div>
               <span>- {t.dash_bills} ({dashboard.unpaidBillsCount})</span>
             </div>
@@ -139,7 +149,7 @@
           <div class="flex items-center justify-between text-[var(--color-ink-muted)]">
             <div class="flex items-center gap-2">
               <div class="p-1 rounded bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]">
-                <HandCoins class="w-3.5 h-3.5" />
+                <Icon icon={HandCoinsIcon} class="w-3.5 h-3.5" />
               </div>
               <span>- {t.dash_debts} ({dashboard.unpaidDebtsCount})</span>
             </div>
@@ -159,7 +169,7 @@
         <div class="flex items-center justify-between gap-2">
           <span class="text-[11px] sm:text-xs font-mono font-semibold uppercase tracking-wider text-[var(--color-ink-muted)] min-w-0 truncate">{t.stat_income}</span>
           <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-[var(--color-accent)] shrink-0">
-            <Wallet class="w-4 h-4" />
+            <Icon icon={Wallet01Icon} class="w-4 h-4" />
           </div>
         </div>
         <div class="text-base sm:text-lg lg:text-xl font-extrabold font-mono text-[var(--color-ink)] truncate" title={formatRupiah(dashboard.monthlyIncome)}>
@@ -171,7 +181,7 @@
         <div class="flex items-center justify-between gap-2">
           <span class="text-[11px] sm:text-xs font-mono font-semibold uppercase tracking-wider text-[var(--color-ink-muted)] min-w-0 truncate">{t.stat_expenses}</span>
           <div class="p-2 rounded-lg bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] shrink-0">
-            <Receipt class="w-4 h-4" />
+            <Icon icon={ReceiptIcon} class="w-4 h-4" />
           </div>
         </div>
         <div class="text-base sm:text-lg lg:text-xl font-extrabold font-mono text-[var(--color-ink)] truncate" title={formatRupiah(dashboard.monthlyExpenses)}>
@@ -183,7 +193,7 @@
         <div class="flex items-center justify-between gap-2">
           <span class="text-[11px] sm:text-xs font-mono font-semibold uppercase tracking-wider text-[var(--color-ink-muted)] min-w-0 truncate">{t.stat_bills}</span>
           <div class="p-2 rounded-lg bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] shrink-0">
-            <CalendarCheck class="w-4 h-4" />
+            <Icon icon={CalendarCheck01Icon} class="w-4 h-4" />
           </div>
         </div>
         <div class="text-base sm:text-lg lg:text-xl font-extrabold font-mono text-[var(--color-ink)] truncate" title={formatRupiah(dashboard.outstandingBills)}>
@@ -195,7 +205,7 @@
         <div class="flex items-center justify-between gap-2">
           <span class="text-[11px] sm:text-xs font-mono font-semibold uppercase tracking-wider text-[var(--color-ink-muted)] min-w-0 truncate">{t.stat_debt}</span>
           <div class="p-2 rounded-lg bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] shrink-0">
-            <HandCoins class="w-4 h-4" />
+            <Icon icon={HandCoinsIcon} class="w-4 h-4" />
           </div>
         </div>
         <div class="text-base sm:text-lg lg:text-xl font-extrabold font-mono text-[var(--color-ink)] truncate" title={formatRupiah(dashboard.outstandingDebt)}>
@@ -210,7 +220,7 @@
     <div class="flex items-center justify-between border-b border-[var(--color-border)] pb-3 flex-wrap gap-2">
       <div class="flex items-center gap-2.5">
         <div class="p-1.5 rounded-lg bg-[var(--color-paper-3)] text-emerald-700 dark:text-[var(--color-accent)]">
-          <Clock class="w-4 h-4" />
+          <Icon icon={Clock01Icon} class="w-4 h-4" />
         </div>
         <h2 class="text-base font-bold text-[var(--color-ink)] font-mono">{t.timeline_feed}</h2>
       </div>
@@ -221,7 +231,7 @@
           on:click={loadData}
           class="h-[30px] inline-flex items-center justify-center gap-1.5 px-3 text-xs font-mono font-bold text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper-3)] hover:bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-md transition-colors cursor-pointer shadow-xs leading-none"
         >
-          <RefreshCw class="w-3.5 h-3.5" />
+          <Icon icon={ReloadIcon} class="w-3.5 h-3.5" />
           <span>{t.common_refresh}</span>
         </button>
       </div>
@@ -241,19 +251,19 @@
             <div class="flex items-center gap-3 min-w-0 flex-1">
               {#if item.type === 'income'}
                 <div class="p-2 bg-emerald-500/10 text-emerald-700 dark:text-[var(--color-accent)] rounded-lg shrink-0">
-                  <ArrowDownLeft class="w-4 h-4" />
+                  <Icon icon={ArrowDownLeft01Icon} class="w-4 h-4" />
                 </div>
               {:else if item.type === 'expense'}
                 <div class="p-2 bg-[var(--color-paper-3)] text-[var(--color-ink-muted)] rounded-lg shrink-0">
-                  <ArrowUpRight class="w-4 h-4" />
+                  <Icon icon={ArrowUpRight01Icon} class="w-4 h-4" />
                 </div>
               {:else if item.type === 'bill'}
                 <div class="p-2 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg shrink-0">
-                  <CalendarCheck class="w-4 h-4" />
+                  <Icon icon={CalendarCheck01Icon} class="w-4 h-4" />
                 </div>
               {:else}
                 <div class="p-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg shrink-0">
-                  <HandCoins class="w-4 h-4" />
+                  <Icon icon={HandCoinsIcon} class="w-4 h-4" />
                 </div>
               {/if}
 

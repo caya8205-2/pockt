@@ -5,7 +5,16 @@
   import { currentLang, translations } from '$lib/i18n';
   import { sortWithCustomOrder, saveCustomOrder } from '$lib/order';
   import { sortItems, type SortOption } from '$lib/sort';
-  import { Wallet, Plus, ArrowDownLeft, Trash2, Edit3, GripVertical, Calendar } from 'lucide-svelte';
+  import Icon from '$components/Icon.svelte';
+  import {
+    Wallet01Icon,
+    PlusSignIcon,
+    ArrowDownLeft01Icon,
+    Delete02Icon,
+    Edit02Icon,
+    DragDropVerticalIcon,
+    Calendar03Icon,
+  } from '@hugeicons/core-free-icons';
   import Modal from '$components/Modal.svelte';
   import AmountInput from '$components/AmountInput.svelte';
   import SortDropdown from '$components/SortDropdown.svelte';
@@ -181,7 +190,7 @@
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
     <div class="flex items-start sm:items-center gap-3 min-w-0">
       <div class="p-2.5 bg-[var(--color-accent-subtle)] text-emerald-700 dark:text-[var(--color-accent)] border border-[var(--color-border)] rounded-md shrink-0 mt-0.5 sm:mt-0">
-        <Wallet class="w-5 h-5" />
+        <Icon icon={Wallet01Icon} class="w-5 h-5" />
       </div>
       <div class="min-w-0">
         <h1 class="text-xl font-bold font-mono text-[var(--color-ink)]">{t.incomes_title}</h1>
@@ -193,7 +202,7 @@
       on:click={openCreateModal}
       class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-slate-950 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer shadow-xs shrink-0 self-center leading-none text-center w-full sm:w-auto"
     >
-      <Plus class="w-4 h-4 stroke-[3] shrink-0" />
+      <Icon icon={PlusSignIcon} class="w-4 h-4 stroke-[3] shrink-0" />
       <span class="leading-none">{t.add_income}</span>
     </button>
   </div>
@@ -226,7 +235,7 @@
   <div class="flex items-center justify-between gap-3 flex-wrap">
     <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-none font-mono text-xs">
       <span class="text-[11px] text-[var(--color-ink-muted)] font-bold uppercase tracking-wider shrink-0 flex items-center gap-1 pr-1">
-        <Calendar class="w-3.5 h-3.5" />
+        <Icon icon={Calendar03Icon} class="w-3.5 h-3.5" />
         <span>{$currentLang === 'id' ? 'Periode:' : 'Period:'}</span>
       </span>
 
@@ -272,11 +281,11 @@
           <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
             <!-- Drag Handle Icon -->
             <div class="cursor-grab active:cursor-grabbing text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] p-1 shrink-0 mt-0.5 sm:mt-0" title="Drag to reorder">
-              <GripVertical class="w-4 h-4" />
+              <Icon icon={DragDropVerticalIcon} class="w-4 h-4" />
             </div>
 
             <div class="p-2 bg-emerald-500/10 text-emerald-700 dark:text-[var(--color-accent)] rounded-lg shrink-0 mt-0.5 sm:mt-0">
-              <ArrowDownLeft class="w-4 h-4" />
+              <Icon icon={ArrowDownLeft01Icon} class="w-4 h-4" />
             </div>
 
             <div class="min-w-0 flex-1">
@@ -297,14 +306,14 @@
                 class="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-3)] transition-colors cursor-pointer"
                 aria-label={t.common_edit}
               >
-                <Edit3 class="w-4 h-4" />
+                <Icon icon={Edit02Icon} class="w-4 h-4" />
               </button>
               <button
                 on:click={() => handleDelete(item.id)}
                 class="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-ink-muted)] hover:text-rose-600 hover:bg-rose-500/15 transition-colors cursor-pointer"
                 aria-label={t.common_delete}
               >
-                <Trash2 class="w-4 h-4" />
+                <Icon icon={Delete02Icon} class="w-4 h-4" />
               </button>
             </div>
           </div>

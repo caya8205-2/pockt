@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { X } from 'lucide-svelte';
+  import Icon from './Icon.svelte';
+  import { Cancel01Icon } from '@hugeicons/core-free-icons';
 
   export let isOpen = false;
   export let title = '';
@@ -23,7 +24,7 @@
         class="absolute top-4 right-4 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] w-8 h-8 rounded-lg bg-[var(--color-paper-3)]/60 hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] flex items-center justify-center transition-colors cursor-pointer"
         aria-label="Close"
       >
-        <X class="w-4 h-4" />
+        <Icon icon={Cancel01Icon} class="w-4 h-4" />
       </button>
 
       {#if title}
