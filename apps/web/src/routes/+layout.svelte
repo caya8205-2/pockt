@@ -49,6 +49,7 @@
       currentTheme = 'dark';
     }
     applyTheme(currentTheme);
+    checkAuth();
   });
 
   async function checkAuth() {
@@ -455,6 +456,19 @@
 
   <!-- Quick Add Modal -->
   <QuickAddModal bind:isOpen={isQuickAddOpen} />
+{:else}
+  <!-- Clean Loading Fallback while verifying session -->
+  <div class="min-h-screen flex flex-col items-center justify-center bg-[var(--color-paper)] text-[var(--color-ink)] p-4">
+    <div class="flex flex-col items-center gap-4">
+      <div class="w-14 h-14 rounded-2xl bg-[var(--color-paper-2)] border border-[var(--color-border)] shadow-xs flex items-center justify-center">
+        <img src="/logo-no-bg.png" alt="Pockt" class="w-8 h-8 object-contain" />
+      </div>
+      <div class="flex items-center gap-2 font-mono text-xs text-[var(--color-ink-muted)]">
+        <div class="w-3.5 h-3.5 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin"></div>
+        <span>Memuat...</span>
+      </div>
+    </div>
+  </div>
 {/if}
 
 <!-- Fullscreen Auth Transition Overlay (Logo Glide Animation) -->
