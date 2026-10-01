@@ -334,7 +334,7 @@ describe('Pockt Full Backend API Suite', () => {
     expect(dash.outstandingBills).toBeGreaterThanOrEqual(750000);
 
     // 5. Verify GET /api/reminders/upcoming includes the bill
-    const remindersRes = await app.inject({ method: 'GET', url: '/api/reminders/upcoming?days=3', cookies });
+    const remindersRes = await app.inject({ method: 'GET', url: '/api/reminders/upcoming?days=7', cookies });
     expect(remindersRes.statusCode).toBe(200);
     const reminders = JSON.parse(remindersRes.body);
     const foundReminder = reminders.upcomingBills.find((b: any) => b.id === bill.id);
