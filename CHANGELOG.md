@@ -2,6 +2,33 @@
 
 All notable changes to Pockt are documented in this file. Grouped by release, with the primary release changes at the top.
 
+## [0.4.0] — 2026-10-02
+
+### Scandinavian Fintech Identity & Layout Redesign
+
+- **Wise-Inspired Visual System**: Adopted Scandinavian Fintech visual palette featuring a pale sage canvas (`#f4f6f2`), crisp white cards (`#ffffff`), electric lime-green brand accent (`#9fe870`), and charcoal olive ink (`#0e0f0c`), complemented by an Obsidian Forest dark mode (`#0c120e` / `#131b15`).
+- **Antislop Ergonomics**: Removed generic multi-color gradients, neon glow orbs, and unnecessary heavy borders. Standardized on a 3-tier typographic hierarchy and boxed squircle icon containers.
+- **Hero & Equation Card (`/dashboard`)**: Redesigned Free-to-Spend hero display with prominent 48-56px typography, an explicit mathematical cashflow breakdown equation card, 4-stat metric grid, and squircle transaction ledger feed.
+- **Payday Distribution Bar (`/payday`)**: Added a proportional salary allocation visual bar showing percentage distribution across unpaid bills, debt obligations, spent cash, and remaining disposable balance.
+- **Commitments & Modals Polish**: Enhanced `/bills` with monthly cycle status cards, `/debts` with repayment percentage progress bars, and modals with tactile "Rp" prefix boxes and segmented action controls.
+
+### Complete Migration to Hugeicons
+
+- **Replaced `lucide-svelte`**: Fully migrated all icon assets across every page and component to Hugeicons (`@hugeicons/svelte` and `@hugeicons/core-free-icons`).
+- **Tree-Shakeable Unified Component (`Icon.svelte`)**: Built a robust Svelte 5 rune-compatible icon wrapper with full server-side rendering and styling support, completely removing `lucide-svelte` from dependencies.
+
+### Dedicated Settings View & Sidebar Profile Drop-Up
+
+- **Dedicated Settings Page (`/settings`)**: Added a comprehensive settings screen enabling users to switch visual themes (Wise Light / Obsidian Forest), select interface language (ID / EN), configure monthly payday dates (1–31) with live backend persistence, and export financial datasets to CSV.
+- **Sidebar Profile Capsule & Drop-Up Popover**: Overhauled sidebar bottom-left area into an account capsule displaying a person icon placeholder avatar, username, and account tier. Clicking triggers an upward-expanding drop-up popover with navigation to Profile, Settings, and Sign Out.
+- **Profile Overview (`/profile`)**: Added account overview page confirming instance ownership and authentication security mode.
+
+### Development & Database Enhancements
+
+- **Port Isolation**: Shifted backend development server default to port `3005` to eliminate container collisions on host port `3001`. Configured Vite proxy and tests accordingly.
+- **Remote Host Header Support**: Enabled Vite `allowedHosts` and hoisted pnpm node-linker for seamless remote development across Tailscale and SSH sessions.
+- **Realistic Multi-User Seed Dataset**: Populated `pockt.dev.db` with extensive current-month transactions, multi-method expenses, Paylater integrations, bills, and debt records.
+
 ## [0.3.1] — 2026-09-17
 
 ### Automatic Monthly Bill Rollover & Early Payment Support

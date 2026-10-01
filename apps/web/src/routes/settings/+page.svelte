@@ -432,7 +432,7 @@
       <img src="/logo-no-bg.png" alt="Pockt Logo" class="h-8 w-auto object-contain" />
       <div>
         <div class="font-mono font-extrabold text-base text-[var(--color-ink)] tracking-tight">POCKT</div>
-        <div class="text-[10px] font-mono text-[var(--color-ink-muted)]">v0.1.0 — Disposable Income Companion</div>
+        <div class="text-[10px] font-mono text-[var(--color-ink-muted)]">v0.4.0 — Disposable Income Companion</div>
       </div>
     </div>
     <p class="text-xs font-mono text-[var(--color-ink-muted)] leading-relaxed">
