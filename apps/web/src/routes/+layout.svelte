@@ -109,7 +109,6 @@
     { href: '/bills', label: t.nav_bills, icon: CalendarCheck01Icon },
     { href: '/debts', label: t.nav_debts, icon: HandCoinsIcon },
     { href: '/settled', label: t.nav_settled, icon: CheckmarkBadge01Icon },
-    { href: '/settings', label: t.nav_settings, icon: Settings02Icon },
   ];
 
   function toggleSidebar() {
