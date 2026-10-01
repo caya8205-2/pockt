@@ -4,7 +4,9 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { browser } from '$app/environment';
-  import { currentLang, toggleLang, translations } from '$lib/i18n';
+  import { currentLang, translations } from '$lib/i18n';
+  import { currentTheme, initTheme } from '$lib/theme';
+  import { currentUser } from '$lib/user';
   import Icon from '$components/Icon.svelte';
   import {
     DashboardSquare01Icon,
@@ -18,19 +20,20 @@
     ArrowLeft01Icon,
     Menu01Icon,
     Cancel01Icon,
-    Sun03Icon,
-    Moon02Icon,
     Logout01Icon,
-    TranslateIcon,
+    Settings02Icon,
+    UserIcon,
+    MoreVerticalIcon,
   } from '@hugeicons/core-free-icons';
   import QuickAddModal from '$components/QuickAddModal.svelte';
+  import { authTransition, runAuthTransition } from '$lib/authTransition';
 
   $: t = translations[$currentLang];
 
   let isSidebarCompact = false;
   let isMobileMenuOpen = false;
   let isQuickAddOpen = false;
-  let currentTheme: 'light' | 'dark' = 'light';
+  let isProfileMenuOpen = false;
   let isAuthenticated = false;
 
   $: isAuthPage = $page.url.pathname === '/login' || $page.url.pathname === '/register';
@@ -39,17 +42,12 @@
 
   $: if (browser && $page.url.pathname !== lastCheckedPath) {
     lastCheckedPath = $page.url.pathname;
+    isProfileMenuOpen = false;
     checkAuth();
   }
 
   onMount(() => {
-    const saved = localStorage.getItem('pockt-theme') as 'light' | 'dark' | null;
-    if (saved === 'dark' || saved === 'light') {
-      currentTheme = saved;
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      currentTheme = 'dark';
-    }
-    applyTheme(currentTheme);
+    initTheme();
     checkAuth();
   });
 
@@ -59,11 +57,15 @@
       const data = await res.json();
       if (data.authenticated) {
         isAuthenticated = true;
+        if (data.user) {
+          currentUser.set(data.user);
+        }
         if (isAuthPage) {
           goto('/dashboard');
         }
       } else {
         isAuthenticated = false;
+        currentUser.set(null);
         if (!isAuthPage) {
           if (data.needsSetup) {
             goto('/register');
@@ -74,15 +76,15 @@
       }
     } catch (err) {
       isAuthenticated = false;
+      currentUser.set(null);
       if (!isAuthPage) {
         goto('/login');
       }
     }
   }
 
-  import { authTransition, runAuthTransition } from '$lib/authTransition';
-
   async function handleLogout() {
+    isProfileMenuOpen = false;
     await runAuthTransition(
       'logout',
       $currentLang === 'id' ? 'Mengakhiri Sesi Akun...' : 'Signing Out...',
@@ -93,22 +95,10 @@
           console.error(err);
         }
         isAuthenticated = false;
+        currentUser.set(null);
         goto('/login');
       }
     );
-  }
-
-  function applyTheme(theme: 'light' | 'dark') {
-    currentTheme = theme;
-    if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', theme);
-      localStorage.setItem('pockt-theme', theme);
-    }
-  }
-
-  function toggleTheme() {
-    const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
-    applyTheme(nextTheme);
   }
 
   $: navItems = [
@@ -119,10 +109,12 @@
     { href: '/bills', label: t.nav_bills, icon: CalendarCheck01Icon },
     { href: '/debts', label: t.nav_debts, icon: HandCoinsIcon },
     { href: '/settled', label: t.nav_settled, icon: CheckmarkBadge01Icon },
+    { href: '/settings', label: t.nav_settings, icon: Settings02Icon },
   ];
 
   function toggleSidebar() {
     isSidebarCompact = !isSidebarCompact;
+    isProfileMenuOpen = false;
   }
 
   function toggleMobileMenu() {
@@ -132,7 +124,31 @@
   function openQuickAdd() {
     isQuickAddOpen = true;
   }
+
+  function toggleProfileMenu() {
+    isProfileMenuOpen = !isProfileMenuOpen;
+  }
+
+  function closeProfileMenu() {
+    isProfileMenuOpen = false;
+  }
+
+  function handleGlobalClick(event: MouseEvent) {
+    const target = event.target as HTMLElement | null;
+    if (isProfileMenuOpen && target && !target.closest('#profile-menu-container')) {
+      isProfileMenuOpen = false;
+    }
+  }
+
+  function handleGlobalKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      isProfileMenuOpen = false;
+      isMobileMenuOpen = false;
+    }
+  }
 </script>
+
+<svelte:window on:click={handleGlobalClick} on:keydown={handleGlobalKeydown} />
 
 {#if isAuthPage}
   <main class="min-h-screen bg-[var(--color-paper)] text-[var(--color-ink)] transition-colors duration-150">
@@ -148,29 +164,15 @@
       </a>
 
       <div class="flex items-center gap-1.5">
-        <!-- Language Toggle Mobile Button -->
-        <button
-          on:click={toggleLang}
+        <!-- Settings Shortcut Mobile Button -->
+        <a
+          href="/settings"
           class="w-9 h-9 flex items-center justify-center text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper)] border border-[var(--color-border)] rounded-lg cursor-pointer transition-colors"
-          title="Switch Language (ID / EN)"
-          aria-label="Toggle Language"
+          title={t.nav_settings}
+          aria-label={t.nav_settings}
         >
-          <Icon icon={TranslateIcon} class="w-4 h-4 text-[var(--color-ink-muted)]" />
-        </button>
-
-        <!-- Theme Toggle Mobile Button -->
-        <button
-          on:click={toggleTheme}
-          class="w-9 h-9 flex items-center justify-center text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] bg-[var(--color-paper)] border border-[var(--color-border)] rounded-lg cursor-pointer transition-colors"
-          title={currentTheme === 'light' ? 'Switch to Dark Mode (Wise Dark)' : 'Switch to Light Mode (Wise Light)'}
-          aria-label="Toggle Theme"
-        >
-          {#if currentTheme === 'light'}
-            <Icon icon={Moon02Icon} class="w-4 h-4 text-[var(--color-ink-muted)]" />
-          {:else}
-            <Icon icon={Sun03Icon} class="w-4 h-4 text-[var(--color-ink-muted)]" />
-          {/if}
-        </button>
+          <Icon icon={Settings02Icon} class="w-4 h-4 text-[var(--color-ink-muted)]" />
+        </a>
 
         <button
           on:click={openQuickAdd}
@@ -232,31 +234,21 @@
         </nav>
 
         <div class="pt-4 border-t border-[var(--color-border)] space-y-2.5">
-          <!-- Mobile Drawer Language Toggle -->
-          <button
-            on:click={toggleLang}
-            class="w-full py-2.5 bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink)] font-mono text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:bg-[var(--color-paper-3)] transition-colors"
-          >
-            <div class="p-1 rounded-md bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]">
-              <Icon icon={TranslateIcon} class="w-3.5 h-3.5" />
+          <!-- Mobile Drawer User Profile Summary Card -->
+          <div class="p-3 bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-xl flex items-center gap-3">
+            <!-- Avatar: Placeholder Icon Orang (NO initials) -->
+            <div class="w-10 h-10 rounded-xl bg-[var(--color-paper-3)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-ink-muted)] shrink-0">
+              <Icon icon={UserIcon} class="w-5 h-5" />
             </div>
-            <span>{t.lang_label}</span>
-          </button>
-
-          <!-- Mobile Drawer Theme Toggle Button -->
-          <button
-            on:click={toggleTheme}
-            class="w-full py-2.5 bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink)] font-mono text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:bg-[var(--color-paper-3)] transition-colors"
-          >
-            <div class="p-1 rounded-md bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]">
-              {#if currentTheme === 'light'}
-                <Icon icon={Moon02Icon} class="w-3.5 h-3.5" />
-              {:else}
-                <Icon icon={Sun03Icon} class="w-3.5 h-3.5" />
-              {/if}
+            <div class="min-w-0 flex-1 font-mono">
+              <div class="font-extrabold text-xs text-[var(--color-ink)] truncate">
+                {$currentUser?.username || 'owner'}
+              </div>
+              <div class="text-[10px] text-emerald-700 dark:text-[var(--color-accent)] font-bold">
+                Owner
+              </div>
             </div>
-            <span>{currentTheme === 'light' ? t.switch_theme_dark : t.switch_theme_light}</span>
-          </button>
+          </div>
 
           <button
             on:click={() => { isMobileMenuOpen = false; openQuickAdd(); }}
@@ -266,22 +258,31 @@
             <span>{t.quick_add}</span>
           </button>
 
-          <a
-            href="/api/export/csv"
-            download
-            class="w-full py-2.5 bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] font-mono text-xs rounded-xl flex items-center justify-center gap-2 transition-colors"
-          >
-            <div class="p-1 rounded-md bg-[var(--color-paper-3)]">
-              <Icon icon={Download01Icon} class="w-3.5 h-3.5" />
-            </div>
-            <span>{t.export_csv}</span>
-          </a>
+          <div class="grid grid-cols-2 gap-2">
+            <a
+              href="/profile"
+              on:click={() => (isMobileMenuOpen = false)}
+              class="py-2.5 px-3 bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink)] font-mono text-xs rounded-xl flex items-center justify-center gap-2 hover:bg-[var(--color-paper-3)] transition-colors"
+            >
+              <Icon icon={UserIcon} class="w-3.5 h-3.5" />
+              <span>{t.menu_profile}</span>
+            </a>
+
+            <a
+              href="/settings"
+              on:click={() => (isMobileMenuOpen = false)}
+              class="py-2.5 px-3 bg-[var(--color-paper-2)] border border-[var(--color-border)] text-[var(--color-ink)] font-mono text-xs rounded-xl flex items-center justify-center gap-2 hover:bg-[var(--color-paper-3)] transition-colors"
+            >
+              <Icon icon={Settings02Icon} class="w-3.5 h-3.5" />
+              <span>{t.nav_settings}</span>
+            </a>
+          </div>
 
           <button
-            on:click={handleLogout}
+            on:click={() => { isMobileMenuOpen = false; handleLogout(); }}
             class="w-full py-2.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-500 font-mono text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors"
           >
-            <Icon icon={Logout01Icon} class="w-4 h-4" />
+            <Icon icon={Logout01Icon} class="w-3.5 h-3.5" />
             <span>{t.logout}</span>
           </button>
         </div>
@@ -370,70 +371,106 @@
         {/each}
       </nav>
 
-      <!-- Sidebar Footer / Actions -->
-      <div class="p-3 border-t border-[var(--color-border)] space-y-2">
-        <!-- Language Switcher Button -->
-        <button
-          on:click={toggleLang}
-          class={`w-full py-2 bg-[var(--color-paper)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] font-mono text-[11px] rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer ${
-            isSidebarCompact ? 'px-0' : 'px-3'
-          }`}
-          title="Switch Language (ID / EN)"
-        >
-          <div class="p-1 rounded-md bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]">
-            <Icon icon={TranslateIcon} class="w-3.5 h-3.5 shrink-0" />
-          </div>
-          {#if !isSidebarCompact}
-            <span>{t.lang_label}</span>
-          {/if}
-        </button>
+      <!-- Sidebar Footer / User Profile & Drop-Up -->
+      <div id="profile-menu-container" class="p-3 border-t border-[var(--color-border)] relative">
+        <!-- Drop-Up Popover Menu (anchored above) -->
+        {#if isProfileMenuOpen}
+          <div
+            class={`absolute bottom-full mb-2 bg-[var(--color-paper-2)] border border-[var(--color-border)] rounded-2xl shadow-xl p-1.5 space-y-1 font-mono text-xs z-50 animate-in fade-in zoom-in-95 duration-150 ${
+              isSidebarCompact ? 'left-3 w-56' : 'left-3 right-3'
+            }`}
+          >
+            <!-- User Summary Header -->
+            <div class="px-3 py-2 border-b border-[var(--color-border)]/60 flex items-center gap-2.5">
+              <!-- Avatar: Placeholder Icon Orang (NO initials) -->
+              <div class="w-8 h-8 rounded-xl bg-[var(--color-paper-3)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-ink-muted)] shrink-0">
+                <Icon icon={UserIcon} class="w-4 h-4" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="font-extrabold text-xs text-[var(--color-ink)] truncate">
+                  {$currentUser?.username || 'owner'}
+                </div>
+                <div class="text-[10px] text-emerald-700 dark:text-[var(--color-accent)] font-bold">
+                  Owner
+                </div>
+              </div>
+            </div>
 
-        <!-- Theme Toggle Switch -->
+            <!-- Menu Links -->
+            <div class="py-1 space-y-0.5">
+              <a
+                href="/profile"
+                on:click={closeProfileMenu}
+                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[var(--color-ink)] hover:bg-[var(--color-paper-3)] transition-colors cursor-pointer font-semibold group"
+              >
+                <div class="p-1 rounded-lg bg-[var(--color-paper-3)] group-hover:bg-[var(--color-paper-2)] text-[var(--color-ink-muted)] shrink-0">
+                  <Icon icon={UserIcon} class="w-3.5 h-3.5" />
+                </div>
+                <span>{t.menu_profile}</span>
+              </a>
+
+              <a
+                href="/settings"
+                on:click={closeProfileMenu}
+                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[var(--color-ink)] hover:bg-[var(--color-paper-3)] transition-colors cursor-pointer font-semibold group"
+              >
+                <div class="p-1 rounded-lg bg-[var(--color-paper-3)] group-hover:bg-[var(--color-paper-2)] text-[var(--color-ink-muted)] shrink-0">
+                  <Icon icon={Settings02Icon} class="w-3.5 h-3.5" />
+                </div>
+                <span>{t.menu_settings}</span>
+              </a>
+            </div>
+
+            <!-- Logout Item -->
+            <div class="pt-1 border-t border-[var(--color-border)]/60">
+              <button
+                type="button"
+                on:click={() => { closeProfileMenu(); handleLogout(); }}
+                class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer font-semibold group text-left"
+              >
+                <div class="p-1 rounded-lg bg-rose-500/10 text-rose-500 shrink-0">
+                  <Icon icon={Logout01Icon} class="w-3.5 h-3.5" />
+                </div>
+                <span>{t.menu_logout}</span>
+              </button>
+            </div>
+          </div>
+        {/if}
+
+        <!-- Profile Pill Trigger Button -->
         <button
-          on:click={toggleTheme}
-          class={`w-full py-2 bg-[var(--color-paper)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] font-mono text-[11px] rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer ${
-            isSidebarCompact ? 'px-0' : 'px-3'
-          }`}
-          title={currentTheme === 'light' ? t.switch_theme_dark : t.switch_theme_light}
+          type="button"
+          on:click={toggleProfileMenu}
+          class={`w-full rounded-xl bg-[var(--color-paper)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] transition-all cursor-pointer group shadow-xs ${
+            isSidebarCompact
+              ? 'h-11 flex items-center justify-center p-0'
+              : 'p-2 flex items-center justify-between gap-2.5'
+          } ${isProfileMenuOpen ? 'border-[var(--color-accent)] ring-2 ring-[var(--color-accent)]/20' : ''}`}
+          title={$currentUser?.username || 'owner'}
+          aria-expanded={isProfileMenuOpen}
         >
-          <div class="p-1 rounded-md bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]">
-            {#if currentTheme === 'light'}
-              <Icon icon={Moon02Icon} class="w-3.5 h-3.5 shrink-0" />
-            {:else}
-              <Icon icon={Sun03Icon} class="w-3.5 h-3.5 shrink-0" />
+          <div class={`flex items-center gap-2.5 min-w-0 ${isSidebarCompact ? 'justify-center' : ''}`}>
+            <!-- Avatar: Placeholder Icon Orang (NO initials) -->
+            <div class="w-8 h-8 rounded-xl bg-[var(--color-paper-2)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-ink-muted)] group-hover:text-[var(--color-ink)] shrink-0">
+              <Icon icon={UserIcon} class="w-4 h-4" />
+            </div>
+
+            {#if !isSidebarCompact}
+              <div class="flex flex-col min-w-0 text-left">
+                <span class="font-mono font-bold text-xs text-[var(--color-ink)] truncate leading-tight">
+                  {$currentUser?.username || 'owner'}
+                </span>
+                <span class="text-[10px] font-mono text-[var(--color-ink-muted)] truncate leading-tight mt-0.5">
+                  Personal Account
+                </span>
+              </div>
             {/if}
           </div>
-          {#if !isSidebarCompact}
-            <span>{currentTheme === 'light' ? t.switch_theme_dark : t.switch_theme_light}</span>
-          {/if}
-        </button>
 
-        <a
-          href="/api/export/csv"
-          download
-          class={`w-full py-2 bg-[var(--color-paper)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] font-mono text-[11px] rounded-xl transition-colors flex items-center justify-center gap-2 ${
-            isSidebarCompact ? 'px-0' : 'px-3'
-          }`}
-          title={t.export_csv}
-        >
-          <div class="p-1 rounded-md bg-[var(--color-paper-3)] text-[var(--color-ink-muted)]">
-            <Icon icon={Download01Icon} class="w-3.5 h-3.5 shrink-0" />
-          </div>
           {#if !isSidebarCompact}
-            <span>{t.export_csv}</span>
-          {/if}
-        </a>
-
-        <button
-          on:click={handleLogout}
-          class={`w-full py-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-500 font-mono text-[11px] rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer ${
-            isSidebarCompact ? 'px-0' : 'px-3'
-          }`}
-          title={t.logout}
-        >
-          <Icon icon={Logout01Icon} class="w-3.5 h-3.5 shrink-0" />
-          {#if !isSidebarCompact}
-            <span>{t.logout}</span>
+            <div class="p-1 rounded-md text-[var(--color-ink-muted)] group-hover:text-[var(--color-ink)] shrink-0">
+              <Icon icon={MoreVerticalIcon} class="w-4 h-4" />
+            </div>
           {/if}
         </button>
       </div>

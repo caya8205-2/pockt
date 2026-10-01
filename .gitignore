@@ -10,5 +10,6 @@ build/
 backend-dev.log
 test-results/
 config.yml
+*.zip
 .env
 .env.local
